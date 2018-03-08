@@ -394,7 +394,7 @@ class User_model extends CI_Model
 			return FALSE;
 		$the_user = $query->row();
 		$username = $the_user->username;
-		
+
 		$display_name = $this->input->post('display_name');
 		$locked = $this->settings_model->get_setting(lock_student_display_name);
 		if ($locked == 1) {
@@ -449,7 +449,7 @@ class User_model extends CI_Model
 		// send the email:
 		$this->load->library('email');
 		$this->load->config('secrets');
-		
+
 		$config = array(
 			'mailtype'  => 'html',
 			'charset'   => 'iso-8859-1'
@@ -574,7 +574,35 @@ class User_model extends CI_Model
 	}
 
 
+	// ------------------------------------------------------------------------
 
+
+	/**
+	 * Mencatat Logs (Tabel shj_logins)
+	 *
+	 *
+	 *
+	 */
+	public function insert_to_logs($username, $ip_adrress)
+	{
+		$query = $this->db->get('logins')->result_array();
+		//menghapus timestamp user yang lebih dari 30 x 24 jam
+		foreach ($query as $row)
+		{
+			$temptime=strtotime('+1 month', strtotime($row['timestamp']));
+			if ($temptime < shj_now()) {
+				# delete
+				$this->db->where('timestamp', $row['timestamp']);
+				$this->db->delete('logins');
+			}
+		}
+
+		$logins = array(
+      'username' => $username,
+      'ip_address' => $ip_adrress
+    );
+    $this->db->insert('logins', $logins);
+	}
 
 
 }

@@ -53,15 +53,16 @@ class Login extends CI_Controller
 		if($this->form_validation->run()){
 			$username = $this->input->post('username');
 			$password = $this->input->post('password');
-			
+			$ip_adrress = $this->input->ip_address();
+
 			$this->load->config('secrets');
 			if($this->config->item('shj_authenticate')) {
 				$client = new Radius();
 				$client->setServer($this->config->item('shj_radius')['server']) // RADIUS server address
 					->setSecret($this->config->item('shj_radius')['secret']);
 			}
-			if($this->user_model->validate_user($username, $password) || 
-				($this->config->item('shj_authenticate') && 
+			if($this->user_model->validate_user($username, $password) ||
+				($this->config->item('shj_authenticate') &&
 				$client->accessRequest($username, $password))){
 				// setting the session and redirecting to dashboard:
 				$login_data = array(
@@ -70,6 +71,7 @@ class Login extends CI_Controller
 				);
 				$this->session->set_userdata($login_data);
 				$this->user_model->update_login_time($username);
+				$this->user_model->insert_to_logs($username,$ip_adrress);
 				redirect('/');
 			}
 			else
