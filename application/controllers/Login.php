@@ -71,7 +71,7 @@ class Login extends CI_Controller
 				);
 				$this->session->set_userdata($login_data);
 				$this->user_model->update_login_time($username);
-				$this->user_model->insert_to_logs($username,$ip_adrress);
+				$this->logs_model->insert_to_logs($username,$ip_adrress);
 				redirect('/');
 			}
 			else

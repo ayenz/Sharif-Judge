@@ -1,0 +1,37 @@
+{#
+ # SharIF Judge
+ # file: logs.twig
+ # author: Mohammad Javad Naderi <mjnaderi@gmail.com>
+ #}
+{% set selected = 'logs' %}
+{% extends 'templates/base.twig' %}
+{% block icon %}fa-book{% endblock %}
+{% block title %}Logs{% endblock %}
+{% block head_title %}Logs{% endblock %}
+
+
+
+{% block main_content %}
+
+<div style="height:15px"></div>
+<table class="sharif_table">
+	<thead>
+		<tr>
+			<th>#</th>
+			<th>Login ID</th>
+			<th>Username</th>
+      <th>Current IP Address</th>
+      <th>Last Login</th>
+		</tr>
+	</thead>
+	{% for log in logs %}
+		<tr>
+			<td>{{ loop.index }}</td>
+			<td>{{ log.login_id }}</td>
+			<td>{{ log.username }}</td>
+      <td>{{ log.ip_address }}</td>
+      <td>{{ log.timestamp }}</td>
+		</tr>
+	{% endfor %}
+</table>
+{% endblock %} {# main_content #}
