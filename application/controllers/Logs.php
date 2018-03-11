@@ -1,8 +1,8 @@
 <?php
 /**
  * SharIF Judge online judge
- * @file Users.php
- * @author Mohammad Javad Naderi <mjnaderi@gmail.com>
+ * @file Logs.php
+ * @author Stillmen Vallian <stillmen.v@gmail.com>
  */
 defined('BASEPATH') OR exit('No direct script access allowed');
 

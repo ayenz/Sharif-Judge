@@ -1,7 +1,7 @@
 {#
  # SharIF Judge
  # file: logs.twig
- # author: Mohammad Javad Naderi <mjnaderi@gmail.com>
+ # author: Stillmen Vallian <stillmen.v@gmail.com>
  #}
 {% set selected = 'logs' %}
 {% extends 'templates/base.twig' %}
@@ -20,17 +20,19 @@
 			<th>#</th>
 			<th>Login ID</th>
 			<th>Username</th>
-      <th>Current IP Address</th>
+      <th>IP Address</th>
       <th>Last Login</th>
+      <th>Last 24 Hour Login ID</th>
 		</tr>
 	</thead>
 	{% for log in logs %}
 		<tr>
 			<td>{{ loop.index }}</td>
-			<td>{{ log.login_id }}</td>
+			<td id='{{ log.login_id }}'>{{ log.login_id }}</td>
 			<td>{{ log.username }}</td>
       <td>{{ log.ip_address }}</td>
       <td>{{ log.timestamp }}</td>
+      <td><a href="#{{ log.last_24h_login_id }}">{{ log.last_24h_login_id }}</a></td>
 		</tr>
 	{% endfor %}
 </table>
