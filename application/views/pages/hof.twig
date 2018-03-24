@@ -12,5 +12,21 @@
 
 
 {% block main_content %}
-Nothing to show
+<div style="height:15px"></div>
+<table class="sharif_table">
+	<thead>
+		<tr>
+			<th>#</th>
+			<th>Username</th>
+			<th>Total Score</th>
+		</tr>
+	</thead>
+	{% for hof in hofs %}
+		<tr>
+			<td>{{ loop.index }}</td>
+			<td>{{ hof.username }}</td>
+      <td>{{ hof.totalscore }}</td>
+		</tr>
+	{% endfor %}
+</table>
 {% endblock %} {# main_content #}
