@@ -479,6 +479,31 @@ $(document).ready(function(){
 
 
 
+
+/**
+ * "Hall of Fame" page
+ */
+$(document).ready(function(){
+	$('.hof_details').click(function(){
+		noty({
+			text: 'Testing Noty',
+			layout: 'center',
+			type: 'confirm',
+			animation: {
+				open: {height: 'toggle'},
+				close: {height: 'toggle'},
+				easing: 'swing',
+				speed: 300
+			},
+			buttons: [
+				{addClass: 'btn shj-red', text: 'Close', onClick: function($noty){$noty.close();}}
+			]
+		});
+	});
+});
+
+
+
 /**
  * Set dir="auto" for all input elements
  */

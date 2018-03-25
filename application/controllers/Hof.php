@@ -39,4 +39,14 @@ class Hof extends CI_Controller
 
 	// ------------------------------------------------------------------------
 
+
+
+	/**
+	 * Controller for shows the details of the score
+	 * Called by ajax request
+	 */
+	public function hof_details()
+	{
+		//to do later
+	}
 }
