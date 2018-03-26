@@ -48,5 +48,13 @@ class Hof extends CI_Controller
 	public function hof_details()
 	{
 		//to do later
+		if ( ! $this->input->is_ajax_request() )
+			show_404();
+		$username = $this->input->post('username');
+
+		$json_result = $this->hof_model->get_all_user_assignments($username);
+		
+		$this->output->set_header('Content-Type: application/json; charset=utf-8');
+		echo json_encode($json_result);
 	}
 }

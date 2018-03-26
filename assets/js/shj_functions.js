@@ -485,19 +485,39 @@ $(document).ready(function(){
  */
 $(document).ready(function(){
 	$('.hof_details').click(function(){
-		noty({
-			text: 'Testing Noty',
-			layout: 'center',
-			type: 'confirm',
-			animation: {
-				open: {height: 'toggle'},
-				close: {height: 'toggle'},
-				easing: 'swing',
-				speed: 300
+		var row = $(this).closest("tr");    // Find the row
+    var username = row.find(".username").text();
+		$.ajax({
+			type: 'POST',
+			url: shj.site_url+'hof/hof_details',
+			data: {
+				username: username,
+				shj_csrf_token: shj.csrf_token
 			},
-			buttons: [
-				{addClass: 'btn shj-red', text: 'Close', onClick: function($noty){$noty.close();}}
-			]
+			beforeSend: shj.loading_start,
+			complete: shj.loading_finish,
+			error: shj.loading_error,
+
+			success: function(response){
+				var temp='';
+				for (var i = 0; i < response.length; i++) {
+					temp = temp+response[i].assignment+' = '+response[i].totalscore+'<br>';
+				}
+				noty({
+					text: 'Hall of Fame for username: '+username+' <br>============================<br><b>'+temp+'</b>',
+					layout: 'center',
+					type: 'confirm',
+					animation: {
+						open: {height: 'toggle'},
+						close: {height: 'toggle'},
+						easing: 'swing',
+						speed: 300
+					},
+					buttons: [
+						{addClass: 'btn shj-red', text: 'Close', onClick: function($noty){$noty.close();}}
+					]
+				});
+			}
 		});
 	});
 });

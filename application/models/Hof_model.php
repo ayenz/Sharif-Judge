@@ -31,4 +31,22 @@ class Hof_model extends CI_Model
 
 
 	// ------------------------------------------------------------------------
+
+	/**
+	 *
+	 *
+	 *
+	 * @return mixed
+	 */
+	public function get_all_user_assignments($username)
+	{
+		$this->load->model('assignment_model');
+    $details = $this->db->query("SELECT assignment, SUM(pre_score * coefficient / 100) AS totalscore FROM shj_submissions WHERE is_final=1 AND username='$username' GROUP BY assignment")->result_array();
+
+		foreach ($details as $key => $detail) {
+			$assignment_id = $detail['assignment'];
+			$details[$key]['assignment'] = $this->assignment_model->assignment_info($assignment_id)['name'];
+    }
+		return $details;
+	}
 }
