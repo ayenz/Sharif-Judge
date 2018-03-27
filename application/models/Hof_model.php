@@ -26,14 +26,15 @@ class Hof_model extends CI_Model
 	 */
 	public function get_all_final_submission()
 	{
-    return $this->db->query("SELECT username, SUM(pre_score * coefficient / 100) AS totalscore FROM shj_submissions WHERE is_final=1 GROUP BY username")->result_array();
+		//to do later = exclude "upload only" file
+    return $this->db->query("SELECT username, SUM(pre_score * coefficient / 100) AS totalscore FROM shj_submissions WHERE is_final=1 GROUP BY username ORDER BY totalscore DESC")->result_array();
 	}
 
 
 	// ------------------------------------------------------------------------
 
 	/**
-	 *
+	 * Get details assignments & problems for selected user
 	 *
 	 *
 	 * @return mixed
