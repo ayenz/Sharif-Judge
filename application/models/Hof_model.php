@@ -41,11 +41,13 @@ class Hof_model extends CI_Model
 	public function get_all_user_assignments($username)
 	{
 		$this->load->model('assignment_model');
-    $details = $this->db->query("SELECT assignment, SUM(pre_score * coefficient / 100) AS totalscore FROM shj_submissions WHERE is_final=1 AND username='$username' GROUP BY assignment")->result_array();
-
+		$details = $this->db->query("SELECT assignment, problem, (pre_score * coefficient / 100) AS score FROM shj_submissions WHERE is_final=1 AND username='$username'")->result_array();
+    //$details = $this->db->query("SELECT assignment, SUM(pre_score * coefficient / 100) AS totalscore FROM shj_submissions WHERE is_final=1 AND username='$username' GROUP BY assignment")->result_array();
 		foreach ($details as $key => $detail) {
 			$assignment_id = $detail['assignment'];
+			$problem_id = $detail['problem'];
 			$details[$key]['assignment'] = $this->assignment_model->assignment_info($assignment_id)['name'];
+			$details[$key]['problem'] = $this->assignment_model->problem_info($assignment_id, $problem_id)['name'];
     }
 		return $details;
 	}

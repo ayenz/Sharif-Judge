@@ -499,12 +499,25 @@ $(document).ready(function(){
 			error: shj.loading_error,
 
 			success: function(response){
-				var temp='';
-				for (var i = 0; i < response.length; i++) {
-					temp = temp+response[i].assignment+' = '+response[i].totalscore+'<br>';
+				var currentAssignment = '';
+				var prevAssignment = response[0].assignment;
+				var temp = '<b>' +prevAssignment + '</b> <br>' + response[0].problem + ' : ' + response[0].score +'<br>';
+
+				for (var i = 1; i < response.length; i++) {
+					currentAssignment = response[i].assignment;
+					var index = currentAssignment.localeCompare(prevAssignment);
+					if (index == 0) {
+						temp = temp + response[i].problem + ' : ' + response[i].score + '<br>';
+						prevAssignment = currentAssignment;
+					}
+					else{
+						temp = temp + '----------------------------<br><b>'+currentAssignment + '</b><br>' + response[i].problem + ' : ' + response[i].score + '<br>';
+						prevAssignment = currentAssignment;
+					}
 				}
+
 				noty({
-					text: 'Hall of Fame for username: '+username+' <br>============================<br><b>'+temp+'</b>',
+					text: 'Hall of Fame for username: <b>'+username+'</b><br>============================<br>'+temp,
 					layout: 'center',
 					type: 'confirm',
 					animation: {
