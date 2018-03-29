@@ -48,6 +48,7 @@ class Hof_model extends CI_Model
 			$assignment_id = $detail['assignment'];
 			$problem_id = $detail['problem'];
 			$details[$key]['assignment'] = $this->assignment_model->assignment_info($assignment_id)['name'];
+			$details[$key]['scoreboard'] = $this->assignment_model->assignment_info($assignment_id)['scoreboard'];
 			$details[$key]['problem'] = $this->assignment_model->problem_info($assignment_id, $problem_id)['name'];
     }
 		return $details;

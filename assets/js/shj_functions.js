@@ -500,19 +500,32 @@ $(document).ready(function(){
 
 			success: function(response){
 				var currentAssignment = '';
-				var prevAssignment = response[0].assignment;
-				var temp = '<b>' +prevAssignment + '</b> <br>' + response[0].problem + ' : ' + response[0].score +'<br>';
+				var prevAssignment = '';
+				var temp = '';
 
-				for (var i = 1; i < response.length; i++) {
-					currentAssignment = response[i].assignment;
-					var index = currentAssignment.localeCompare(prevAssignment);
-					if (index == 0) {
-						temp = temp + response[i].problem + ' : ' + response[i].score + '<br>';
-						prevAssignment = currentAssignment;
+				for (var i = 0; i < response.length; i++) {
+					//temp = temp + '<b>' +response[i].assignment + '</b> <br>';
+					if (response[i].scoreboard == 0) {
+						temp = temp + '----------------------------<br><b>' +response[i].assignment + '<br>Scoreboard Disabled!</b>';
 					}
 					else{
-						temp = temp + '----------------------------<br><b>'+currentAssignment + '</b><br>' + response[i].problem + ' : ' + response[i].score + '<br>';
-						prevAssignment = currentAssignment;
+						if (i == 0) {
+							//prevAssignment = response[i].assignment;
+							temp = temp + '<b>' + response[i].assignment + '</b> <br>' + response[i].problem + ' : ' + response[i].score +'<br>';
+							prevAssignment = response[i].assignment;
+						}
+						else{
+							currentAssignment = response[i].assignment;
+							var index = currentAssignment.localeCompare(prevAssignment); //comparing previous assignment's name with current assignment's name
+							if (index == 0) {
+								temp = temp + response[i].problem + ' : ' + response[i].score + '<br>';
+								prevAssignment = currentAssignment;
+							}
+							else{
+								temp = temp + '----------------------------<br><b>'+currentAssignment + '</b><br>' + response[i].problem + ' : ' + response[i].score + '<br>';
+								prevAssignment = currentAssignment;
+							}
+						}
 					}
 				}
 
