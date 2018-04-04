@@ -489,7 +489,7 @@ $(document).ready(function(){
     var username = row.find(".username").text();
 		$.ajax({
 			type: 'POST',
-			url: shj.site_url+'hof/hof_details',
+			url: shj.site_url+'halloffame/hof_details',
 			data: {
 				username: username,
 				shj_csrf_token: shj.csrf_token
@@ -504,13 +504,11 @@ $(document).ready(function(){
 				var temp = '';
 
 				for (var i = 0; i < response.length; i++) {
-					//temp = temp + '<b>' +response[i].assignment + '</b> <br>';
 					if (response[i].scoreboard == 0) {
 						temp = temp + '----------------------------<br><b>' +response[i].assignment + '<br>Scoreboard Disabled!</b>';
 					}
 					else{
 						if (i == 0) {
-							//prevAssignment = response[i].assignment;
 							temp = temp + '<b>' + response[i].assignment + '</b> <br>' + response[i].problem + ' : ' + response[i].score +'<br>';
 							prevAssignment = response[i].assignment;
 						}

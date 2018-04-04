@@ -1,12 +1,12 @@
 <?php
 /**
  * SharIF Judge online judge
- * @file Hof.php
+ * @file Halloffame.php
  * @author Stillmen Vallian <stillmen.v@gmail.com>
  */
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Hof extends CI_Controller
+class Halloffame extends CI_Controller
 {
 
 
@@ -31,7 +31,7 @@ class Hof extends CI_Controller
 		$data = array(
 			'hofs' => $this->hof_model->get_all_final_submission()
 		);
-		$this->twig->display('pages/hof.twig', $data);
+		$this->twig->display('pages/halloffame.twig', $data);
 	}
 
 
@@ -47,13 +47,12 @@ class Hof extends CI_Controller
 	 */
 	public function hof_details()
 	{
-		//to do later
 		if ( ! $this->input->is_ajax_request() )
 			show_404();
 		$username = $this->input->post('username');
 
 		$json_result = $this->hof_model->get_all_user_assignments($username);
-		
+
 		$this->output->set_header('Content-Type: application/json; charset=utf-8');
 		echo json_encode($json_result);
 	}
