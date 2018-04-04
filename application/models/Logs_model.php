@@ -71,8 +71,6 @@ class Logs_model extends CI_Model
 	 */
 	public function get_all_logs()
 	{
-		//$query = $this->db->query("SELECT * FROM shj_logins WHERE login_id IN (SELECT MAX(login_id) FROM shj_logins GROUP BY username) ORDER BY login_id DESC");
-		//return $query->result_array();
 		return $this->db->order_by('login_id', 'desc')->get('logins')->result_array();
 	}
 
