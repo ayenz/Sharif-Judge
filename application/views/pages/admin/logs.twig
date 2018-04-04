@@ -13,7 +13,8 @@
 
 {% block main_content %}
 
-<div style="height:15px"></div>
+<p style="text-align:justify">Use this table to detect account lendings between students in a pre-seated exam environment. In a pre-seated environment, student should have logged in from only one IP address within the exam time period. Whenever a user logs in from different IP address in the past 24 hours, last column of this table will show link to the previous login that happened. In such case, proctor can analyse from those two logins, whether the same login has been used in different devices (meaning the account had been lent).</p>
+
 <table class="sharif_table">
 	<thead>
 		<tr>
@@ -21,8 +22,8 @@
 			<th>Login ID</th>
 			<th>Username</th>
       <th>IP Address</th>
-      <th>Last Login</th>
-      <th>Last 24 Hour Login ID</th>
+      <th>Login Time</th>
+      <th>Log from different IP (< 24 hours)</th>
 		</tr>
 	</thead>
 	{% for log in logs %}

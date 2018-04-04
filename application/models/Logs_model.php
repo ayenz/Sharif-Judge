@@ -28,10 +28,10 @@ class Logs_model extends CI_Model
 	{
 		$query = $this->db->get('logins')->result_array();
 
-		//menghapus timestamp user yang lebih dari 30 x 24 jam
+		//menghapus timestamp user yang lebih dari 24 jam
 		foreach ($query as $row)
 		{
-			$temptime=strtotime('+1 month', strtotime($row['timestamp']));
+			$temptime=strtotime('+24 hour', strtotime($row['timestamp']));
 			if ($temptime < shj_now()) {
 				# delete
 				$this->db->where('timestamp', $row['timestamp']);
@@ -48,23 +48,13 @@ class Logs_model extends CI_Model
 	    $this->db->insert('logins', $logins);
 		}
 		else{
-			$under_24_hour = strtotime('+24 hour', strtotime($result -> timestamp));
-			if ($under_24_hour > shj_now()) {
-				$get_last_login_id = $result -> login_id;
-				$logins = array(
-		      'username' => $username,
-		      'ip_address' => $ip_adrress,
-					'last_24h_login_id' => $get_last_login_id
-		    );
-		    $this->db->insert('logins', $logins);
-			}
-			else{
-				$logins = array(
-		      'username' => $username,
-		      'ip_address' => $ip_adrress
-		    );
-		    $this->db->insert('logins', $logins);
-			}
+			$get_last_login_id = $result -> login_id;
+			$logins = array(
+				'username' => $username,
+				'ip_address' => $ip_adrress,
+				'last_24h_login_id' => $get_last_login_id
+			);
+			$this->db->insert('logins', $logins);
 		}
 	}
 
