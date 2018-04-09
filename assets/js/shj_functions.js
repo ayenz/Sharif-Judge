@@ -505,7 +505,7 @@ $(document).ready(function(){
 
 				for (var i = 0; i < response.length; i++) {
 					if (response[i].scoreboard == 0) {
-						temp = temp + '----------------------------<br><b>' +response[i].assignment + '<br>Scoreboard Disabled!</b>';
+						temp = temp + '--------------------------------------------------<br><b>' + response[i].assignment + '</b><br>Scoreboard Disabled!';
 					}
 					else{
 						if (i == 0) {
@@ -520,7 +520,7 @@ $(document).ready(function(){
 								prevAssignment = currentAssignment;
 							}
 							else{
-								temp = temp + '----------------------------<br><b>'+currentAssignment + '</b><br>' + response[i].problem + ' : ' + response[i].score + '<br>';
+								temp = temp + '--------------------------------------------------<br><b>'+currentAssignment + '</b><br>' + response[i].problem + ' : ' + response[i].score + '<br>';
 								prevAssignment = currentAssignment;
 							}
 						}
