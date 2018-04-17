@@ -82,6 +82,7 @@ if ( ! function_exists('filetype_to_extension'))
 			case 'zip': return 'zip';
 			case 'pdf': return 'pdf';
 			case 'txt': return 'txt';
+			case 'jar': return 'jar';
 			default: return FALSE;
 		}
 	}
@@ -106,6 +107,7 @@ if ( ! function_exists('filetype_to_language'))
 			case 'zip': return 'Zip';
 			case 'pdf': return 'PDF';
 			case 'txt': return 'TXT';
+			case 'jar': return 'JAR';
 			default: return FALSE;
 		}
 	}

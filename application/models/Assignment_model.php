@@ -105,7 +105,7 @@ class Assignment_model extends CI_Model
 				if ( ! in_array($item2, array('c','c++','python 2','python 3','java','zip','pdf','txt')))
 					continue;
 				// If the problem is not Upload-Only, its language should be one of {C,C++,Python 2, Python 3,Java}
-				if ( ! in_array($i, $uo) && ! in_array($item2, array('c','c++','python 2','python 3','java')) )
+				if ( ! in_array($i, $uo) && ! in_array($item2, array('c','c++','python 2','python 3','java','jar')) )
 					continue;
 				$ft[$i-1] .= $item.",";
 			}
