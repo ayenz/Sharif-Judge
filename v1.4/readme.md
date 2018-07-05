@@ -13,4 +13,6 @@ Table of contents:
 * [Security](security.md)
 * [Sandboxing](sandboxing.md)
 * [Shield](shield.md)
+* [Hall of Fame](halloffame.md)
+* [Logs](logs.md)
 
