@@ -20,5 +20,9 @@ tester/easysandbox/t/*
 # Ignore MOSS File
 tester/moss
 
-# Ignore Testing Assignment
-assignments/
+# Ignore assignment data folders (not code folders named "assignments")
+/assignments/
+/restricted/assignments/
+
+# Local secrets for Docker
+docker/.env

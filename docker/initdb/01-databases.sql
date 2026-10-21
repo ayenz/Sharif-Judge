@@ -1,0 +1,4 @@
+CREATE DATABASE IF NOT EXISTS shj_ci3 CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE DATABASE IF NOT EXISTS shj_web CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+GRANT ALL PRIVILEGES ON shj_ci3.* TO 'shj'@'%';
+GRANT ALL PRIVILEGES ON shj_web.* TO 'shj'@'%';
