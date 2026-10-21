@@ -1,6 +1,7 @@
 import { resolve } from 'node:path'
 import { mkdir } from 'node:fs/promises'
 import { createTablesSql, defaultSettings } from '../../database/install'
+import { extraTablesSql } from '../../database/migrate'
 
 const { settings, users } = schema
 
@@ -16,7 +17,8 @@ export default defineEventHandler(async (event) => {
   }).refine(f => f.password === f.passwordAgain, { path: ['passwordAgain'], message: 'Passwords do not match.' }))
 
   const pool = usePool()
-  for (const sql of createTablesSql(useRuntimeConfig().db.prefix))
+  const prefix = useRuntimeConfig().db.prefix
+  for (const sql of [...createTablesSql(prefix), ...extraTablesSql(prefix)])
     await pool.query(sql)
 
   const { paths } = useRuntimeConfig()

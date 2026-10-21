@@ -3,6 +3,7 @@ import { access, chmod, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { and, asc, eq, ne } from 'drizzle-orm'
 import { typeToExtension } from '#shared/languages'
+import { type CheatLanguage, CHEAT_LANGUAGE_LABEL, fileTypeToCheatLanguage } from '#shared/cheat'
 
 const { submissions, assignments } = schema
 
@@ -49,10 +50,13 @@ export async function mossSaveUserId(userId: string): Promise<void> {
   await setSetting('moss_userid', userId)
 }
 
-function runMoss(script: string, files: string[], cwd: string): Promise<string> {
+/** Moss language names (`-l`); the legacy app never passed one, so everything was parsed as C. */
+const MOSS_LANGUAGE: Record<CheatLanguage, string> = { c: 'c', cpp: 'cc', java: 'java', python3: 'python' }
+
+function runMoss(script: string, args: string[], cwd: string): Promise<string> {
   return new Promise((resolve) => {
     // No shell: file names are passed as separate arguments (legacy built a shell string).
-    execFile(script, files, { cwd, timeout: MOSS_TIMEOUT_MS, maxBuffer: 16 * 1024 * 1024 }, (error, stdout) => {
+    execFile(script, args, { cwd, timeout: MOSS_TIMEOUT_MS, maxBuffer: 16 * 1024 * 1024 }, (error, stdout) => {
       if (error)
         console.warn(`[moss] ${script} exited with an error:`, error.message)
       resolve(String(stdout ?? ''))
@@ -95,21 +99,34 @@ export async function mossDetect(assignmentId: number): Promise<void> {
     }
 
     for (const [problemId, group] of groups) {
-      const files: string[] = []
+      // One Moss request per language, so each is parsed with the right grammar.
+      const byLanguage = new Map<CheatLanguage, string[]>()
       for (const s of group) {
         const ext = typeToExtension(s.fileType)
-        if (!ext || MOSS_EXCLUDED_TYPES.has(s.fileType))
+        const language = fileTypeToCheatLanguage(s.fileType)
+        if (!ext || !language || MOSS_EXCLUDED_TYPES.has(s.fileType))
           continue
         if (!/^[A-Za-z0-9]+$/.test(s.username) || !/^[A-Za-z0-9_\-()]+$/.test(s.fileName))
           continue
         const rel = `p${problemId}/${s.username}/${s.fileName}.${ext}`
         // Skip missing files: the moss script aborts on the first file it cannot read.
         if (await access(join(dir, rel)).then(() => true, () => false))
-          files.push(rel)
+          byLanguage.set(language, [...(byLanguage.get(language) ?? []), rel])
       }
-      const output = files.length ? await runMoss(script, files, dir) : ''
-      const link = output.split('\n').find(line => line.includes('http'))?.trim() ?? ''
-      await writeFile(join(dir, `p${problemId}`, 'moss_link.txt'), link ? `${link}\n` : '')
+      const links: string[] = []
+      for (const [language, files] of byLanguage) {
+        if (files.length < 2)
+          continue
+        const args = ['-l', MOSS_LANGUAGE[language]]
+        const base = await cheatBaseCodePath(assignmentId, problemId, language)
+        if (await access(base).then(() => true, () => false))
+          args.push('-b', base)
+        const output = await runMoss(script, [...args, ...files], dir)
+        const link = output.split('\n').find(line => line.includes('http'))?.trim()
+        if (link)
+          links.push(byLanguage.size > 1 ? `${CHEAT_LANGUAGE_LABEL[language]}: ${link}` : link)
+      }
+      await writeFile(join(dir, `p${problemId}`, 'moss_link.txt'), links.length ? `${links.join('\n')}\n` : '')
         .catch(error => console.warn('[moss] cannot write moss_link.txt:', (error as Error).message))
     }
     await useDb().update(assignments).set({ mossUpdate: await nowStr() }).where(eq(assignments.id, assignmentId))

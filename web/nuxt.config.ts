@@ -55,6 +55,12 @@ export default defineNuxtConfig({
       tester: '',
       assignments: '',
     },
+    // JPlag cheat detection; empty paths disable it (the Docker image sets them).
+    cheat: {
+      java: '',
+      jplagJar: '',
+      workDir: '',
+    },
     queue: {
       // Set to false on extra web replicas so only one process runs submissions.
       enabled: true,

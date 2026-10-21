@@ -75,6 +75,21 @@ keterlambatan, dan urutan scoreboard harus identik.
 - **Dashboard**: widget yang bisa digeser diganti tata letak tetap; notifikasi baru dicek tiap 30 detik.
 - **Metrik rekaman**: CCT bernilai 0 (bukan tak hingga) bila kode tidak berubah.
 
+## Fitur baru: cheat detection (JPlag)
+- **Mesin lokal JPlag 6.3** (Java 25 tersendiri di image; tester tetap Java 17). Kode tidak keluar dari server.
+  Per soal dan per bahasa (C, C++, Java, Python), dijalankan di background satu per satu.
+- **Kode template** per soal (diabaikan saat membandingkan) dan **pembanding tugas lain** (submission lama).
+- **Sensitivitas adaptif**: program pendek (tugas dasar) otomatis memakai ambang lebih kecil
+  (median token ÷ 6, minimal 4). Diuji: salinan dengan urutan fungsi ditukar naik dari 52% ke 88%,
+  solusi yang benar-benar berbeda tetap 0%.
+- **Penyaring noise**: kemiripan dengan kode lama milik sendiri tidak dihitung; pasangan yang hanya cocok
+  pada potongan < 6 token (dan kemiripan < 60%) tidak disimpan.
+- **Skor indikasi per mahasiswa**: kemiripan kode + paste besar + sering keluar halaman + menulis sangat cepat,
+  dengan alasan tertulis. Ini petunjuk untuk diperiksa, bukan vonis.
+- **Moss** tetap tersedia; bug lama diperbaiki: bahasa kini dikirim (`-l`, sebelumnya semua dianggap C),
+  satu permintaan per bahasa, kode template ikut dikirim (`-b`).
+- Tes: `tests/e2e/cheat-flow.py`.
+
 ## Catatan keamanan yang belum diselesaikan
 - **EasySandbox tidak berfungsi** di glibc modern (semua program dimatikan), dan instalasi lama ternyata
   tidak pernah meng-compile-nya. Jadi kode C/C++ berjalan tanpa sandbox, hanya dibatasi shield dan

@@ -22,7 +22,7 @@ const links = computed<NavigationMenuItem[][]>(() => {
       { label: 'Recordings', icon: 'i-lucide-video', to: '/recordings' },
       { label: 'Rejudge', icon: 'i-lucide-rotate-ccw', to: '/rejudge' },
       { label: 'Queue', icon: 'i-lucide-list-ordered', to: '/queue' },
-      { label: 'Cheat Detection', icon: 'i-lucide-scan-search', to: `/moss/${me.value?.selectedAssignment.id ?? 0}` },
+      { label: 'Cheat Detection', icon: 'i-lucide-scan-search', to: `/cheat/${me.value?.selectedAssignment.id ?? 0}` },
     )
   }
   if (level.value >= 3) {

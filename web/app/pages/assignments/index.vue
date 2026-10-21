@@ -75,7 +75,7 @@ function staffItems(row: AssignmentRow): DropdownMenuItem[][] {
   if (level.value >= 2) {
     groups.push([
       { label: 'Edit', icon: 'i-lucide-pencil', to: `/assignments/${row.id}/edit` },
-      { label: 'Cheat detection', icon: 'i-lucide-scan-search', to: `/moss/${row.id}` },
+      { label: 'Cheat detection', icon: 'i-lucide-scan-search', to: `/cheat/${row.id}` },
     ])
   }
   const downloads: DropdownMenuItem[] = []

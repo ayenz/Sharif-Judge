@@ -10,6 +10,7 @@ import {
   datetime,
   timestamp,
   float,
+  mediumtext,
 } from 'drizzle-orm/mysql-core'
 
 const prefix = process.env.NUXT_DB_PREFIX ?? 'shj_'
@@ -131,4 +132,44 @@ export const recording = table('recording', {
   totalNavOut: int('total_nav_out', { unsigned: true }).notNull(),
   maxInserted: int('max_inserted', { unsigned: true }).notNull(),
   maxRemoved: int('max_removed', { unsigned: true }).notNull(),
+})
+
+// ---------------------------------------------------------------------------
+// Cheat detection (new in the Nuxt version; created by server/database/migrate.ts)
+
+export const cheatRuns = table('cheat_runs', {
+  id: int('id', { unsigned: true }).autoincrement().primaryKey(),
+  assignment: smallint('assignment', { unsigned: true }).notNull(),
+  problem: smallint('problem', { unsigned: true }).notNull(),
+  /** JPlag language: c, cpp, java or python3. */
+  language: varchar('language', { length: 10 }).notNull(),
+  /** queued, running, done or failed. */
+  status: varchar('status', { length: 10 }).notNull(),
+  /** JSON: { minTokens, compareAssignments, baseCode }. */
+  options: text('options').notNull(),
+  createdAt: dt('created_at').notNull(),
+  finishedAt: dt('finished_at'),
+  submissions: int('submissions', { unsigned: true }).notNull().default(0),
+  comparisons: int('comparisons', { unsigned: true }).notNull().default(0),
+  /** JSON list of submission ids JPlag could not parse. */
+  failed: text('failed').notNull(),
+  error: text('error').notNull(),
+})
+
+export const cheatPairs = table('cheat_pairs', {
+  id: int('id', { unsigned: true }).autoincrement().primaryKey(),
+  runId: int('run_id', { unsigned: true }).notNull(),
+  /** Submission A always belongs to the checked assignment. */
+  userA: varchar('user_a', { length: 20 }).notNull(),
+  submitA: int('submit_a', { unsigned: true }).notNull(),
+  userB: varchar('user_b', { length: 20 }).notNull(),
+  submitB: int('submit_b', { unsigned: true }).notNull(),
+  /** Assignment and problem of B: differs from A when B is an older submission. */
+  assignmentB: smallint('assignment_b', { unsigned: true }).notNull(),
+  problemB: smallint('problem_b', { unsigned: true }).notNull(),
+  similarity: float('similarity').notNull(),
+  maxSimilarity: float('max_similarity').notNull(),
+  longestMatch: int('longest_match', { unsigned: true }).notNull(),
+  /** JSON list of [aStartLine, aEndLine, bStartLine, bEndLine, tokens]. */
+  matches: mediumtext('matches').notNull(),
 })
