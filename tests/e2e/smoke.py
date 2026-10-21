@@ -3,7 +3,7 @@ import requests, re, sys
 B = "http://172.30.30.101:8402"
 pages_all = ["/", "/notifications", "/assignments", "/problems", "/problems/1/1", "/problems/1/2", "/submit", "/submit?problem=1",
              "/submissions/final", "/submissions/all", "/submissions/all?user=alice&problem=1", "/scoreboard", "/hall-of-fame", "/profile"]
-pages_admin = ["/users", "/users/add", "/settings", "/logs", "/queue", "/rejudge", "/moss/1", "/recordings",
+pages_admin = ["/users", "/users/add", "/settings", "/logs", "/queue", "/rejudge", "/moss/1", "/cheat/1", "/recordings",
                "/assignments/add", "/assignments/1/edit", "/notifications/new", "/problems/1/1/edit", "/profile/3"]
 def run(user, pw, pages, expect=200):
     s = requests.Session()

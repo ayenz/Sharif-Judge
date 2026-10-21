@@ -5,7 +5,7 @@ from playwright.sync_api import sync_playwright
 B = "http://172.30.30.101:8402"
 admin_pages = ["/", "/notifications", "/assignments", "/problems/1/1", "/submit?problem=1", "/submissions/final", "/submissions/all",
   "/scoreboard", "/hall-of-fame", "/profile", "/users", "/users/add", "/settings", "/logs", "/queue", "/rejudge", "/moss/1",
-  "/recordings", "/recordings/1/1/frank", "/assignments/add", "/assignments/1/edit", "/notifications/new", "/problems/1/1/edit"]
+  "/recordings", "/recordings/1/1/frank", "/cheat/1", "/assignments/add", "/assignments/1/edit", "/notifications/new", "/problems/1/1/edit"]
 problems = []
 with sync_playwright() as p:
     br = p.chromium.launch()
