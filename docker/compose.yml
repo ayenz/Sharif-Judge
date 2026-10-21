@@ -1,0 +1,54 @@
+# Side-by-side environment for the Nuxt rewrite:
+#   web -> new Nuxt app                         http://<host>:8402
+#   ci3 -> legacy PHP app (regression baseline)  http://<host>:8401  (profile "legacy")
+# Each app gets its own database in the shared MariaDB instance.
+name: sharif-judge
+
+services:
+  db:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-shj_root}
+      MARIADB_USER: shj
+      MARIADB_PASSWORD: ${DB_PASSWORD:-shj_pass}
+    volumes:
+      - db:/var/lib/mysql
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      retries: 20
+
+  web:
+    build:
+      context: ..
+      dockerfile: docker/web.Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      NUXT_DB_HOST: db
+      NUXT_DB_USER: shj
+      NUXT_DB_PASSWORD: ${DB_PASSWORD:-shj_pass}
+      NUXT_DB_DATABASE: ${WEB_DB:-shj_web}
+      NUXT_SESSION_PASSWORD: ${SESSION_PASSWORD:?set SESSION_PASSWORD (32+ characters) in docker/.env}
+    ports: ["8402:3000"]
+    volumes:
+      - web-data:/data
+
+  ci3:
+    build:
+      context: .
+      dockerfile: legacy-php.Dockerfile
+    profiles: ["legacy"]
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    ports: ["8401:80"]
+    volumes:
+      - ${CI3_SRC:-../ci3}:/var/www/html
+
+volumes:
+  db:
+  web-data:
