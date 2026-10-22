@@ -1,6 +1,6 @@
 // Types shared by the cheat detection API and pages.
 
-export const CHEAT_LANGUAGES = ['c', 'cpp', 'java', 'python3', 'javascript', 'go'] as const
+export const CHEAT_LANGUAGES = ['c', 'cpp', 'java', 'python3', 'kotlin', 'javascript', 'go', 'swift'] as const
 export type CheatLanguage = typeof CHEAT_LANGUAGES[number]
 
 export const CHEAT_LANGUAGE_LABEL: Record<CheatLanguage, string> = {
@@ -8,8 +8,10 @@ export const CHEAT_LANGUAGE_LABEL: Record<CheatLanguage, string> = {
   cpp: 'C++',
   java: 'Java',
   python3: 'Python',
+  kotlin: 'Kotlin',
   javascript: 'JavaScript',
   go: 'Go',
+  swift: 'Swift',
 }
 
 /** Submission file type (submissions.file_type) to the JPlag language, or null if not code. */
@@ -21,14 +23,16 @@ export function fileTypeToCheatLanguage(fileType: string): CheatLanguage | null 
     case 'jzip': return 'java'
     case 'py2':
     case 'py3': return 'python3'
+    case 'kt': return 'kotlin'
     case 'js': return 'javascript'
     case 'go': return 'go'
+    case 'swift': return 'swift'
     default: return null
   }
 }
 
 export function cheatLanguageExtension(language: CheatLanguage): string {
-  return { c: 'c', cpp: 'cpp', java: 'java', python3: 'py', javascript: 'js', go: 'go' }[language]
+  return { c: 'c', cpp: 'cpp', java: 'java', python3: 'py', kotlin: 'kt', javascript: 'js', go: 'go', swift: 'swift' }[language]
 }
 
 export type CheatRunStatus = 'queued' | 'running' | 'done' | 'failed'

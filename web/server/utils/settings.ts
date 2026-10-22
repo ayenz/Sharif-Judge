@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs'
 import { eq } from 'drizzle-orm'
 
 const { settings } = schema
@@ -24,6 +25,21 @@ export async function getSetting(key: SettingKey): Promise<string> {
 /** Python 2 is end-of-life and not installed in the image: off unless an admin enables it. */
 export async function python2Enabled(): Promise<boolean> {
   return (await getSetting('enable_python2')) === '1'
+}
+
+/** Swift is optional in the image (build argument WITH_SWIFT=1); same path as tester.sh. */
+export function swiftInstalled(): boolean {
+  return existsSync(process.env.SHJ_SWIFTC || '/opt/swift/usr/bin/swiftc')
+}
+
+/** Judged languages this judge cannot run now: hidden in forms and pages, refused on submit. */
+export async function unavailableLanguages(): Promise<string[]> {
+  const out: string[] = []
+  if (!(await python2Enabled()))
+    out.push('Python 2')
+  if (!swiftInstalled())
+    out.push('Swift')
+  return out
 }
 
 export async function setSetting(key: SettingKey, value: string | number): Promise<void> {

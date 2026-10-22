@@ -3,7 +3,7 @@ import { parseAllowedLanguages } from '#shared/languages'
 // Problem page data (legacy Problems::index). Like the legacy app, any logged-in user
 // can read descriptions; submitting and PDFs have their own checks.
 export default defineEventHandler(async (event) => {
-  const python2 = await python2Enabled()
+  const unavailable = await unavailableLanguages()
   const user = await requireUser(event)
   const assignmentId = intParam(event, 'assignment')
   const problemId = intParam(event, 'problem')
@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
       pythonTimeLimit: p?.pythonTimeLimit ?? 0,
       javaTimeLimit: p?.javaTimeLimit ?? 0,
       memoryLimit: p?.memoryLimit ?? 0,
-      allowedLanguages: parseAllowedLanguages(p?.allowedLanguages ?? '').filter(l => python2 || l !== 'Python 2'),
+      allowedLanguages: parseAllowedLanguages(p?.allowedLanguages ?? '').filter(l => !unavailable.includes(l)),
       description,
       hasPdf,
       pdfBlockedReason: hasPdf ? await assignmentPdfBlockedReason(assignment, user) : null,

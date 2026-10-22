@@ -188,7 +188,7 @@ export async function assignmentTestsZipFiles(assignment: Assignment): Promise<R
   const problemCount = assignment.problems
   const root = await assignmentDir(assignmentId)
   const files: Record<string, Uint8Array> = {}
-  const meta = { format: 1, exportedAt: await nowStr(), ...await assignmentFormValues(assignment, true) }
+  const meta = { format: 1, exportedAt: await nowStr(), ...await assignmentFormValues(assignment) }
   files['assignment.json'] = new TextEncoder().encode(`${JSON.stringify(meta, null, 2)}\n`)
   for (let i = 1; i <= problemCount; i++) {
     const p = join(root, `p${i}`)
@@ -329,7 +329,7 @@ export async function assignmentSaveFromRequest(event: H3Event, editId: number |
     }
   }
   const form = parsed.data
-  const python2 = await python2Enabled()
+  const unavailable = await unavailableLanguages()
   let extraTime: number | null = null
   if (form) {
     extraTime = extraTimeParse(form.extraTime)
@@ -341,7 +341,7 @@ export async function assignmentSaveFromRequest(event: H3Event, editId: number |
     if (ruleError)
       errors.lateRule = `The coefficient rule has a syntax error: ${ruleError}`
     form.problems.forEach((p, i) => {
-      if (!assignmentNormalizeLanguages(p.languages, p.isUploadOnly, python2))
+      if (!assignmentNormalizeLanguages(p.languages, p.isUploadOnly, unavailable))
         errors[`problems.${i}.languages`] = p.isUploadOnly ? 'Select at least one language.' : 'Select at least one judged language (C, C++, Python, Java).'
     })
   }
@@ -369,7 +369,7 @@ export async function assignmentSaveFromRequest(event: H3Event, editId: number |
       archived: form.archived,
       problems: form.problems.map(p => ({
         ...p,
-        allowedLanguages: assignmentNormalizeLanguages(p.languages, p.isUploadOnly, python2),
+        allowedLanguages: assignmentNormalizeLanguages(p.languages, p.isUploadOnly, unavailable),
       })),
     }, edit)
   }

@@ -310,12 +310,16 @@ export function recordingCct(value: number | null | undefined): string {
 }
 
 /** Ace mode for a submission file type. */
-export function recordingAceMode(fileType?: string | null): 'c_cpp' | 'python' | 'java' | 'javascript' | 'golang' {
+export function recordingAceMode(fileType?: string | null): 'c_cpp' | 'python' | 'java' | 'javascript' | 'golang' | 'kotlin' | 'swift' {
   switch (fileType) {
     case 'js':
       return 'javascript'
     case 'go':
       return 'golang'
+    case 'kt':
+      return 'kotlin'
+    case 'swift':
+      return 'swift'
     case 'py2':
     case 'py3':
       return 'python'

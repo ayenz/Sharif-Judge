@@ -153,9 +153,10 @@ async function judgeItem(item: typeof schema.queue.$inferSelect) {
   const uDir = await userDir(item.assignment, problem.id, item.username)
   const tester = await testerPath()
 
-  // Go uses the C/C++ limit (compiled); JavaScript, Java zips and JARs the Java limit.
+  // Go and Swift use the C/C++ limit (native code); Java zips, JARs, Kotlin and JavaScript the
+  // Java limit (a virtual machine that starts and warms up).
   let timeLimitMs = problem.cTimeLimit
-  if (['java', 'jzip', 'jar', 'js'].includes(fileType))
+  if (['java', 'jzip', 'jar', 'kt', 'js'].includes(fileType))
     timeLimitMs = problem.javaTimeLimit
   else if (ext === 'py')
     timeLimitMs = problem.pythonTimeLimit

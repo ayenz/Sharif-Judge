@@ -126,7 +126,7 @@ export function assignmentLateRuleError(rule: string): string | null {
  * Normalizes allowed languages like the legacy add_assignment: known names only and,
  * unless the problem is upload-only, only judged languages.
  */
-export function assignmentNormalizeLanguages(languages: string[], uploadOnly: boolean, python2 = true): string {
+export function assignmentNormalizeLanguages(languages: string[], uploadOnly: boolean, unavailable: readonly string[] = []): string {
   const out: string[] = []
   for (const raw of languages) {
     const lower = raw.trim().toLowerCase()
@@ -135,7 +135,7 @@ export function assignmentNormalizeLanguages(languages: string[], uploadOnly: bo
       continue
     if (!uploadOnly && !JUDGED_LANGUAGES.includes(name))
       continue
-    if (name === 'Python 2' && !python2)
+    if (unavailable.includes(name))
       continue
     if (!out.includes(name))
       out.push(name)
@@ -169,10 +169,10 @@ async function updateCoefficients(tx: Tx, assignmentId: number, extraTime: numbe
 /** Inserts or updates an assignment and replaces its problems, in one transaction. */
 /**
  * An assignment and its problems in the shape of the add/edit form (AssignmentFormBody).
- * Used by the edit form and by the assignment.json of an export. Python 2 is left out while it
- * is disabled in Settings.
+ * Used by the edit form and by the assignment.json of an export. Languages in `unavailable`
+ * (see unavailableLanguages) are left out.
  */
-export async function assignmentFormValues(a: Assignment, python2: boolean) {
+export async function assignmentFormValues(a: Assignment, unavailable: readonly string[] = []) {
   const problems = Object.values(await assignmentProblems(a.id))
   return {
     name: a.name,
@@ -192,7 +192,7 @@ export async function assignmentFormValues(a: Assignment, python2: boolean) {
       pythonTimeLimit: p.pythonTimeLimit,
       javaTimeLimit: p.javaTimeLimit,
       memoryLimit: p.memoryLimit,
-      languages: parseAllowedLanguages(p.allowedLanguages).filter(l => python2 || l !== 'Python 2'),
+      languages: parseAllowedLanguages(p.allowedLanguages).filter(l => !unavailable.includes(l)),
       diffCmd: p.diffCmd,
       diffArg: p.diffArg,
       isUploadOnly: Boolean(p.isUploadOnly),

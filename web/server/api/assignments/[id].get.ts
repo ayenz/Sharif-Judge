@@ -4,6 +4,7 @@ export default defineEventHandler(async (event) => {
   const id = intParam(event, 'id')
   const defaultLateRule = await getSetting('default_late_rule')
   const python2 = await python2Enabled()
+  const unavailable = await unavailableLanguages()
   if (id === 0) {
     return {
       id: 0,
@@ -21,6 +22,7 @@ export default defineEventHandler(async (event) => {
       hasPdf: false,
       defaultLateRule,
       python2Enabled: python2,
+      unavailableLanguages: unavailable,
     }
   }
   const a = await getAssignment(id)
@@ -28,9 +30,10 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Not Found' })
   return {
     id: a.id,
-    ...await assignmentFormValues(a, python2),
+    ...await assignmentFormValues(a, unavailable),
     hasPdf: Boolean(await assignmentPdfPath(id)),
     defaultLateRule,
     python2Enabled: python2,
+    unavailableLanguages: unavailable,
   }
 })

@@ -25,6 +25,9 @@ services:
     build:
       context: ..
       dockerfile: docker/web.Dockerfile
+      args:
+        # 1 adds the Swift compiler (about 1.2 GB more image); see docs/guide/installation.md.
+        WITH_SWIFT: ${WITH_SWIFT:-0}
     restart: unless-stopped
     depends_on:
       db: { condition: service_healthy }

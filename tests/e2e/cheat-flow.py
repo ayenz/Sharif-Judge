@@ -160,4 +160,37 @@ for p in pairs4:
 sim4 = {frozenset([p["a"]["username"], p["b"]["username"]]): p["similarity"] for p in pairs4}
 assert sim4.get(frozenset(["alice", "bob"]), 0) >= 0.75, "Java copy not detected"
 assert sim4.get(frozenset(["alice", "carol"]), 0) < 0.5, "different Java solution flagged"
+
+# Kotlin, and Swift when the image has it: a renamed and reordered copy and an independent solution each.
+swift_on = "Swift" not in admin.get(B + "/api/assignments/0").json()["unavailableLanguages"]
+body5 = dict(body, name="Cheat Lab Kotlin/Swift", problems=[dict(body["problems"][0], languages=["Kotlin", "Swift"])])
+res = admin.post(B + "/api/assignments", files={"data": (None, json.dumps(body5)), "tests_desc": ("t.zip", tests.getvalue(), "application/zip")})
+res.raise_for_status(); aid5 = res.json()["id"]
+uploads = [("alice", "Kotlin", "alice.kt"), ("bob", "Kotlin", "bob.kt"), ("carol", "Kotlin", "carol.kt")]
+if swift_on:
+    uploads += [("dave", "Swift", "dave.swift"), ("erin", "Swift", "erin.swift"), ("frank", "Swift", "frank.swift")]
+for user, lang, f in uploads:
+    s = session(user, "secret123"); s.post(B + "/api/assignments/select", json={"id": aid5}).raise_for_status()
+    s.post(B + "/api/submit", files={"problem": (None, "1"), "language": (None, lang), "file": (f, (HERE / f).read_bytes())}).raise_for_status()
+    wait_queue()
+admin.post(B + f"/api/cheat/{aid5}/run", json={"compareAssignments": [], "minTokens": None}).raise_for_status()
+expected_runs = 2 if swift_on else 1
+for _ in range(120):
+    runs5 = admin.get(B + f"/api/cheat/{aid5}").json()["runs"]
+    if len(runs5) == expected_runs and all(r["status"] in ("done", "failed") for r in runs5): break
+    time.sleep(1)
+for r in runs5:
+    print(f"  run {r['language']}: {r['status']} subs={r['submissions']} comparisons={r['comparisons']} failed={r['failed']} {r['error'][:200]}")
+assert all(r["status"] == "done" and not r["failed"] for r in runs5), "Kotlin/Swift submissions could not be parsed"
+pairs5 = admin.get(B + f"/api/cheat/{aid5}/pairs").json()
+for p in pairs5:
+    print(f"  {p['similarity']*100:5.1f}%  {p['a']['username']:6} <-> {p['b']['username']:6} {p['language']:10} longest={p['longestMatch']}")
+sim5 = {frozenset([p["a"]["username"], p["b"]["username"]]): p["similarity"] for p in pairs5}
+assert sim5.get(frozenset(["alice", "bob"]), 0) >= 0.75, "Kotlin copy not detected"
+assert sim5.get(frozenset(["alice", "carol"]), 0) < 0.5, "different Kotlin solution flagged"
+if swift_on:
+    assert sim5.get(frozenset(["dave", "erin"]), 0) >= 0.75, "Swift copy not detected"
+    assert sim5.get(frozenset(["dave", "frank"]), 0) < 0.5, "different Swift solution flagged"
+else:
+    print("  (Swift not installed: Swift cases skipped)")
 print("ALL GOOD")

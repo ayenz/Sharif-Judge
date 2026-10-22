@@ -51,6 +51,8 @@ async function loadAce(): Promise<AceModule> {
     java: () => import('ace-builds/src-noconflict/mode-java'),
     javascript: () => import('ace-builds/src-noconflict/mode-javascript'),
     golang: () => import('ace-builds/src-noconflict/mode-golang'),
+    kotlin: () => import('ace-builds/src-noconflict/mode-kotlin'),
+    swift: () => import('ace-builds/src-noconflict/mode-swift'),
     c_cpp: () => import('ace-builds/src-noconflict/mode-c_cpp'),
   }
   await Promise.all([

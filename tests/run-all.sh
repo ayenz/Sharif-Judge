@@ -40,7 +40,7 @@ step "Isolation (shields off)"         isolation_without_shields
 step "Editor, recording, rejudge"      py tests/e2e/editor-flow.py
 step "Live updates"                    py tests/e2e/live.py
 step "Python 2 setting"                py tests/e2e/python2.py
-step "JavaScript and Go"               py tests/e2e/languages.py
+step "JavaScript, Go, Kotlin, Swift"   py tests/e2e/languages.py
 step "Java zip and JAR"                py tests/e2e/java-archives.py
 step "Export and import"               uv run --with requests --with playwright python tests/e2e/export-import.py
 step "Cheat detection and history"     py tests/e2e/cheat-flow.py

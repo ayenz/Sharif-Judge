@@ -212,7 +212,7 @@ if [[ $EXT = "c" || $EXT = "cpp" ]]; then
 	shj_log "C/C++ Shield: $C_SHIELD_ON"
 elif [[ $EXT = "py2" || $EXT = "py3" ]]; then
 	shj_log "Python Shield: $PY_SHIELD_ON"
-elif [[ $EXT = "java" || $EXT = "jzip" || $EXT = "jar" ]]; then
+elif [[ $EXT = "java" || $EXT = "jzip" || $EXT = "jar" || $EXT = "kt" ]]; then
 	shj_log "JAVA_POLICY: \"$JAVA_POLICY\""
 	shj_log "DISPLAY_JAVA_EXCEPTION_ON: $DISPLAY_JAVA_EXCEPTION_ON"
 fi
@@ -352,6 +352,84 @@ if [ "$EXT" = "jzip" ] || [ "$EXT" = "jar" ]; then
 	fi
 	shj_log "Main class: $MAINCLASS"
 	MAINFILENAME=${MAINCLASS##*.}
+fi
+
+
+
+########################################################################################################
+############################################ COMPILING KOTLIN ##########################################
+########################################################################################################
+
+# Compiled to a JAR with kotlinc and run like Java (same limit, policy and exception handling), with
+# the Kotlin standard library on the class path. kotlinc writes the class with main (MainKt for a
+# top-level main) as the JAR's Main-Class; java_archive.py reads it.
+if [ "$EXT" = "kt" ]; then
+	KOTLINC=${SHJ_KOTLINC:-/opt/kotlinc/bin/kotlinc}
+	cp ../java.policy java.policy
+	cp ../java_archive.py java_archive.py
+	cp $PROBLEMPATH/$UN/$FILENAME.kt main.kt
+	shj_log "Compiling as Kotlin"
+	shj_log_exec "Compiling as Kotlin"
+	shj_log_exec ""
+	$SHJ_RUNAS env HOME=$PWD TMPDIR=$PWD $KOTLINC -nowarn -jvm-target 17 main.kt -d main.jar >/dev/null 2>cerr
+	EXITCODE=$?
+	COMPILE_END_TIME=$(($(date +%s%N)/1000000));
+	shj_log "Compiled. Exit Code=$EXITCODE  Execution Time: $((COMPILE_END_TIME-COMPILE_BEGIN_TIME)) ms"
+	if [ $EXITCODE -ne 0 ]; then
+		sed -i "s|$PWD/||g" cerr
+		shj_java_archive_error "Compile Error"
+	fi
+	MAINCLASS="$($SHJ_RUNAS python3 -I java_archive.py jar main.jar 2>/dev/null)"
+	if [ $? -ne 0 ]; then
+		echo "No main function: write fun main() { ... } (or fun main(args: Array<String>))." >cerr
+		shj_java_archive_error "Compile Error"
+	fi
+	JAVA_TARGET="-cp main.jar:$(dirname $KOTLINC)/../lib/kotlin-stdlib.jar $MAINCLASS"
+	MAINFILENAME=main
+	shj_log "Main class: $MAINCLASS"
+fi
+
+
+
+########################################################################################################
+############################################ COMPILING SWIFT ###########################################
+########################################################################################################
+
+# Optional (image built with WITH_SWIFT=1). Runs like a C program: same ulimit and monitor.
+if [ "$EXT" = "swift" ]; then
+	SWIFTC=${SHJ_SWIFTC:-/opt/swift/usr/bin/swiftc}
+	if [ ! -x "$SWIFTC" ]; then
+		shj_log "Swift is not installed (build the image with WITH_SWIFT=1)"
+		cd ..
+		rm -r $JAIL >/dev/null 2>/dev/null
+		shj_finish "File Format Not Supported"
+	fi
+	cp $PROBLEMPATH/$UN/$FILENAME.swift main.swift
+	shj_log "Compiling as Swift"
+	shj_log_exec "Compiling as Swift"
+	shj_log_exec ""
+	# The module cache is per submission, like Go's build cache.
+	$SHJ_RUNAS env HOME=$PWD TMPDIR=$PWD $SWIFTC -O -module-cache-path $PWD/modulecache main.swift -o s_main >/dev/null 2>cerr
+	EXITCODE=$?
+	rm -rf modulecache
+	COMPILE_END_TIME=$(($(date +%s%N)/1000000));
+	shj_log "Compiled. Exit Code=$EXITCODE  Execution Time: $((COMPILE_END_TIME-COMPILE_BEGIN_TIME)) ms"
+	if [ $EXITCODE -ne 0 ]; then
+		sed -i "s|$PWD/||g" cerr
+		shj_java_archive_error "Compile Error"
+	fi
+	# Like the interpreter for Python, the Swift runtime libraries the program loads count on top of
+	# the memory limit (about 70 MB with Foundation, almost nothing without). readelf only reads
+	# the file, it never runs the submitted program.
+	SWIFT_LIB_DIR="$(dirname $SWIFTC)/../lib/swift/linux"
+	SWIFT_LIB_KB=0
+	for lib in $(readelf -d s_main 2>/dev/null | sed -n 's/.*(NEEDED).*\[\(.*\)\]/\1/p'); do
+		if [ -f "$SWIFT_LIB_DIR/$lib" ]; then
+			SWIFT_LIB_KB=$((SWIFT_LIB_KB + $(du -kL "$SWIFT_LIB_DIR/$lib" | cut -f1)))
+		fi
+	done
+	SWIFT_MEMLIMIT=$((MEMLIMIT + SWIFT_LIB_KB))
+	shj_log "Swift runtime libraries: $SWIFT_LIB_KB kB (memory limit for the run: $SWIFT_MEMLIMIT kB)"
 fi
 
 
@@ -633,7 +711,7 @@ if ! $EXEC_ONLY; then
 		
 		touch err
 		
-		if [ "$EXT" = "java" ] || [ "$EXT" = "jzip" ] || [ "$EXT" = "jar" ]; then
+		if [ "$EXT" = "java" ] || [ "$EXT" = "jzip" ] || [ "$EXT" = "jar" ] || [ "$EXT" = "kt" ]; then
 			if $PERL_EXISTS; then
 				./runcode.sh $EXT $MEMLIMIT $TIMELIMIT $TIMELIMITINT $PROBLEMPATH/in/input$i.txt "./timeout --just-kill -nosandbox -l $OUTLIMIT -t $TIMELIMIT java -mx${MEMLIMIT}k $JAVA_POLICY $JAVA_TARGET"
 			else
@@ -692,6 +770,14 @@ if ! $EXEC_ONLY; then
 				./runcode.sh $EXT $MEMLIMIT $TIMELIMIT $TIMELIMITINT $PROBLEMPATH/in/input$i.txt "./timeout --just-kill -nosandbox -l $OUTLIMIT -t $TIMELIMIT -m $MEMLIMIT python3 -O $FILENAME.py"
 			else
 				./runcode.sh $EXT $MEMLIMIT $TIMELIMIT $TIMELIMITINT $PROBLEMPATH/in/input$i.txt "python3 -O $FILENAME.py"
+			fi
+			EXITCODE=$?
+
+		elif [ "$EXT" = "swift" ]; then
+			if $PERL_EXISTS; then
+				./runcode.sh $EXT $SWIFT_MEMLIMIT $TIMELIMIT $TIMELIMITINT $PROBLEMPATH/in/input$i.txt "./timeout --just-kill -nosandbox -l $OUTLIMIT -t $TIMELIMIT -m $SWIFT_MEMLIMIT ./s_main"
+			else
+				./runcode.sh $EXT $SWIFT_MEMLIMIT $TIMELIMIT $TIMELIMITINT $PROBLEMPATH/in/input$i.txt "./s_main"
 			fi
 			EXITCODE=$?
 
@@ -804,7 +890,7 @@ if ! $EXEC_ONLY; then
 
 else
 	touch err
-	if [ "$EXT" = "java" ] || [ "$EXT" = "jzip" ] || [ "$EXT" = "jar" ]; then
+	if [ "$EXT" = "java" ] || [ "$EXT" = "jzip" ] || [ "$EXT" = "jar" ] || [ "$EXT" = "kt" ]; then
 			if $PERL_EXISTS; then
 				./runcode.sh $EXT $MEMLIMIT $TIMELIMIT $TIMELIMITINT $PROBLEMPATH/$UN/$EXEC_IN "./timeout --just-kill -nosandbox -l $OUTLIMIT -t $TIMELIMIT java -mx${MEMLIMIT}k $JAVA_POLICY $JAVA_TARGET"
 			else
@@ -860,6 +946,14 @@ else
 				./runcode.sh $EXT $MEMLIMIT $TIMELIMIT $TIMELIMITINT $PROBLEMPATH/$UN/$EXEC_IN "./timeout --just-kill -nosandbox -l $OUTLIMIT -t $TIMELIMIT -m $MEMLIMIT python3 -O $FILENAME.py"
 			else
 				./runcode.sh $EXT $MEMLIMIT $TIMELIMIT $TIMELIMITINT $PROBLEMPATH/$UN/$EXEC_IN "python3 -O $FILENAME.py"
+			fi
+			EXITCODE=$?
+
+		elif [ "$EXT" = "swift" ]; then
+			if $PERL_EXISTS; then
+				./runcode.sh $EXT $SWIFT_MEMLIMIT $TIMELIMIT $TIMELIMITINT $PROBLEMPATH/$UN/$EXEC_IN "./timeout --just-kill -nosandbox -l $OUTLIMIT -t $TIMELIMIT -m $SWIFT_MEMLIMIT ./s_main"
+			else
+				./runcode.sh $EXT $SWIFT_MEMLIMIT $TIMELIMIT $TIMELIMITINT $PROBLEMPATH/$UN/$EXEC_IN "./s_main"
 			fi
 			EXITCODE=$?
 

@@ -135,6 +135,9 @@ keterlambatan, dan urutan scoreboard harus identik.
   Java. Batas memori diukur dari memori yang benar-benar dipakai (plus jatah runtime ±64 MB untuk Node.js,
   ±10 MB untuk Go). Bahasa lama tidak berubah, jadi hasil regresi tetap identik. Moss tidak mendukung Go;
   JPlag mendukung keduanya. Diuji di `tests/e2e/languages.py`.
+- **Kotlin dan Swift**: Kotlin 2.4 ada di image standar (jalan di Java 17 seperti Java, compile ±4 detik).
+  Swift 6.4 opsional karena toolchain-nya ±1,2 GB: aktifkan dengan `WITH_SWIFT=1` di `docker/.env`, lalu
+  build ulang. Tanpa itu Swift disembunyikan dan ditolak, dengan mekanisme yang sama seperti Python 2.
 - **Java (zip) dan JAR**: proyek Java multi-file dikirim sebagai zip berisi `.java` (di-compile oleh judge,
   ikut deteksi kecurangan) atau sebagai JAR runnable (tidak bisa dicek kecurangannya). Tidak dicentang
   default untuk soal baru. Diuji di `tests/e2e/java-archives.py`.
