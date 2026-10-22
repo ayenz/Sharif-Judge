@@ -21,6 +21,7 @@ services:
       retries: 20
 
   web:
+    image: sharif-judge-web:latest
     build:
       context: ..
       dockerfile: docker/web.Dockerfile
@@ -33,9 +34,29 @@ services:
       NUXT_DB_PASSWORD: ${DB_PASSWORD:-shj_pass}
       NUXT_DB_DATABASE: ${WEB_DB:-shj_web}
       NUXT_SESSION_PASSWORD: ${SESSION_PASSWORD:?set SESSION_PASSWORD (32+ characters) in docker/.env}
+      NUXT_JUDGE_MODE: remote
     ports: ["8402:3000"]
     volumes:
       - web-data:/data
+
+  # Runs submitted code. No network, no secrets, and the code itself runs as an
+  # unprivileged user that can only touch its own jail directory.
+  judge:
+    image: sharif-judge-web:latest
+    pull_policy: never
+    depends_on: [web]
+    restart: unless-stopped
+    user: root
+    command: ["node", "/app/judge/worker.mjs"]
+    network_mode: none
+    volumes:
+      - web-data:/data
+    pids_limit: 512
+    mem_limit: 2g
+    cpus: 2
+    cap_drop: [ALL]
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETUID, SETGID, KILL]
+    security_opt: [no-new-privileges:true]
 
   ci3:
     build:

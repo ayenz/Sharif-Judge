@@ -24,6 +24,8 @@ export default defineNuxtConfig({
   icon: { clientBundle: { scan: true }, serverBundle: 'local' },
 
   runtimeConfig: {
+    // Trust X-Forwarded-For for the client address (only behind a reverse proxy).
+    trustProxy: false,
     db: {
       host: 'localhost',
       port: 3306,
@@ -60,6 +62,12 @@ export default defineNuxtConfig({
       java: '',
       jplagJar: '',
       workDir: '',
+    },
+    // Where submissions run: 'local' spawns tester.sh in this process (development),
+    // 'remote' hands jobs to the isolated judge container through jobsDir.
+    judge: {
+      mode: 'local',
+      jobsDir: '/data/jobs',
     },
     queue: {
       // Set to false on extra web replicas so only one process runs submissions.
