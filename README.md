@@ -5,11 +5,11 @@ courses. Students submit code (by file upload or in the built-in editor), the ju
 runs it against test cases, and instructors get scores, scoreboards, Excel exports and cheat
 detection.
 
-This branch is a rewrite of the web application in [Nuxt](https://nuxt.com) (Vue + Node.js). It
-replaces the CodeIgniter 3 / PHP version while keeping the same database schema, the same
-assignment folder layout and the same judging engine, so an existing installation can switch
-over. See [MIGRATION.md](MIGRATION.md) for the plan, the regression test results and every
-intentional behavior change.
+The web application is written in [Nuxt](https://nuxt.com) (Vue + Node.js). It replaced the
+CodeIgniter 3 / PHP version while keeping the same database schema, the same assignment folder
+layout and the same judging engine, so an existing installation can switch over. The last PHP
+version is kept as the tag `archive/php-final`. [MIGRATION.md](MIGRATION.md) has the regression
+test results and every intentional behavior change.
 
 SharIF Judge is a fork of [Sharif Judge](https://github.com/mjnaderi/Sharif-Judge) by
 [@mjnaderi](https://github.com/mjnaderi), continued by [@ifunpar](https://github.com/ifunpar)
@@ -20,19 +20,24 @@ SharIF Judge is a fork of [Sharif Judge](https://github.com/mjnaderi/Sharif-Judg
 - **Roles**: admin, head instructor, instructor, student.
 - **Assignments**: multiple problems, start/finish time, extra time with a custom late-penalty rule,
   participant lists, PDF and Markdown/HTML problem descriptions, test cases from a zip file.
-- **Judging**: C, C++, Java, Python 3 (and Python 2 where installed); output comparison with `diff`
-  or a custom tester; time, memory and output limits; submission queue with pause, resume and rejudge.
+- **Judging**: C, C++, Java, Python 3 (Python 2 optional, off by default); output comparison with
+  `diff` or a custom tester; time, memory and output limits; submission queue with pause, resume and
+  rejudge. Submissions run in an isolated container (see [Security notes](#security-notes)).
 - **Submitting**: file upload, or a built-in code editor with "Run with custom input". The editor
   records how the code was written; instructors can replay the recording.
 - **Results**: final and all submissions, scoreboard, Hall of Fame, Excel exports, zip downloads.
+  Results appear live: students get a notice as soon as their submission is judged.
 - **Cheat detection**: local [JPlag](https://github.com/jplag/JPlag) analysis per problem and
   language, side-by-side comparison, and a per-student review score that combines code similarity
-  with editor signals. [Moss](https://theory.stanford.edu/~aiken/moss/) is still available.
+  with editor signals, plus a history across assignments that shows students who are similar again
+  and again. [Moss](https://theory.stanford.edu/~aiken/moss/) is still available.
   See [docs/cheat-detection.md](docs/cheat-detection.md).
 - **Accounts**: bulk user creation with optional email, self registration with a code, password
   reset by email, optional LDAP or RADIUS login.
 - **Interface**: responsive (works on phones), light and dark mode, notifications, dashboard with
-  deadlines and calendar, 24-hour login log.
+  deadlines and calendar, 24-hour login log. Pages are compressed (about 250–320 KB on a first
+  visit, a few KB afterwards).
+- **Backups**: a daily database dump and archive of the assignment files, kept for 14 days.
 
 ## Repository layout
 
@@ -44,9 +49,6 @@ docker/    Docker image and Compose files
 tests/     Regression test against the legacy PHP app, and end-to-end tests
 docs/      Feature documentation
 ```
-
-The legacy PHP application (`application/`, `system/`, `assets/`, `index.php`) is still in this
-branch for the regression tests. It will be removed once the Nuxt version is merged.
 
 ## Requirements
 
@@ -67,7 +69,7 @@ git clone https://github.com/ayenz/Sharif-Judge.git
 cd Sharif-Judge/docker
 printf "SESSION_PASSWORD=%s\nDB_PASSWORD=%s\nDB_ROOT_PASSWORD=%s\n" \
   "$(openssl rand -hex 24)" "$(openssl rand -hex 12)" "$(openssl rand -hex 12)" > .env
-docker compose up -d --build db web judge
+docker compose up -d --build db web judge backup
 ```
 
 Then open `http://<server>:8402`. The first visit opens the installer, which creates the tables,
@@ -76,7 +78,7 @@ the default settings and the first admin account. After logging in, review **Set
 Put a reverse proxy with HTTPS in front of the app for real use, and set
 `NUXT_SESSION_COOKIE_SECURE=true` (cookie only over HTTPS) and `NUXT_TRUST_PROXY=true` (real client
 addresses for the login limits).
-[docker/README.md](docker/README.md) has more details (volumes, backups, the legacy app).
+[docker/README.md](docker/README.md) has more details: services, volumes, and **backups and restoring**.
 
 ## Configuration
 
@@ -99,8 +101,11 @@ Environment variables (all optional except the database and the session password
 | `NUXT_AUTH_LDAP_URL`, `NUXT_AUTH_LDAP_ACCOUNT_SUFFIX` | | e.g. `ldap://dc.example.edu`, `@example.edu` |
 | `NUXT_AUTH_RADIUS_SERVER`, `NUXT_AUTH_RADIUS_SECRET` | | e.g. `10.0.0.5:1812` |
 
-Everything else (time zone, limits, late rule, shields, mail templates, registration) is on the
-**Settings** page.
+Everything else (time zone, limits, late rule, shields, Python 2, mail templates, registration) is on
+the **Settings** page.
+
+The backup service reads `BACKUP_DIR` (default `docker/backups`), `BACKUP_TIME` (default `02:00`),
+`BACKUP_KEEP_DAYS` (default `14`) and `TZ` from `docker/.env`.
 
 ## Upgrading from the PHP version
 
@@ -112,7 +117,9 @@ database:
    the container. Check the tester and assignments paths in **Settings** afterwards.
 3. Start the app. Tables for new features (cheat detection) are created automatically.
 
-Existing passwords, submissions, scores and editor recordings keep working. Late rules written in
+Existing passwords, submissions, scores and editor recordings keep working. **Python 2 is turned off
+after the upgrade** (it is end-of-life and not in the image); turn it on in Settings if you install a
+`python2` interpreter. Late rules written in
 PHP are translated automatically; the Assignments page shows `error` for a rule that cannot be
 translated. Users have to sign in again (sessions are not migrated).
 

@@ -1,7 +1,7 @@
 # Rewrite: CodeIgniter 3 → Nuxt
 
-Status (22 Okt 2026): fase 0–5 selesai di branch `nuxt-rewrite`, ditambah fitur cheat detection JPlag.
-Fase 6 (hapus kode PHP, merge ke `main`) menunggu setelah aplikasi dicoba.
+Status (22 Okt 2026): **selesai**. Versi Nuxt menjadi `main`; kode PHP dihapus dan versi PHP terakhir
+disimpan sebagai tag `archive/php-final` (dipakai tes regresi).
 
 ## Tujuan
 Menulis ulang aplikasi web SharIF Judge dengan Nuxt (Vue) tanpa mengubah perilaku penilaian,
@@ -55,8 +55,7 @@ docs/     dokumentasi fitur (cheat detection)
 3. Submit (unggah file dan editor), worker antrian + tester, daftar submission, rejudge.
 4. Scoreboard, Hall of Fame, dashboard, Moss, rekaman ketikan, unduhan Excel/zip.
 5. Pengujian regresi terhadap versi lama (port 8401), uji end-to-end, cek ukuran bundle.
-6. Bersih-bersih: hapus kode PHP (`application/`, `system/`, `assets/`, `index.php`, `readme.rst`,
-   `license.txt`/`CI_LICENSE` milik CodeIgniter), merge ke `main`. README sudah diperbarui.
+6. Bersih-bersih (selesai 22 Okt 2026): kode PHP dihapus (2.989 file), `main` dimajukan ke versi Nuxt.
 
 ## Pengujian regresi
 Tampilan berbeda total, jadi yang dibandingkan adalah **perilaku**:
@@ -121,3 +120,13 @@ keterlambatan, dan urutan scoreboard harus identik.
 - **Ditambahkan 22 Okt 2026 — batas login**: 8 gagal per alamat+akun, 30 per alamat, 50 per akun
   dalam 15 menit; juga batas untuk lupa password dan registrasi. `X-Forwarded-For` hanya dipercaya
   bila `NUXT_TRUST_PROXY=true` (sebelumnya selalu dipercaya, bisa dipalsukan).
+
+## Tambahan 22 Okt 2026
+- **Python 2 opsional, default mati** (`enable_python2`): Python 2 sudah EOL dan tidak terpasang di image
+  (versi PHP lama pun tidak). Saat mati, Python 2 disembunyikan dari form tugas, halaman soal dan submit,
+  dan submission Python 2 ditolak. Instalasi lama mendapat pengaturan ini otomatis (nilai 0).
+- **Backup otomatis** harian (database + folder tugas, simpan 14 hari) lewat service `backup`;
+  restore sudah diuji: semua tabel dan 199 file kembali utuh. Dashboard admin memberi peringatan.
+- **Hasil penilaian real-time** lewat server-sent events (`/api/events`); polling hanya cadangan.
+- **Riwayat cheat detection lintas tugas** (`/cheat/history`): pasangan yang mirip berulang kali.
+- **Kompresi**: halaman pertama turun dari ±1–1,4 MB menjadi ±250–320 KB (Brotli untuk aset, HTML, JSON).

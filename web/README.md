@@ -51,6 +51,13 @@ public/                   favicon and static files
   it writes a job file for the isolated judge container (`../judge/worker.mjs`) and waits for the
   result; in `local` mode it runs `tester/tester.sh` itself with an argument list and no secrets in
   the environment.
+- **Live updates**: `server/utils/live.ts` (event bus) and `server/api/events.get.ts` (server-sent
+  events, filtered per user); `app/plugins/live.client.ts` shows toasts and `useLive()` lets pages
+  refresh on events instead of polling.
+- **Compression**: static assets are precompressed at build time (`nitro.compressPublicAssets`);
+  `server/plugins/compression.ts` compresses HTML and JSON responses.
+- **Settings added after the legacy schema** (e.g. `enable_python2`) get their default row from
+  `server/database/migrate.ts`.
 - **Rate limits**: `server/utils/rate-limit.ts` (in memory) for sign-in, password reset and
   registration; client addresses via `clientIp()`.
 - **Late rules**: legacy PHP snippets, translated and run in `node:vm` (`server/utils/late-rule.ts`).
