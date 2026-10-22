@@ -10,6 +10,8 @@ export function loadAce(): Promise<AceModule> {
     await Promise.all([
       import('ace-builds/src-noconflict/mode-c_cpp'),
       import('ace-builds/src-noconflict/mode-java'),
+      import('ace-builds/src-noconflict/mode-javascript'),
+      import('ace-builds/src-noconflict/mode-golang'),
       import('ace-builds/src-noconflict/mode-python'),
       import('ace-builds/src-noconflict/mode-plain_text'),
       import('ace-builds/src-noconflict/theme-github_light_default'),
@@ -21,9 +23,13 @@ export function loadAce(): Promise<AceModule> {
   return loading
 }
 
-/** Ace mode for a language name or file type ("C++", "py3", "java", ...). */
+/** Ace mode for a language name or file type ("C++", "py3", "java", "JavaScript", "go", ...). */
 export function aceModeFor(language: string): string {
   const l = language.toLowerCase()
+  if (l === 'javascript' || l === 'js')
+    return 'ace/mode/javascript'
+  if (l === 'go')
+    return 'ace/mode/golang'
   if (l.includes('java'))
     return 'ace/mode/java'
   if (l.includes('python') || l.startsWith('py'))

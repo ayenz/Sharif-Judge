@@ -153,8 +153,9 @@ async function judgeItem(item: typeof schema.queue.$inferSelect) {
   const uDir = await userDir(item.assignment, problem.id, item.username)
   const tester = await testerPath()
 
+  // Go uses the C/C++ limit (compiled), JavaScript the Java limit (runtime start-up and JIT).
   let timeLimitMs = problem.cTimeLimit
-  if (fileType === 'java')
+  if (fileType === 'java' || fileType === 'js')
     timeLimitMs = problem.javaTimeLimit
   else if (ext === 'py')
     timeLimitMs = problem.pythonTimeLimit

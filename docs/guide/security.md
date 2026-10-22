@@ -16,7 +16,8 @@ web app:
 
 `tests/e2e/isolation.py` tries to read answers and other students' code from C, Python and Java, to
 `#include` an answer file, to reach the database and to read secrets. All are blocked, also with the
-shields turned off.
+shields turned off. `tests/e2e/languages.py` runs the same probes from JavaScript and Go, which have
+no shield of their own and rely on the container.
 
 ::: warning EasySandbox
 The original EasySandbox for C/C++ does not work on current systems and was never built by the PHP

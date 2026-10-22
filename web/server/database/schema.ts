@@ -141,7 +141,7 @@ export const cheatRuns = table('cheat_runs', {
   id: int('id', { unsigned: true }).autoincrement().primaryKey(),
   assignment: smallint('assignment', { unsigned: true }).notNull(),
   problem: smallint('problem', { unsigned: true }).notNull(),
-  /** JPlag language: c, cpp, java or python3. */
+  /** JPlag language: c, cpp, java, python3, javascript or go. */
   language: varchar('language', { length: 10 }).notNull(),
   /** queued, running, done or failed. */
   status: varchar('status', { length: 10 }).notNull(),

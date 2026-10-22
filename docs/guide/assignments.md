@@ -18,7 +18,8 @@ Head instructors and admins create assignments on **Assignments > Add assignment
 
 ## Problems
 
-Each problem has a name, a score, time limits for C/C++, Python and Java (milliseconds), a memory
+Each problem has a name, a score, time limits for C/C++ (also used for Go), Python and Java (also
+used for JavaScript) in milliseconds, a memory
 limit (kB), the allowed languages, and how output is compared. **Upload only** problems are not judged:
 students upload a file (PDF, zip, txt or code) and it is final immediately.
 

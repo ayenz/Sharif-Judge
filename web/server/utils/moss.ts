@@ -50,8 +50,11 @@ export async function mossSaveUserId(userId: string): Promise<void> {
   await setSetting('moss_userid', userId)
 }
 
-/** Moss language names (`-l`); the legacy app never passed one, so everything was parsed as C. */
-const MOSS_LANGUAGE: Record<CheatLanguage, string> = { c: 'c', cpp: 'cc', java: 'java', python3: 'python' }
+/**
+ * Moss language names (`-l`); the legacy app never passed one, so everything was parsed as C.
+ * Moss has no Go grammar, so Go submissions are left out.
+ */
+const MOSS_LANGUAGE: Partial<Record<CheatLanguage, string>> = { c: 'c', cpp: 'cc', java: 'java', python3: 'python', javascript: 'javascript' }
 
 function runMoss(script: string, args: string[], cwd: string): Promise<string> {
   return new Promise((resolve) => {
@@ -104,7 +107,7 @@ export async function mossDetect(assignmentId: number): Promise<void> {
       for (const s of group) {
         const ext = typeToExtension(s.fileType)
         const language = fileTypeToCheatLanguage(s.fileType)
-        if (!ext || !language || MOSS_EXCLUDED_TYPES.has(s.fileType))
+        if (!ext || !language || !MOSS_LANGUAGE[language] || MOSS_EXCLUDED_TYPES.has(s.fileType))
           continue
         if (!/^[A-Za-z0-9]+$/.test(s.username) || !/^[A-Za-z0-9_\-()]+$/.test(s.fileName))
           continue
@@ -117,7 +120,7 @@ export async function mossDetect(assignmentId: number): Promise<void> {
       for (const [language, files] of byLanguage) {
         if (files.length < 2)
           continue
-        const args = ['-l', MOSS_LANGUAGE[language]]
+        const args = ['-l', MOSS_LANGUAGE[language]!]
         const base = await cheatBaseCodePath(assignmentId, problemId, language)
         if (await access(base).then(() => true, () => false))
           args.push('-b', base)

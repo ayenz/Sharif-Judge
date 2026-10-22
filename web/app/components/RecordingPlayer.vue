@@ -46,12 +46,15 @@ async function loadAce(): Promise<AceModule> {
   const a = ((mod as unknown as { default?: AceModule }).default ?? mod) as AceModule
   // Mode/theme files register themselves on the global `ace`, so load them after ace.
   const mode = recordingAceMode(props.language)
+  const modes = {
+    python: () => import('ace-builds/src-noconflict/mode-python'),
+    java: () => import('ace-builds/src-noconflict/mode-java'),
+    javascript: () => import('ace-builds/src-noconflict/mode-javascript'),
+    golang: () => import('ace-builds/src-noconflict/mode-golang'),
+    c_cpp: () => import('ace-builds/src-noconflict/mode-c_cpp'),
+  }
   await Promise.all([
-    mode === 'python'
-      ? import('ace-builds/src-noconflict/mode-python')
-      : mode === 'java'
-        ? import('ace-builds/src-noconflict/mode-java')
-        : import('ace-builds/src-noconflict/mode-c_cpp'),
+    modes[mode](),
     import('ace-builds/src-noconflict/theme-tomorrow'),
     import('ace-builds/src-noconflict/theme-tomorrow_night'),
   ])

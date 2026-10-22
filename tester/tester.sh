@@ -182,6 +182,10 @@ fi
 TST="$(ls $PROBLEMPATH/in | wc -l)"  # Number of Test Cases
 
 JAIL=jail-$RANDOM
+# Peak memory of the last run (JavaScript and Go), written by runcode.sh. It lives next to the jail
+# ("jail…" names are removed after each run by the judge worker or the web app), where the
+# program cannot write.
+export SHJ_PEAK_FILE="$PWD/$JAIL-peak"
 if ! mkdir $JAIL; then
 	shj_log "Error: Folder 'tester' is not writable! Exiting..."
 	shj_finish "Judge Error"
@@ -212,6 +216,33 @@ elif [[ $EXT = "java" ]]; then
 	shj_log "JAVA_POLICY: \"$JAVA_POLICY\""
 	shj_log "DISPLAY_JAVA_EXCEPTION_ON: $DISPLAY_JAVA_EXCEPTION_ON"
 fi
+
+# Node.js and Go: memory is measured as resident memory because both reserve much more address
+# space than they use, so the virtual-memory limit used for C and Python would stop them from
+# starting. The runtime's own overhead is added to the limit, the way runcode.sh adds the
+# interpreter's memory for Python. ./timeout --rss stops a program that keeps growing; it samples
+# every 50 ms, so runcode.sh also records the exact peak with GNU time (in SHJ_PEAK_FILE, outside
+# the jail so the program cannot change it) and the result is checked after the run.
+JS_HEAP_MB=$((MEMLIMIT/1024)); [ $JS_HEAP_MB -lt 16 ] && JS_HEAP_MB=16
+if [ "$EXT" = "js" ]; then
+	RSS_LIMIT=$((MEMLIMIT+64000))
+else
+	RSS_LIMIT=$((MEMLIMIT+10000))
+fi
+JS_RUN="./timeout --just-kill -nosandbox --rss -l $OUTLIMIT -t $TIMELIMIT -m $RSS_LIMIT node --max-old-space-size=$JS_HEAP_MB main.js"
+GO_RUN="./timeout --just-kill -nosandbox --rss -l $OUTLIMIT -t $TIMELIMIT -m $RSS_LIMIT env GOMEMLIMIT=${MEMLIMIT}KiB GOMAXPROCS=1 ./s_main"
+
+# Node.js and Go: true if the last run went over the memory limit (the runtime's own limit,
+# or a peak above RSS_LIMIT even if it was too short for ./timeout to see).
+function shj_runtime_over_memory
+{
+	if grep -q -m 1 "JavaScript heap out of memory\|runtime: out of memory" err; then
+		return 0
+	fi
+	local peak
+	peak=$(tail -n 1 "$SHJ_PEAK_FILE" 2>/dev/null)
+	[[ "$peak" =~ ^[0-9]+$ ]] && [ "$peak" -gt "$RSS_LIMIT" ]
+}
 
 
 COMPILE_BEGIN_TIME=$(($(date +%s%N)/1000000));
@@ -335,6 +366,38 @@ fi
 
 
 ########################################################################################################
+########################################## COMPILING JAVASCRIPT ########################################
+########################################################################################################
+
+if [ "$EXT" = "js" ]; then
+	cp $PROBLEMPATH/$UN/$FILENAME.js main.js
+	shj_log "Checking JavaScript Syntax"
+	shj_log_exec "Checking JavaScript Syntax"
+	shj_log_exec ""
+	$SHJ_RUNAS node --check main.js >/dev/null 2>cerr
+	EXITCODE=$?
+	COMPILE_END_TIME=$(($(date +%s%N)/1000000));
+	shj_log "Syntax checked. Exit Code=$EXITCODE  Execution Time: $((COMPILE_END_TIME-COMPILE_BEGIN_TIME)) ms"
+	if [ $EXITCODE -ne 0 ]; then
+		# hide the jail path ("/app/tester/jail-123/main.js:3" becomes "main.js:3") and Node's own
+		# stack frames and version line
+		grep -v '^ *at \|^Node\.js v' cerr | sed "s|$PWD/||g" > cerr2; mv cerr2 cerr
+		shj_log "Syntax Error"
+		shj_log "$(cat cerr | head -10)"
+		echo '<span class="shj_b">Syntax Error</span>' >$PROBLEMPATH/$UN/result.html
+		echo '<span class="shj_r">' >> $PROBLEMPATH/$UN/result.html
+		(cat cerr | head -10 | sed 's/&/\&amp;/g' | sed 's/</\&lt;/g' | sed 's/>/\&gt;/g' | sed 's/"/\&quot;/g') >> $PROBLEMPATH/$UN/result.html
+		echo "</span>" >> $PROBLEMPATH/$UN/result.html
+		shj_log_exec "$(cat cerr)"
+		cd ..
+		rm -r $JAIL >/dev/null 2>/dev/null
+		shj_finish "Syntax Error"
+	fi
+fi
+
+
+
+########################################################################################################
 ############################################ COMPILING C/C++ ###########################################
 ########################################################################################################
 
@@ -414,6 +477,45 @@ if [ "$EXT" = "c" ] || [ "$EXT" = "cpp" ]; then
 			(cat cerr2 | head -10 | sed 's/themainmainfunction/main/g' ) > cerr;
 			(cat cerr | sed 's/&/\&amp;/g' | sed 's/</\&lt;/g' | sed 's/>/\&gt;/g' | sed 's/"/\&quot;/g') >> $PROBLEMPATH/$UN/result.html
 		fi
+		echo "</span>" >> $PROBLEMPATH/$UN/result.html
+		shj_log_exec "$(cat cerr)"
+		cd ..
+		rm -r $JAIL >/dev/null 2>/dev/null
+		shj_finish "Compilation Error"
+	fi
+fi
+
+
+
+########################################################################################################
+############################################## COMPILING GO ############################################
+########################################################################################################
+
+if [ "$EXT" = "go" ]; then
+	cp $PROBLEMPATH/$UN/$FILENAME.go main.go
+	shj_log "Compiling as Go"
+	shj_log_exec "Compiling as Go"
+	shj_log_exec ""
+	# The build cache is per submission, so one submission cannot plant compiled packages for
+	# another. It starts as a copy of the image's cache (common standard packages, see
+	# docker/web.Dockerfile), which makes a build take a fraction of a second instead of seconds.
+	GO_CACHE_SEED=${SHJ_GO_CACHE:-/opt/go-cache}
+	if [ -d "$GO_CACHE_SEED" ]; then
+		$SHJ_RUNAS cp -r "$GO_CACHE_SEED" gocache
+	fi
+	$SHJ_RUNAS env HOME=$PWD TMPDIR=$PWD GOCACHE=$PWD/gocache GOPATH=$PWD/gopath GOTOOLCHAIN=local GOTELEMETRY=off CGO_ENABLED=0 GOFLAGS= go build -o s_main main.go >/dev/null 2>cerr
+	EXITCODE=$?
+	rm -rf gocache gopath
+	COMPILE_END_TIME=$(($(date +%s%N)/1000000));
+	shj_log "Compiled. Exit Code=$EXITCODE  Execution Time: $((COMPILE_END_TIME-COMPILE_BEGIN_TIME)) ms"
+	if [ $EXITCODE -ne 0 ]; then
+		# "./main.go:3:2: ..." becomes "main.go:3:2: ...", without the "# command-line-arguments" header
+		grep -v '^# command-line-arguments' cerr | sed "s|^\./||; s|$PWD/||g" > cerr2; mv cerr2 cerr
+		shj_log "Compile Error"
+		shj_log "$(cat cerr | head -10)"
+		echo '<span class="shj_b">Compile Error</span>' >$PROBLEMPATH/$UN/result.html
+		echo '<span class="shj_r">' >> $PROBLEMPATH/$UN/result.html
+		(cat cerr | head -10 | sed 's/&/\&amp;/g' | sed 's/</\&lt;/g' | sed 's/>/\&gt;/g' | sed 's/"/\&quot;/g') >> $PROBLEMPATH/$UN/result.html
 		echo "</span>" >> $PROBLEMPATH/$UN/result.html
 		shj_log_exec "$(cat cerr)"
 		cd ..
@@ -528,6 +630,17 @@ if ! $EXEC_ONLY; then
 				./runcode.sh $EXT $MEMLIMIT $TIMELIMIT $TIMELIMITINT $PROBLEMPATH/in/input$i.txt "python3 -O $FILENAME.py"
 			fi
 			EXITCODE=$?
+
+		elif [ "$EXT" = "js" ] || [ "$EXT" = "go" ]; then
+			if [ "$EXT" = "js" ]; then RUN=$JS_RUN; else RUN=$GO_RUN; fi
+			rm -f "$SHJ_PEAK_FILE"
+			./runcode.sh $EXT $MEMLIMIT $TIMELIMIT $TIMELIMITINT $PROBLEMPATH/in/input$i.txt "$RUN"
+			EXITCODE=$?
+			if shj_runtime_over_memory; then
+				shj_log "Memory Limit Exceeded (peak $(tail -n 1 "$SHJ_PEAK_FILE" 2>/dev/null) kB)"
+				echo "<span class=\"shj_o\">Memory Limit Exceeded</span>" >>$PROBLEMPATH/$UN/result.html
+				continue
+			fi
 
 		else
 			shj_log "File Format Not Supported"
@@ -685,6 +798,15 @@ else
 				./runcode.sh $EXT $MEMLIMIT $TIMELIMIT $TIMELIMITINT $PROBLEMPATH/$UN/$EXEC_IN "python3 -O $FILENAME.py"
 			fi
 			EXITCODE=$?
+
+		elif [ "$EXT" = "js" ] || [ "$EXT" = "go" ]; then
+			if [ "$EXT" = "js" ]; then RUN=$JS_RUN; else RUN=$GO_RUN; fi
+			rm -f "$SHJ_PEAK_FILE"
+			./runcode.sh $EXT $MEMLIMIT $TIMELIMIT $TIMELIMITINT $PROBLEMPATH/$UN/$EXEC_IN "$RUN"
+			EXITCODE=$?
+			if shj_runtime_over_memory; then
+				echo "Memory Limit Exceeded" >>out
+			fi
 
 		else
 			shj_log "File Format Not Supported"

@@ -4,7 +4,7 @@ layout: home
 hero:
   name: SharIF Judge
   text: Online judge for programming courses
-  tagline: Students submit C, C++, Java or Python; the judge compiles, runs and scores it against your test cases, in an isolated container.
+  tagline: Students submit C, C++, Java, Python, JavaScript or Go; the judge compiles, runs and scores it against your test cases, in an isolated container.
   image:
     light: /logo.svg
     dark: /logo-dark.svg

@@ -131,3 +131,7 @@ keterlambatan, dan urutan scoreboard harus identik.
 - **Hasil penilaian real-time** lewat server-sent events (`/api/events`); polling hanya cadangan.
 - **Riwayat cheat detection lintas tugas** (`/cheat/history`): pasangan yang mirip berulang kali.
 - **Kompresi**: halaman pertama turun dari ±1–1,4 MB menjadi ±250–320 KB (Brotli untuk aset, HTML, JSON).
+- **Bahasa JavaScript dan Go** (Node.js 24, Go 1.27). Go memakai batas waktu C/C++, JavaScript batas waktu
+  Java. Batas memori diukur dari memori yang benar-benar dipakai (plus jatah runtime ±64 MB untuk Node.js,
+  ±10 MB untuk Go). Bahasa lama tidak berubah, jadi hasil regresi tetap identik. Moss tidak mendukung Go;
+  JPlag mendukung keduanya. Diuji di `tests/e2e/languages.py`.

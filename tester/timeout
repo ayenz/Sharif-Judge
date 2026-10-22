@@ -44,6 +44,9 @@ my $hanguplimit = undef;
 my $kill_stale = '';
 my $ticklimit = undef;
 my $memlimit = undef;
+# Measure resident memory (RSS) instead of virtual memory. Used for runtimes that reserve
+# a lot of address space up front (Node.js, Go) and cannot run under a virtual-memory limit.
+my $use_rss = 0;
 my $sandbox = undef; # added by mjnaderi
 my $outlimit = undef; # size limit of output file // added by mjnaderi
 my $strpat = undef;
@@ -70,6 +73,7 @@ GetOptions(
 	# allow-hangups is kept for backward compatibility.
 	'allow-hangups!'=>\$kill_stale,
 	'memlimit|m=i'=>\$memlimit,
+	'rss!'=>\$use_rss,
 	'sandbox!'=>\$sandbox, # added by mjnaderi
 	'outlimit|l=i'=>\$outlimit, # added by mjnaderi
 	'frequency|x=i'=>\$frequency,
@@ -248,7 +252,7 @@ sub foreach_applicable_process
 		# 26944 28581  \_ kio_file
 		# 26944 12496 kmail
 		my $chars = "\t \\_|";
-		my $PS_FH; open $PS_FH, "-|", qw(ps -e f -o pgrp= -o pid= -o vsz= -o ucmd=) or die "Bad open ps: $!";
+		my $PS_FH; open $PS_FH, "-|", 'ps', qw(-e f -o pgrp= -o pid= -o), ($use_rss ? 'rss=' : 'vsz='), qw(-o ucmd=) or die "Bad open ps: $!";
 		my $state = 0;	# 0 - still haven't encounter root;	1 - reading tree; (when tree is read, we break the loop)
 		my $initial_depth = undef;	# Initial depth of the root of a tree
 		while (<$PS_FH>){
@@ -270,7 +274,7 @@ sub foreach_applicable_process
 		close $PS_FH or die "Bad close ps: $!";
 	}else{
 		# Read ps output to get all processes within a group. Time output is not necessary, since we calculate it directly via /proc
-		my $PS_FH; open $PS_FH, "-|", qw(ps -A -o pgrp= -o pid= -o vsz= -o ucmd=) or die "Bad open ps: $!";
+		my $PS_FH; open $PS_FH, "-|", 'ps', qw(-A -o pgrp= -o pid= -o), ($use_rss ? 'rss=' : 'vsz='), qw(-o ucmd=) or die "Bad open ps: $!";
 		while (<$PS_FH>){
 			/^\s*([0-9]+)\s*([0-9]+)\s*([0-9]+)\s*(.*)/ or next;
 			my ($grp,$pid,$vsz,$cmd) = ($1,$2,$3);
