@@ -179,11 +179,27 @@ function reset() {
               </UCard>
               <UCard>
                 <div class="space-y-4">
-                  <div class="flex flex-wrap items-start justify-between gap-3">
-                    <USwitch v-model="state.enableEasysandbox" label="EasySandbox" description="Sandbox C/C++ submissions. EasySandbox must be built first." />
-                    <UBadge :color="data.sandboxBuilt ? 'success' : 'error'" variant="subtle" :icon="data.sandboxBuilt ? 'i-lucide-check' : 'i-lucide-x'">
-                      {{ data.sandboxBuilt ? 'EasySandbox is built' : 'You have not built EasySandbox yet' }}
-                    </UBadge>
+                  <UAlert
+                    color="info"
+                    variant="subtle"
+                    icon="i-lucide-shield-check"
+                    title="Submissions run in the isolated judge container"
+                    description="No network, no server secrets, and an unprivileged user that cannot read test cases or other students' code. EasySandbox is not used: it does not work on current systems."
+                  />
+                  <div class="space-y-2">
+                    <USwitch
+                      v-model="state.enablePython2"
+                      label="Python 2"
+                      description="Offer Python 2 as a language. Python 2 is end-of-life; while this is off it is hidden from assignment forms and the submit page, and Python 2 submissions are refused. Existing submissions stay as they are."
+                    />
+                    <UAlert
+                      v-if="state.enablePython2 && !data.python2Installed"
+                      color="warning"
+                      variant="subtle"
+                      icon="i-lucide-triangle-alert"
+                      title="python2 is not installed on this server"
+                      description="Python 2 submissions will fail until a python2 interpreter is added to the judge image."
+                    />
                   </div>
                   <USwitch v-model="state.enableJavaPolicy" label="Java policy" description="Run Java submissions with the security policy (Java sandboxing)." />
                   <USwitch v-model="state.enableLog" label="Log" description="Keep the tester log of each submission." />

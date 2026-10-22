@@ -9,6 +9,7 @@ export type SettingKey =
   | 'enable_log' | 'submit_penalty' | 'enable_registration' | 'registration_code' | 'mail_from'
   | 'mail_from_name' | 'reset_password_mail' | 'add_user_mail' | 'moss_userid'
   | 'results_per_page_all' | 'results_per_page_final' | 'week_start' | 'lock_student_display_name'
+  | 'enable_python2'
 
 export async function getAllSettings(): Promise<Record<SettingKey, string>> {
   const rows = await useDb().select().from(settings)
@@ -18,6 +19,11 @@ export async function getAllSettings(): Promise<Record<SettingKey, string>> {
 export async function getSetting(key: SettingKey): Promise<string> {
   const [row] = await useDb().select({ value: settings.value }).from(settings).where(eq(settings.key, key))
   return row?.value ?? ''
+}
+
+/** Python 2 is end-of-life and not installed in the image: off unless an admin enables it. */
+export async function python2Enabled(): Promise<boolean> {
+  return (await getSetting('enable_python2')) === '1'
 }
 
 export async function setSetting(key: SettingKey, value: string | number): Promise<void> {

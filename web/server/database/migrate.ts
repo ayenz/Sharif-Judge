@@ -38,9 +38,22 @@ export function extraTablesSql(p: string): string[] {
   ].map(sql => `${sql} ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci`)
 }
 
+/** Settings added after the legacy schema, with their default for existing installs. */
+const EXTRA_SETTINGS: Record<string, string> = {
+  enable_python2: '0',
+}
+
 export async function migrateExtraTables(): Promise<void> {
   if (!(await tableExists('settings')))
     return
+  const pool = usePool()
   for (const sql of extraTablesSql(useRuntimeConfig().db.prefix))
-    await usePool().query(sql)
+    await pool.query(sql)
+  // The settings table has no unique key, so insert missing keys one by one.
+  const table = tableName('settings')
+  for (const [key, value] of Object.entries(EXTRA_SETTINGS)) {
+    const [rows] = await pool.query(`SELECT 1 FROM \`${table}\` WHERE shj_key = ? LIMIT 1`, [key])
+    if (!(rows as unknown[]).length)
+      await pool.query(`INSERT INTO \`${table}\` (shj_key, shj_value) VALUES (?, ?)`, [key, value])
+  }
 }

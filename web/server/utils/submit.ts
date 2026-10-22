@@ -25,6 +25,8 @@ export async function submitCheck(user: CurrentUser, problemId: number, language
   if (blocked)
     throw createError({ statusCode: 403, statusMessage: blocked === 'Selected assignment is closed.' ? 'Selected assignment has been closed.' : blocked })
   const fileType = languageToType(language)
+  if (fileType === 'py2' && !(await python2Enabled()))
+    throw createError({ statusCode: 400, statusMessage: 'Python 2 is disabled on this judge.' })
   const allowed = parseAllowedLanguages(problem.allowedLanguages).map(l => languageToType(l))
   if (!fileType || !allowed.includes(fileType))
     throw createError({ statusCode: 400, statusMessage: 'This file type is not allowed for this problem.' })

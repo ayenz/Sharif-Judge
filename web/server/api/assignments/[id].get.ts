@@ -4,6 +4,9 @@ export default defineEventHandler(async (event) => {
   await requireUser(event, 2)
   const id = intParam(event, 'id')
   const defaultLateRule = await getSetting('default_late_rule')
+  const python2 = await python2Enabled()
+  // Python 2 is hidden everywhere while it is disabled in Settings.
+  const languages = (allowed: string) => parseAllowedLanguages(allowed).filter(l => python2 || l !== 'Python 2')
   if (id === 0) {
     return {
       id: 0,
@@ -20,6 +23,7 @@ export default defineEventHandler(async (event) => {
       problems: [],
       hasPdf: false,
       defaultLateRule,
+      python2Enabled: python2,
     }
   }
   const a = await getAssignment(id)
@@ -45,12 +49,13 @@ export default defineEventHandler(async (event) => {
       pythonTimeLimit: p.pythonTimeLimit,
       javaTimeLimit: p.javaTimeLimit,
       memoryLimit: p.memoryLimit,
-      languages: parseAllowedLanguages(p.allowedLanguages),
+      languages: languages(p.allowedLanguages),
       diffCmd: p.diffCmd,
       diffArg: p.diffArg,
       isUploadOnly: Boolean(p.isUploadOnly),
     })),
     hasPdf: Boolean(await assignmentPdfPath(id)),
     defaultLateRule,
+    python2Enabled: python2,
   }
 })

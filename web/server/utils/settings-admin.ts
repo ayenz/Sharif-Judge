@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process'
 import { access, readFile, writeFile } from 'node:fs/promises'
 import { constants } from 'node:fs'
 import { join } from 'node:path'
@@ -68,4 +69,9 @@ export function settingsIsValidTimezone(zone: string): boolean {
   catch {
     return false
   }
+}
+
+/** True when a program is on the PATH of the server (the judge uses the same image). */
+export function settingsCommandExists(command: string): boolean {
+  return spawnSync('sh', ['-c', 'command -v "$0"', command], { stdio: 'ignore' }).status === 0
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Form } from '@nuxt/ui'
-import { ALL_LANGUAGES, JUDGED_LANGUAGES } from '#shared/languages'
+import { allLanguages, judgedLanguages } from '#shared/languages'
 
 export interface AssignmentProblemState {
   name: string
@@ -30,6 +30,8 @@ export interface AssignmentFormData {
   problems: AssignmentProblemState[]
   hasPdf: boolean
   defaultLateRule: string
+  /** Python 2 can be offered only when it is enabled in Settings. */
+  python2Enabled?: boolean
 }
 
 const props = defineProps<{ initial: AssignmentFormData }>()
@@ -47,7 +49,7 @@ function newProblem(): AssignmentProblemState {
     pythonTimeLimit: 1500,
     javaTimeLimit: 2000,
     memoryLimit: 50000,
-    languages: ['C', 'C++', 'Python 2', 'Python 3', 'Java'],
+    languages: judgedLanguages(Boolean(props.initial.python2Enabled)),
     diffCmd: 'diff',
     diffArg: '-bB',
     isUploadOnly: false,
@@ -109,9 +111,10 @@ function setUploadOnly(p: AssignmentProblemState, value: boolean) {
   p.isUploadOnly = value
   // Judged problems can only keep judged languages (same filter as the server).
   if (!value)
-    p.languages = p.languages.filter(l => JUDGED_LANGUAGES.includes(l))
+    p.languages = p.languages.filter(l => judgedLanguages(true).includes(l))
 }
-const languageItems = (p: AssignmentProblemState) => (p.isUploadOnly ? ALL_LANGUAGES : JUDGED_LANGUAGES)
+const python2 = computed(() => Boolean(props.initial.python2Enabled))
+const languageItems = (p: AssignmentProblemState) => (p.isUploadOnly ? allLanguages(python2.value) : judgedLanguages(python2.value))
 
 const totalScore = computed(() => state.problems.reduce((s, p) => s + (Number(p.score) || 0), 0))
 

@@ -126,7 +126,7 @@ export function assignmentLateRuleError(rule: string): string | null {
  * Normalizes allowed languages like the legacy add_assignment: known names only and,
  * unless the problem is upload-only, only judged languages.
  */
-export function assignmentNormalizeLanguages(languages: string[], uploadOnly: boolean): string {
+export function assignmentNormalizeLanguages(languages: string[], uploadOnly: boolean, python2 = true): string {
   const out: string[] = []
   for (const raw of languages) {
     const lower = raw.trim().toLowerCase()
@@ -134,6 +134,8 @@ export function assignmentNormalizeLanguages(languages: string[], uploadOnly: bo
     if (!name)
       continue
     if (!uploadOnly && !JUDGED_LANGUAGES.includes(name))
+      continue
+    if (name === 'Python 2' && !python2)
       continue
     if (!out.includes(name))
       out.push(name)
