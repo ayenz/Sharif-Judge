@@ -46,9 +46,6 @@ export default defineNuxtConfig({
       radiusServer: '',
       radiusSecret: '',
       ldapUrl: '',
-      ldapBaseDn: '',
-      ldapBindDn: '',
-      ldapBindPassword: '',
       ldapAccountSuffix: '',
     },
     mail: {
