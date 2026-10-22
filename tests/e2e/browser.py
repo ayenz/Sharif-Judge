@@ -16,7 +16,7 @@ with sync_playwright() as p:
         errs = []
         page.on("console", lambda m: errs.append(f"console.{m.type}: {m.text}") if m.type == "error" else None)
         page.on("pageerror", lambda e: errs.append(f"pageerror: {e}"))
-        page.goto(B + "/login"); page.fill("input[autocomplete=username]", user); page.fill("input[type=password]", pw)
+        page.goto(B + "/login", wait_until="networkidle"); page.fill("input[autocomplete=username]", user); page.fill("input[type=password]", pw)
         page.click("button[type=submit]"); page.wait_for_url(B + "/")
         for path in pages:
             errs.clear()
