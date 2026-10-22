@@ -88,6 +88,7 @@ export function defaultSettings(paths: { tester: string, assignments: string }):
     results_per_page_final: '80',
     week_start: '0',
     lock_student_display_name: '0',
+    enable_python2: '0',
   }
 }
 

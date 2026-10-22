@@ -52,6 +52,15 @@ export function typeToLabel(type: string): string {
 export const JUDGED_LANGUAGES = ['C', 'C++', 'Python 2', 'Python 3', 'Java']
 export const ALL_LANGUAGES = [...JUDGED_LANGUAGES, 'Zip', 'PDF', 'TXT']
 
+/** Languages offered for new problems; Python 2 only when enabled in Settings. */
+export function judgedLanguages(python2: boolean): string[] {
+  return python2 ? JUDGED_LANGUAGES : JUDGED_LANGUAGES.filter(l => l !== 'Python 2')
+}
+
+export function allLanguages(python2: boolean): string[] {
+  return python2 ? ALL_LANGUAGES : ALL_LANGUAGES.filter(l => l !== 'Python 2')
+}
+
 export function parseAllowedLanguages(allowed: string): string[] {
   return allowed.split(',').map(l => l.trim()).filter(Boolean)
 }

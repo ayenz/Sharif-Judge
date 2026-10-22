@@ -321,6 +321,7 @@ export async function assignmentSaveFromRequest(event: H3Event, editId: number |
     }
   }
   const form = parsed.data
+  const python2 = await python2Enabled()
   let extraTime: number | null = null
   if (form) {
     extraTime = extraTimeParse(form.extraTime)
@@ -332,7 +333,7 @@ export async function assignmentSaveFromRequest(event: H3Event, editId: number |
     if (ruleError)
       errors.lateRule = `The coefficient rule has a syntax error: ${ruleError}`
     form.problems.forEach((p, i) => {
-      if (!assignmentNormalizeLanguages(p.languages, p.isUploadOnly))
+      if (!assignmentNormalizeLanguages(p.languages, p.isUploadOnly, python2))
         errors[`problems.${i}.languages`] = p.isUploadOnly ? 'Select at least one language.' : 'Select at least one judged language (C, C++, Python, Java).'
     })
   }
@@ -360,7 +361,7 @@ export async function assignmentSaveFromRequest(event: H3Event, editId: number |
       archived: form.archived,
       problems: form.problems.map(p => ({
         ...p,
-        allowedLanguages: assignmentNormalizeLanguages(p.languages, p.isUploadOnly),
+        allowedLanguages: assignmentNormalizeLanguages(p.languages, p.isUploadOnly, python2),
       })),
     }, edit)
   }
