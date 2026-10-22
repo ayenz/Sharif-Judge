@@ -7,15 +7,22 @@ RUN npm ci --ignore-scripts
 COPY web/ ./
 RUN npx nuxt prepare && npm run build
 
-# Cheat detection engine: JPlag 6.3 needs Java 25. It gets its own JRE so the tester
+# Cheat detection engine: JPlag 6.3 needs Java 25. It gets its own runtime so the tester
 # can stay on Java 17 (tester.sh relies on the Security Manager, removed in Java 24).
+# JPlag parses Java with the JDK's compiler (module jdk.compiler), which a plain JRE does not
+# have, so the runtime is made from the JDK with jlink.
 FROM node:24-bookworm-slim AS jplag
-ADD --checksum=sha256:1731a34baadec5479258ea0202e4d5d865d2efeee60cb0c7d7eb056fe96ca219 \
-    https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.4.1%2B1/OpenJDK25U-jre_x64_linux_hotspot_25.0.4.1_1.tar.gz /tmp/jre.tar.gz
+ADD --checksum=sha256:dbb698396d478e7fa2b1e50f4103324b2a99b90569ee27c33f2261f9215cf41e \
+    https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.4.1%2B1/OpenJDK25U-jdk_x64_linux_hotspot_25.0.4.1_1.tar.gz /tmp/jdk.tar.gz
 ADD --checksum=sha256:5f2c21e8b88ed77134effcb3a5a3ab13d188f6a3e16d401387f7479e92db9aa2 \
     https://github.com/jplag/JPlag/releases/download/v6.3.0/jplag-6.3.0-jar-with-dependencies.jar /opt/jplag/jplag.jar
-RUN mkdir -p /opt/jre25 && tar -xzf /tmp/jre.tar.gz -C /opt/jre25 --strip-components=1 \
-    && rm -rf /opt/jre25/man /opt/jre25/legal /tmp/jre.tar.gz \
+# binutils: jlink --strip-debug calls objcopy (this stage only)
+RUN apt-get update && apt-get install -y --no-install-recommends binutils && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /tmp/jdk && tar -xzf /tmp/jdk.tar.gz -C /tmp/jdk --strip-components=1 \
+    && /tmp/jdk/bin/jlink --module-path /tmp/jdk/jmods \
+       --add-modules java.se,jdk.compiler,jdk.unsupported,jdk.zipfs,jdk.charsets,jdk.localedata,jdk.management,jdk.crypto.cryptoki,jdk.net \
+       --strip-debug --no-header-files --no-man-pages --output /opt/jre25 \
+    && rm -rf /tmp/jdk /tmp/jdk.tar.gz \
     && chmod 644 /opt/jplag/jplag.jar
 
 # Go toolchain for Go submissions, plus a build cache of the common standard packages

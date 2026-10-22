@@ -12,7 +12,7 @@ development setup).
 | Security | `uv run --with requests python tests/e2e/security.py` | Other students' code, path traversal, staff endpoints, re-install, SQL-like input, secrets hidden from submissions, sign-in rate limit (also with a forged `X-Forwarded-For`) |
 | Isolation | `uv run --with requests python tests/e2e/isolation.py` | Submissions (C, Python, Java) try to read expected outputs and other students' code, `#include` an answer at compile time, reach the database and read secrets; all must be blocked. Run it once with the shields off in Settings as well |
 | Editor | `uv run --with requests python tests/e2e/editor-flow.py` | Save, run with input, submit, recording, rejudge |
-| Cheat detection | `uv run --with requests python tests/e2e/cheat-flow.py` | Renamed, reordered, C, JavaScript and Go copies are found, a different solution is not, paste signals, template code, older assignments, access, history across assignments |
+| Cheat detection | `uv run --with requests python tests/e2e/cheat-flow.py` | Renamed, reordered, C, Java, JavaScript and Go copies are found, a different solution is not, paste signals, template code, older assignments, access, history across assignments |
 | JavaScript and Go | `uv run --with requests python tests/e2e/languages.py` | 18 programs (`e2e/languages/`): accepted, wrong, syntax/compile error, time limit, runtime error, memory limit (growing and a short burst), a program that fits the limit, a Go package outside the build cache; "Run" in the editor; isolation probes from both languages |
 | Export and import | `uv run --with requests --with playwright python tests/e2e/export-import.py` | An export carries `assignment.json`; importing it in the add form (Chromium) gives the same problems and files with the schedule, participants and open flag reset; a zip without it is refused with a message; the export zip still works as a tests upload; `assignment.json` never lands in the assignment folder |
 | Python 2 setting | `uv run --with requests python tests/e2e/python2.py` | Off by default, hidden and refused while off, can be switched on and off, re-created for old installs |
@@ -45,5 +45,6 @@ against a forged server.
 - `e2e/cheat/`: an original solution (`alice.py`), a renamed copy (`bob.py`), a reordered copy with
   comments (`dave.py`), an independent solution (`carol.py`), a C original and copy
   (`erin.c`, `frank.c`), a JavaScript original and copy (`alice.js`, `bob.js`), and a Go original,
-  copy and independent solution (`carol.go`, `dave.go`, `erin.go`).
+  copy and independent solution (`carol.go`, `dave.go`, `erin.go`), and a Java original, renamed copy and independent
+  solution (`alice.java`, `bob.java`, `carol.java`).
 - `e2e/languages/`: JavaScript and Go programs for `languages.py`, named `<language>_<case>`.

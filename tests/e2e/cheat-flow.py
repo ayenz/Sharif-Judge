@@ -137,4 +137,27 @@ sim3 = {frozenset([p["a"]["username"], p["b"]["username"]]): p["similarity"] for
 assert sim3.get(frozenset(["alice", "bob"]), 0) >= 0.8, "JavaScript copy not detected"
 assert sim3.get(frozenset(["carol", "dave"]), 0) >= 0.75, "Go copy not detected"
 assert sim3.get(frozenset(["carol", "erin"]), 0) < 0.5, "different Go solution flagged"
+
+# Java: a renamed and reordered copy, and an independent solution (needs JPlag's Java parser).
+body4 = dict(body, name="Cheat Lab Java", problems=[dict(body["problems"][0], languages=["Java"])])
+res = admin.post(B + "/api/assignments", files={"data": (None, json.dumps(body4)), "tests_desc": ("t.zip", tests.getvalue(), "application/zip")})
+res.raise_for_status(); aid4 = res.json()["id"]
+for user, f in [("alice", "alice.java"), ("bob", "bob.java"), ("carol", "carol.java")]:
+    s = session(user, "secret123"); s.post(B + "/api/assignments/select", json={"id": aid4}).raise_for_status()
+    s.post(B + "/api/submit", files={"problem": (None, "1"), "language": (None, "Java"), "file": ("Main.java", (HERE / f).read_bytes())}).raise_for_status()
+    wait_queue()
+admin.post(B + f"/api/cheat/{aid4}/run", json={"compareAssignments": [], "minTokens": None}).raise_for_status()
+for _ in range(120):
+    runs4 = admin.get(B + f"/api/cheat/{aid4}").json()["runs"]
+    if runs4 and all(r["status"] in ("done", "failed") for r in runs4): break
+    time.sleep(1)
+for r in runs4:
+    print(f"  run {r['language']}: {r['status']} subs={r['submissions']} comparisons={r['comparisons']} failed={r['failed']} {r['error'][:200]}")
+assert runs4[0]["status"] == "done" and not runs4[0]["failed"], "Java submissions could not be parsed"
+pairs4 = admin.get(B + f"/api/cheat/{aid4}/pairs").json()
+for p in pairs4:
+    print(f"  {p['similarity']*100:5.1f}%  {p['a']['username']:6} <-> {p['b']['username']:6} {p['language']:10} longest={p['longestMatch']}")
+sim4 = {frozenset([p["a"]["username"], p["b"]["username"]]): p["similarity"] for p in pairs4}
+assert sim4.get(frozenset(["alice", "bob"]), 0) >= 0.75, "Java copy not detected"
+assert sim4.get(frozenset(["alice", "carol"]), 0) < 0.5, "different Java solution flagged"
 print("ALL GOOD")
