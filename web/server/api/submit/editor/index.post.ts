@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm'
 import { rename, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { languageToType, typeToExtension } from '#shared/languages'
+import { isArchiveType, languageToType, typeToExtension } from '#shared/languages'
 
 // Editor actions (legacy Submit::save): save the code and recording, and
 // optionally submit it for judging or execute it with custom input.
@@ -40,6 +40,8 @@ export default defineEventHandler(async (event) => {
   catch (e) {
     return { status: false, message: (e as { statusMessage?: string }).statusMessage ?? 'Error' }
   }
+  if (isArchiveType(fileType))
+    return { status: false, message: `${form.language} is submitted as a file: use "Upload a file".` }
   const ext = typeToExtension(fileType)!
   const coefficient = await currentCoefficient(assignment)
   const base = {

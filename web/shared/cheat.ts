@@ -17,7 +17,8 @@ export function fileTypeToCheatLanguage(fileType: string): CheatLanguage | null 
   switch (fileType) {
     case 'c': return 'c'
     case 'cpp': return 'cpp'
-    case 'java': return 'java'
+    case 'java':
+    case 'jzip': return 'java'
     case 'py2':
     case 'py3': return 'python3'
     case 'js': return 'javascript'

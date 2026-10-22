@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ARCHIVE_LANGUAGES } from '#shared/languages'
+
 const route = useRoute()
 const toast = useToast()
 const { data } = await useFetch('/api/submit')
@@ -18,6 +20,21 @@ const languageItems = computed(() => problem.value?.languages ?? [])
 watch(problemId, () => {
   language.value = languageItems.value.length === 1 ? languageItems.value[0] : undefined
   if (problem.value?.isUploadOnly)
+    tab.value = 'upload'
+}, { immediate: true })
+const uploadHint = computed(() => {
+  const limit = `File name may contain letters, digits, _ - ( ). Max ${data.value?.fileSizeLimit} KB.`
+  if (language.value === 'Java (zip)')
+    return `A .zip with your .java files (folders for packages are fine); the class with main is run, or the one named Main. ${limit}`
+  if (language.value === 'JAR')
+    return `A runnable .jar with Main-Class in its manifest, compiled for Java 17 or older. ${limit}`
+  return limit
+})
+
+// Java zips and JARs can only be uploaded.
+const archive = computed(() => !!language.value && ARCHIVE_LANGUAGES.includes(language.value))
+watch(archive, (isArchive) => {
+  if (isArchive)
     tab.value = 'upload'
 }, { immediate: true })
 watch(() => data.value?.problems, () => {
@@ -57,7 +74,7 @@ async function upload() {
 }
 
 const tabs = computed(() => [
-  { label: 'Code editor', value: 'editor', icon: 'i-lucide-square-code', disabled: problem.value?.isUploadOnly },
+  { label: 'Code editor', value: 'editor', icon: 'i-lucide-square-code', disabled: problem.value?.isUploadOnly || archive.value },
   { label: 'Upload a file', value: 'upload', icon: 'i-lucide-file-up' },
 ])
 </script>
@@ -107,7 +124,7 @@ const tabs = computed(() => [
             <UFileUpload
               v-model="file"
               label="Drop your file here"
-              :description="`File name may contain letters, digits, _ - ( ). Max ${data.fileSizeLimit} KB.`"
+              :description="uploadHint"
               icon="i-lucide-file-code"
               class="w-full min-h-40"
             />

@@ -77,6 +77,25 @@ async function submissionCodePath(s: Pick<SubmissionRow, 'assignment' | 'problem
 
 const exists = (path: string) => access(path).then(() => true, () => false)
 
+/**
+ * The code JPlag compares for a submission, or null if the file is missing or unreadable. A zip
+ * of Java sources becomes one file (javaArchiveFlatten), so it is compared with single-file Java
+ * submissions too; the pair view shows the same text so match lines line up.
+ */
+async function submissionCode(s: Pick<SubmissionRow, 'assignment' | 'problem' | 'username' | 'fileName' | 'fileType'>): Promise<string | null> {
+  const data = await readFile(await submissionCodePath(s)).catch(() => null)
+  if (!data)
+    return null
+  if (s.fileType !== 'jzip')
+    return data.toString('utf8')
+  try {
+    return javaArchiveFlatten(javaArchiveSources(new Uint8Array(data)))
+  }
+  catch {
+    return null
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Queueing runs
 
@@ -211,12 +230,12 @@ async function executeRun(run: CheatRun) {
     const entries: Entry[] = []
     const ext = cheatLanguageExtension(run.language)
     const place = async (root: string, name: string, row: SubmissionRow, old: boolean) => {
-      const source = await submissionCodePath(row)
-      if (!(await exists(source)))
+      const code = await submissionCode(row)
+      if (code === null)
         return
       const fileBase = /^[\w-]+$/.test(row.mainFileName) ? row.mainFileName : 'main'
       await mkdir(join(dir, root, name), { recursive: true })
-      await copyFile(source, join(dir, root, name, `${fileBase}.${ext}`))
+      await writeFile(join(dir, root, name, `${fileBase}.${ext}`), code)
       entries.push({ id: hasOld ? `${root}_${name}` : name, row, old })
     }
     for (const row of current)
@@ -485,7 +504,7 @@ export async function cheatPairDetail(pairId: number): Promise<CheatPairDetail |
   const ref = await refs()
   const code = async (username: string, assignment: number, problem: number, submitId: number) => {
     const s = await submissionFind(username, assignment, problem, submitId)
-    return s ? readFile(await submissionCodePath(s), 'utf8').catch(() => '') : ''
+    return s ? (await submissionCode(s)) ?? '' : ''
   }
   const matches: CheatMatch[] = (JSON.parse(row.matches) as number[][]).map(([aStart, aEnd, bStart, bEnd, tokens]) => ({
     aStart: aStart!, aEnd: aEnd!, bStart: bStart!, bEnd: bEnd!, tokens: tokens!,
@@ -546,7 +565,7 @@ export async function cheatStudentSignals(assignmentId: number): Promise<CheatSt
       if (!best || p.similarity > best.sim)
         best = { sim: p.similarity, username: other.username, pairId: p.id, old: other.old }
     }
-    const code = await readFile(await submissionCodePath(s), 'utf8').catch(() => '')
+    const code = (await submissionCode(s)) ?? ''
     const rec = recByKey.get(`${s.username}/${s.problem}/${s.submitId}`)
     const similarity = analysed.has(`${s.problem}/${language}`) ? (best?.sim ?? 0) : null
 

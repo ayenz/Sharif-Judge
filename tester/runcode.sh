@@ -36,9 +36,9 @@ fi
 
 
 # Imposing memory limit with ulimit
-# Java, Node.js and Go reserve far more address space than they use, so they cannot run
+# Java (also zips of sources and JARs), Node.js and Go reserve far more address space than they use, so they cannot run
 # under a virtual-memory limit; their memory is limited by the runtime and ./timeout --rss.
-if [ "$EXT" != "java" ] && [ "$EXT" != "js" ] && [ "$EXT" != "go" ]; then
+if [ "$EXT" != "java" ] && [ "$EXT" != "jzip" ] && [ "$EXT" != "jar" ] && [ "$EXT" != "js" ] && [ "$EXT" != "go" ]; then
 	ulimit -v $((MEMLIMIT+10000))
 	ulimit -m $((MEMLIMIT+10000))
 	ulimit -s $((MEMLIMIT+10000))

@@ -1,6 +1,6 @@
 import { writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { typeToExtension } from '#shared/languages'
+import { isArchiveType, typeToExtension } from '#shared/languages'
 
 // File upload submit (legacy Submit::_upload).
 export default defineEventHandler(async (event) => {
@@ -29,6 +29,11 @@ export default defineEventHandler(async (event) => {
   const limitKb = Number(await getSetting('file_size_limit'))
   if (limitKb > 0 && file.data.length > limitKb * 1024)
     throw createError({ statusCode: 413, statusMessage: `The uploaded file exceeds the maximum allowed size (${limitKb} KB).` })
+  if (isArchiveType(fileType)) {
+    const problemText = javaArchiveCheck(fileType, file.data)
+    if (problemText)
+      throw createError({ statusCode: 400, statusMessage: problemText })
+  }
 
   const dir = await submitUserDir(user, problem.id)
   const coefficient = await currentCoefficient(assignment)

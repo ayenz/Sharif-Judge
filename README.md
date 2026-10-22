@@ -26,7 +26,8 @@ cheat detection, backups, migrating from PHP, security, and a development guide.
 - **Roles**: admin, head instructor, instructor, student.
 - **Assignments**: multiple problems, start/finish time, extra time with a custom late-penalty rule,
   participant lists, PDF and Markdown/HTML problem descriptions, test cases from a zip file.
-- **Judging**: C, C++, Java, Python 3, JavaScript and Go (Python 2 optional, off by default); output comparison with
+- **Judging**: C, C++, Java (single files, zips of sources, JARs), Python 3, JavaScript and Go
+  (Python 2 optional, off by default); output comparison with
   `diff` or a custom tester; time, memory and output limits; submission queue with pause, resume and
   rejudge. Submissions run in an isolated container (see [Security notes](#security-notes)).
 - **Submitting**: file upload, or a built-in code editor with "Run with custom input". The editor

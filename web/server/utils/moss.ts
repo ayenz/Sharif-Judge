@@ -9,7 +9,8 @@ const { submissions, assignments } = schema
 
 // Code files only. The legacy app excluded zip and pdf but still sent txt files to Moss;
 // txt submissions are not code, so they are excluded too.
-const MOSS_EXCLUDED_TYPES = new Set(['zip', 'pdf', 'txt'])
+// Java zips and JARs are archives; Moss gets single source files only.
+const MOSS_EXCLUDED_TYPES = new Set(['zip', 'pdf', 'txt', 'jzip', 'jar'])
 const MOSS_TIMEOUT_MS = 10 * 60 * 1000
 
 /** Assignments with a detection currently running in this process. */

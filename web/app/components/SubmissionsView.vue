@@ -129,7 +129,8 @@ function statusColor(item: Item) {
   return 'warning'
 }
 
-const downloadable = (item: Item) => ['zip', 'pdf', 'txt'].includes(item.fileType)
+const downloadable = (item: Item) => ['zip', 'pdf', 'txt', 'jzip', 'jar'].includes(item.fileType)
+const viewable = (item: Item) => !['zip', 'pdf', 'txt'].includes(item.fileType)
 const downloadUrl = (item: Item) => `/api/submissions/download/${item.username}/${item.assignment}/${item.problem}/${item.submitId}`
 
 // In the final view, alternate the background per user (legacy "hl" rows).
@@ -277,8 +278,8 @@ const rowNumber = (i: number) => ((data.value?.page ?? 1) - 1) * (data.value?.pe
             </td>
             <td class="text-right">
               <div class="flex justify-end gap-1">
+                <UButton v-if="viewable(item)" size="xs" color="neutral" variant="ghost" icon="i-lucide-code" label="Code" @click="show(item, 'code')" />
                 <UButton v-if="downloadable(item)" size="xs" color="neutral" variant="ghost" icon="i-lucide-download" label="File" :to="downloadUrl(item)" external />
-                <UButton v-else size="xs" color="neutral" variant="ghost" icon="i-lucide-code" label="Code" @click="show(item, 'code')" />
                 <UButton v-if="level > 0" size="xs" color="neutral" variant="ghost" icon="i-lucide-scroll-text" label="Log" @click="show(item, 'log')" />
                 <UButton v-if="level >= 2 && !item.isUploadOnly" size="xs" color="neutral" variant="ghost" icon="i-lucide-rotate-ccw" aria-label="Rejudge" @click="rejudge(item)" />
                 <!-- Keeps the columns aligned on rows that cannot be rejudged. -->

@@ -73,6 +73,7 @@ for the queue to drain, so they take minutes, not seconds.
 | Live updates | `uv run --with requests python tests/e2e/live.py` | Server-sent events: a student receives only their own results; staff receive everyone's and the queue events. |
 | JavaScript and Go | `uv run --with requests python tests/e2e/languages.py` | 18 programs from `tests/e2e/languages/` get the expected result: accepted, wrong, syntax or compile error, time limit, runtime error, memory limit (a growing program and a 200 MB burst that ends before the 50 ms sampling sees it), a program that fits the limit, and a Go package outside the image's build cache. Then "Run" in the editor, and isolation probes (answers, other students' code, database, secrets, a shell from Node) from both languages. |
 | Export and import | `uv run --with requests --with playwright python tests/e2e/export-import.py` | The export zip has `assignment.json` matching the edit form. Importing it on the add page in Chromium fills the form (start and finish empty), and the saved copy has the same problems and byte-identical tests and descriptions, with participants `ALL` and open/archived off. A zip without `assignment.json` shows a message. The export also works as a plain tests upload, and `assignment.json` is never stored in the assignment folder. |
+| Java zip and JAR | `uv run --with requests python tests/e2e/java-archives.py` | Zips of sources and JARs (built in the container with the image's `javac`/`jar`, including one marked as Java 21) get the expected result or a clear *Compilation Error*; bad uploads are refused with a message; `java_archive.py` refuses a path that leaves the folder; the editor refuses archives; the code view shows a zip's files and a JAR's classes; cheat detection matches a zip with a single Java file and leaves the JAR out. |
 | Python 2 | `uv run --with requests python tests/e2e/python2.py` | Python 2 is off by default, hidden and refused; can be switched on and off; an installation without the `enable_python2` row gets it (value 0) after a restart. |
 | Cheat detection | `uv run --with requests python tests/e2e/cheat-flow.py` | Renamed, reordered, C, Java, JavaScript and Go copies are found, an independent solution is not; paste signals, template code, comparison with older assignments, access rules, history across assignments. |
 | Browser | `uv run --with requests --with playwright python tests/e2e/browser.py` | Every page in Chromium: no console or page errors (this catches hydration mismatches), no horizontal page scroll at 390 px for a student, the Ace editor renders on the submit page. Screenshots go to `/tmp/sharif-shots/`. |
@@ -145,7 +146,7 @@ It does not run the migration or RADIUS tests. `SSH_HOST` only affects the shiel
 | A page or component | `smoke.py`, `browser.py` |
 | An API endpoint or permission check | `smoke.py`, `security.py` |
 | Judging, queue, scores, late rule, scoreboard, Excel | the regression test |
-| `tester/`, `judge/`, `docker/` | the regression test, `isolation.py` (shields on and off), `languages.py`, `editor-flow.py` |
+| `tester/`, `judge/`, `docker/` | the regression test, `isolation.py` (shields on and off), `languages.py`, `java-archives.py`, `editor-flow.py` |
 | Live events | `live.py` |
 | Cheat detection | `cheat-flow.py` |
 | Assignment form, export, tests upload | `export-import.py`, `browser.py` |

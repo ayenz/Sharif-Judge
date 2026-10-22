@@ -36,9 +36,28 @@ large) is in the submission's result. Staff can also see the full judge log.
 | Python 2 | Only when enabled in Settings and a `python2` interpreter is installed |
 | JavaScript | Node.js 24 (`node main.js`), syntax checked first. CommonJS (`require`) and ES modules (`import`) both work; read input with `require('fs').readFileSync(0, 'utf8')` or `readline` |
 | Go | Go 1.27 (`go build`), a single `package main` file using the standard library |
+| Java (zip) | A `.zip` of `.java` files, in folders for packages if needed. Only `.java` files are taken; they are compiled together with `javac` and run like Java. The class with `main` runs; if several classes have one, the class named `Main` |
+| JAR | A runnable `.jar` (with `Main-Class` in its manifest), run with `java -cp main.jar <Main-Class>`. Classes must be compiled for Java 17 or older (`--release 17`, or language level 17 in the IDE) |
 
-**Time limits**: Go uses the problem's C/C++ limit, JavaScript the Java limit (Node.js needs some
-start-up time, like Java).
+**Time limits**: Go uses the problem's C/C++ limit; JavaScript, Java (zip) and JAR the Java limit
+(Node.js needs some start-up time, like Java).
+
+### Java projects: zip or JAR
+
+Both are for exercises with several classes or packages. They are not selected by default for a new
+problem: tick them under the problem's allowed languages. Students submit them with **Upload a
+file** (the editor is for single files). Compared with each other:
+
+| | Java (zip) | JAR |
+|---|---|---|
+| Cheat detection | Yes, together with single-file Java submissions | No: a JAR holds compiled classes, not source code |
+| Staff can read the code | Yes, every file in the code view | No, only the list of classes |
+| Common mistakes caught before running | no `.java` files, no or several `main` classes, compile errors | not a JAR, no `Main-Class`, compiled for a newer Java |
+
+Prefer **Java (zip)** unless the exercise is about building a JAR. Problems are reported as
+*Compilation Error* with a message that says what to fix. The upload size limit (Settings > File
+size limit, default 50 KB) also applies to zips and JARs; raise it if students submit larger
+projects.
 
 **Memory limits** for JavaScript and Go count the memory the program really uses (resident memory)
 plus an allowance for the runtime itself: about 64 MB for Node.js and 10 MB for Go. C, C++ and

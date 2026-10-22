@@ -39,7 +39,7 @@ in the same order as the legacy `Queueprocess` controller:
 | 2 | `UN` | `submissions.username` | `alice` |
 | 3 | `MAINFILENAME` | `submissions.main_file_name` (used for Java only) | `Main` |
 | 4 | `FILENAME` | `submissions.file_name`, without extension | `Main-12` |
-| 5 | `EXT` | `submissions.file_type` | `c`, `cpp`, `java`, `py2`, `py3`, `js`, `go` |
+| 5 | `EXT` | `submissions.file_type` | `c`, `cpp`, `java`, `jzip`, `jar`, `py2`, `py3`, `js`, `go` |
 | 6 | `TIMELIMIT` | problem time limit for the language, ms ÷ 1000 | `0.5` |
 | 7 | `TIMELIMITINT` | `floor(TIMELIMIT) + 1` | `1` |
 | 8 | `MEMLIMIT` | `problems.memory_limit`, kB | `50000` |
@@ -54,8 +54,8 @@ in the same order as the legacy `Queueprocess` controller:
 | 17 | `DISPLAY_JAVA_EXCEPTION_ON` | `assignments.javaexceptions` | `0` |
 | 18 | `EXEC_ONLY` | `1` for an editor "Run", else `0` | `0` |
 
-The time limit (6) comes from `c_time_limit` for C, C++ and Go, `java_time_limit` for Java and
-JavaScript, and `python_time_limit` for both Pythons. `shj_problems` has no columns for the newer
+The time limit (6) comes from `c_time_limit` for C, C++ and Go, `java_time_limit` for Java, Java
+zips, JARs and JavaScript, and `python_time_limit` for both Pythons. `shj_problems` has no columns for the newer
 languages, and legacy tables do not change.
 
 ::: warning Multi-word diff arguments shift every later argument
@@ -108,7 +108,7 @@ assignment_<a>/
 | Output | Stored as | Meaning |
 |---|---|---|
 | a number 0–10000 | `status = 'SCORE'`, `pre_score = number` | `passed × 10000 / tests` (integer division) |
-| `Compilation Error` | status | C, C++, Java or Go did not compile |
+| `Compilation Error` | status | C, C++, Java or Go did not compile, or a Java zip / JAR failed its checks |
 | `Syntax Error` | status | Python `py_compile` or JavaScript `node --check` failed |
 | `Invalid Tester Code` | status | `tester.cpp` did not compile |
 | `File Format Not Supported` | status | unknown `EXT` |
@@ -166,6 +166,28 @@ allowances (64000 kB, 10000 kB) are the runtimes' own resident memory. `--rss` i
 `tester/timeout`; without it the monitor measures virtual size as before, so C, C++ and Python
 results are unchanged. Go programs run with `GOMAXPROCS=1`, so the garbage collector does not add
 CPU time from several cores.
+
+### Java zips and JARs
+
+[`tester/java_archive.py`](https://github.com/ayenz/Sharif-Judge/blob/main/tester/java_archive.py)
+runs as `shjrun` inside the jail before anything is compiled or run:
+
+- `sources <zip> src`: extracts only `.java` files into `src/` (at most 500 files, 1 MB each, 8 MB
+  in total; paths with `..`, absolute paths and unusual characters are refused), writes
+  `sources.txt` for `javac @sources.txt`, and prints the class to run: the only class with a
+  `main` method, or the one named `Main` if there are several (package from the `package` line).
+- `jar <jar>`: checks that the JAR is a zip with classes, that no class is newer than Java 17
+  (class file version 61), and that the manifest's `Main-Class` exists, and prints it.
+
+Its message on failure becomes the *Compilation Error* text. A zip is then compiled with
+`javac -proc:none -encoding UTF-8 -d classes @sources.txt` (no annotation processors) and run as
+`java -cp classes <main class>`; a JAR is run as `java -cp main.jar <Main-Class>`, not `-jar`, so a
+`Class-Path` in its manifest is ignored. Both use the same memory limit, policy, exception handling
+and `runcode.sh` treatment as single-file Java. The web app checks uploads early with the same rules
+([`server/utils/java-archive.ts`](https://github.com/ayenz/Sharif-Judge/blob/main/web/server/utils/java-archive.ts)),
+shows a zip's sources or a JAR's class list in the code view, and gives cheat detection a zip's
+sources joined into one file (`javaArchiveFlatten`: package lines dropped, imports moved to the
+top).
 
 ### Go build cache
 
@@ -354,6 +376,8 @@ is excluded explicitly from submission lists and cheat detection.
   jail).
 - The web app passes arguments as an array (no shell) and starts `tester.sh` with a minimal
   environment.
+- Java zips and JARs (`jzip`, `jar`): `java_archive.py` and a check/compile block in `tester.sh`;
+  they share the Java run branches through `JAVA_TARGET` (see [Java zips and JARs](#java-zips-and-jars)).
 - JavaScript and Go (`js`, `go`): compile and run branches in `tester.sh`, the `--rss` option in
   `timeout`, and `runcode.sh` skips the virtual-memory limit for them (see
   [JavaScript and Go memory](#javascript-and-go-memory)).
