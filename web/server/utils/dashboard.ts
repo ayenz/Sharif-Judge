@@ -29,7 +29,31 @@ export async function dashboardErrors(): Promise<{ message: string, path?: strin
     else if (!await settingsPathWritable(path))
       errors.push({ path, message: `This folder is not writable by the server. Make it writable, but make sure that this folder is only accessible by you.${c.note}` })
   }
+  errors.push(...await dashboardBackupWarnings())
   return errors
+}
+
+/** Admin warnings about the backup service (latest.json written by docker/backup/backup.sh). */
+async function dashboardBackupWarnings(): Promise<{ message: string }[]> {
+  const dir = useRuntimeConfig().backup.dir
+  if (!dir)
+    return []
+  const { readFile } = await import('node:fs/promises')
+  const text = await readFile(`${dir}/latest.json`, 'utf8').catch(() => null)
+  if (text === null)
+    return [{ message: 'No backup has been made yet. The backup service runs once a day; see docker/README.md to run one now.' }]
+  try {
+    const last = JSON.parse(text) as { time: string, status: string, message: string }
+    if (last.status !== 'ok')
+      return [{ message: `The last backup failed (${last.time}): ${last.message}.` }]
+    const age = toEpoch(await nowStr()) - toEpoch(last.time)
+    if (age > 2 * 86400)
+      return [{ message: `The last backup is from ${last.time}, more than two days ago. Check the backup service.` }]
+  }
+  catch {
+    return [{ message: 'The backup status file cannot be read.' }]
+  }
+  return []
 }
 
 /** Cheap counters for the stat cards. */
