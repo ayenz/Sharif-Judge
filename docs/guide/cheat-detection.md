@@ -10,8 +10,9 @@ an assignment on the Assignments page.
 ## How it works
 
 1. **Collect.** For every problem of the assignment, the final submission of each student is taken
-   and grouped by language (C, C++, Java, Python, JavaScript, Go). Upload-only files (zip, pdf, txt)
-   are skipped.
+   and grouped by language (C, C++, Java, Python, JavaScript, Go). A Java (zip) submission is
+   compared as Java: its files are joined into one, so it is also compared with single-file Java
+   submissions. JAR files (compiled classes) and upload-only files (zip, pdf, txt) are skipped.
 2. **Compare.** [JPlag](https://github.com/jplag/JPlag) 6.3 compares every pair within a group. It
    parses the code into tokens (keywords, operators, structure) instead of comparing text, so
    renaming variables, changing comments or reformatting does not hide a copy. Neighbouring
@@ -122,7 +123,8 @@ The **Moss (legacy)** tab keeps the previous integration with Stanford's
 email with Moss), sends the code to Stanford's server, and returns a link that expires after about
 14 days. The Nuxt version fixes a legacy bug: the language is now sent to Moss (`-l`); before, every
 file was parsed as C. Each language is a separate request, and template code is sent with `-b`.
-Moss has no Go grammar, so Go submissions are only compared by the local JPlag engine.
+Moss has no Go grammar, so Go submissions are only compared by the local JPlag engine; Java (zip)
+and JAR submissions are not sent to Moss either.
 
 ## Limits
 
@@ -130,6 +132,7 @@ Moss has no Go grammar, so Go submissions are only compared by the local JPlag e
   students who studied together write alike. Always look at the code and the recording.
 - Only final submissions are compared.
 - Python 2 code may fail to parse with the Python 3 grammar and is then listed as not compared.
+- JAR submissions are never compared; use Java (zip) when cheat detection matters.
 - An analysis of a large class with many older assignments can take minutes; it runs in the
   background, so the page can be closed meanwhile.
 

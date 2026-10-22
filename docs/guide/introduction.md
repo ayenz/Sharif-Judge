@@ -18,7 +18,8 @@ network.
 
 - **Assignments**: several problems each, start and finish time, extra time with a late-penalty
   rule, participant lists, PDF and Markdown/HTML descriptions, archived assignments.
-- **Judging**: C, C++, Java, Python 3, JavaScript and Go (Python 2 optional). Output is compared with `diff` or a
+- **Judging**: C, C++, Java (also projects as a zip of sources or a JAR), Python 3, JavaScript and
+  Go (Python 2 optional). Output is compared with `diff` or a
   custom tester. Time, memory and output limits. A queue with pause, resume and rejudge.
 - **Submitting**: file upload, or the built-in editor with "Run" on custom input. Results appear
   live as soon as a submission is judged.

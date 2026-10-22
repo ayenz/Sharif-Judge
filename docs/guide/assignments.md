@@ -23,7 +23,9 @@ used for JavaScript) in milliseconds, a memory
 limit (kB), the allowed languages, and how output is compared. **Upload only** problems are not judged:
 students upload a file (PDF, zip, txt or code) and it is final immediately.
 
-Defaults for a new problem: score 100, 500 ms / 1500 ms / 2000 ms, 50000 kB, `diff -bB`.
+Defaults for a new problem: score 100, 500 ms / 1500 ms / 2000 ms, 50000 kB, `diff -bB`, and every
+judged language except Java (zip) and JAR, which you add when a problem needs several Java files
+(see [Judging](./judging#java-projects-zip-or-jar)).
 
 ### Comparing output
 

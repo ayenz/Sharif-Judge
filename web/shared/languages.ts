@@ -1,7 +1,7 @@
 // Mappings between the language names stored in problems.allowed_languages,
 // the file types stored in submissions.file_type, and file extensions.
 
-export const FILE_TYPES = ['c', 'cpp', 'py2', 'py3', 'java', 'js', 'go', 'zip', 'pdf', 'txt'] as const
+export const FILE_TYPES = ['c', 'cpp', 'py2', 'py3', 'java', 'jzip', 'jar', 'js', 'go', 'zip', 'pdf', 'txt'] as const
 export type FileType = typeof FILE_TYPES[number]
 
 /** "C++" -> "cpp", "Python 3" -> "py3", ... (case-insensitive). */
@@ -12,6 +12,8 @@ export function languageToType(language: string): FileType | null {
     case 'python 2': return 'py2'
     case 'python 3': return 'py3'
     case 'java': return 'java'
+    case 'java (zip)': return 'jzip'
+    case 'jar': return 'jar'
     case 'javascript': return 'js'
     case 'go': return 'go'
     case 'zip': return 'zip'
@@ -28,6 +30,8 @@ export function typeToExtension(type: string): string | null {
     case 'py2':
     case 'py3': return 'py'
     case 'java': return 'java'
+    case 'jzip': return 'zip'
+    case 'jar': return 'jar'
     case 'js': return 'js'
     case 'go': return 'go'
     case 'zip': return 'zip'
@@ -45,6 +49,8 @@ export function typeToLabel(type: string): string {
     case 'py2': return 'Py 2'
     case 'py3': return 'Py 3'
     case 'java': return 'Java'
+    case 'jzip': return 'Java zip'
+    case 'jar': return 'JAR'
     case 'js': return 'JS'
     case 'go': return 'Go'
     case 'zip': return 'Zip'
@@ -55,12 +61,28 @@ export function typeToLabel(type: string): string {
 }
 
 /** Languages that are judged (the rest are upload-only). */
-export const JUDGED_LANGUAGES = ['C', 'C++', 'Python 2', 'Python 3', 'Java', 'JavaScript', 'Go']
+export const JUDGED_LANGUAGES = ['C', 'C++', 'Python 2', 'Python 3', 'Java', 'Java (zip)', 'JAR', 'JavaScript', 'Go']
+
+/**
+ * Judged languages submitted as an archive (several Java files in a zip, or a JAR): file upload
+ * only, not the editor. Not selected by default for new problems; instructors opt in.
+ */
+export const ARCHIVE_LANGUAGES = ['Java (zip)', 'JAR']
+
+/** File types that are archives: shown as a listing in the code viewer and downloadable. */
+export function isArchiveType(type: string): boolean {
+  return type === 'jzip' || type === 'jar'
+}
 export const ALL_LANGUAGES = [...JUDGED_LANGUAGES, 'Zip', 'PDF', 'TXT']
 
 /** Languages offered for new problems; Python 2 only when enabled in Settings. */
 export function judgedLanguages(python2: boolean): string[] {
   return python2 ? JUDGED_LANGUAGES : JUDGED_LANGUAGES.filter(l => l !== 'Python 2')
+}
+
+/** Languages selected for a new problem: the judged ones except the archive languages. */
+export function defaultProblemLanguages(python2: boolean): string[] {
+  return judgedLanguages(python2).filter(l => !ARCHIVE_LANGUAGES.includes(l))
 }
 
 export function allLanguages(python2: boolean): string[] {

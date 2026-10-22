@@ -22,6 +22,6 @@ export default defineEventHandler(async (event) => {
   return {
     fileName: `${s.mainFileName}.${ext}`,
     text: await submissionReadFile(s, form.type),
-    lang: form.type === 'code' ? (s.fileType.startsWith('py') ? 'python' : s.fileType) : undefined,
+    lang: form.type === 'code' ? (s.fileType.startsWith('py') ? 'python' : s.fileType === 'jzip' ? 'java' : s.fileType === 'jar' ? 'text' : s.fileType) : undefined,
   }
 })

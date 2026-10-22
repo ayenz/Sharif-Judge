@@ -22,6 +22,7 @@ docker compose logs --tail 50 judge
 | Late coefficient shows `error` | Edit the assignment; saving shows the rule's syntax error. |
 | A problem with `tester.cpp` fails | `Invalid Tester Code`: the tester does not compile. Delete an old `tester.executable` after a migration. |
 | Cheat detection: engine not available | `NUXT_CHEAT_*` are not set (outside Docker) or the image is outdated: rebuild. |
-| Cheat detection: "not compared" | The programs are too short to compare reliably, or JPlag could not parse them (e.g. Python 2). |
+| Cheat detection: "not compared" | The programs are too short to compare reliably, or JPlag could not parse them (e.g. Python 2). JAR submissions are never compared. |
 | Every Java submission "not compared" | The image is older than the jlink runtime: rebuild it (the JRE it used could not parse Java). |
+| JAR: "compiled for Java 21, but the judge runs Java 17" | The student compiles with `--release 17` (or language level 17 in the IDE) and exports again. |
 | Live results do not appear | A proxy buffers `/api/events`; the pages fall back to polling every few seconds. |

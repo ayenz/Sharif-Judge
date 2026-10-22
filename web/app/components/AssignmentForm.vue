@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Form } from '@nuxt/ui'
-import { allLanguages, judgedLanguages } from '#shared/languages'
+import { allLanguages, defaultProblemLanguages, judgedLanguages } from '#shared/languages'
 
 export interface AssignmentProblemState {
   name: string
@@ -49,7 +49,7 @@ function newProblem(): AssignmentProblemState {
     pythonTimeLimit: 1500,
     javaTimeLimit: 2000,
     memoryLimit: 50000,
-    languages: judgedLanguages(Boolean(props.initial.python2Enabled)),
+    languages: defaultProblemLanguages(Boolean(props.initial.python2Enabled)),
     diffCmd: 'diff',
     diffArg: '-bB',
     isUploadOnly: false,

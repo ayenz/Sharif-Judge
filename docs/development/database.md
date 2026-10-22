@@ -84,7 +84,7 @@ One row per problem; the key is `(assignment, id)` with `id` 1…n.
 | `is_upload_only` | 1 = files are stored, not judged (status `Uploaded`) |
 | `c_time_limit`, `python_time_limit`, `java_time_limit` | milliseconds (defaults 500, 1500, 2000) |
 | `memory_limit` | kB (default 50000) |
-| `allowed_languages` | comma-separated names: `C`, `C++`, `Python 2`, `Python 3`, `Java`, `JavaScript`, `Go`, `Zip`, `PDF`, `TXT` ([`shared/languages.ts`](https://github.com/ayenz/Sharif-Judge/blob/main/web/shared/languages.ts)) |
+| `allowed_languages` | comma-separated names: `C`, `C++`, `Python 2`, `Python 3`, `Java`, `Java (zip)`, `JAR`, `JavaScript`, `Go`, `Zip`, `PDF`, `TXT` ([`shared/languages.ts`](https://github.com/ayenz/Sharif-Judge/blob/main/web/shared/languages.ts)) |
 | `diff_cmd`, `diff_arg` | output comparison, see [Judge engine](./judge-engine#comparing-output) |
 
 ### `shj_submissions`
@@ -100,7 +100,7 @@ One row per problem; the key is `(assignment, id)` with `id` 1…n.
 | `coefficient` | late coefficient in percent **as a string** of at most 6 characters (`"100"`, `"85"`, `"0"`), or **`"error"`** when the late rule failed. Computed at submit time, and recomputed for every submission of the assignment when its start, finish, extra time or late rule is edited (`updateCoefficients()` in `server/utils/assignments.ts`). |
 | `file_name` | stored file name without extension, e.g. `Main-12` or `editor-12` |
 | `main_file_name` | uploaded name without extension (`Main`), or `editor`; used as Java class name |
-| `file_type` | `c`, `cpp`, `py2`, `py3`, `java`, `js`, `go`, `zip`, `pdf`, `txt` (max 6 characters) |
+| `file_type` | `c`, `cpp`, `py2`, `py3`, `java`, `jzip` (Java zip, stored as `.zip`), `jar`, `js`, `go`, `zip`, `pdf`, `txt` (max 6 characters) |
 
 ### `shj_queue`
 

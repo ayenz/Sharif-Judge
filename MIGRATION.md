@@ -135,6 +135,9 @@ keterlambatan, dan urutan scoreboard harus identik.
   Java. Batas memori diukur dari memori yang benar-benar dipakai (plus jatah runtime ±64 MB untuk Node.js,
   ±10 MB untuk Go). Bahasa lama tidak berubah, jadi hasil regresi tetap identik. Moss tidak mendukung Go;
   JPlag mendukung keduanya. Diuji di `tests/e2e/languages.py`.
+- **Java (zip) dan JAR**: proyek Java multi-file dikirim sebagai zip berisi `.java` (di-compile oleh judge,
+  ikut deteksi kecurangan) atau sebagai JAR runnable (tidak bisa dicek kecurangannya). Tidak dicentang
+  default untuk soal baru. Diuji di `tests/e2e/java-archives.py`.
 - **Perbaikan deteksi kecurangan Java**: runtime Java 25 untuk JPlag sebelumnya JRE tanpa modul
   `jdk.compiler`, sehingga semua submission Java gagal di-parse ("terlalu pendek"). Sekarang runtime
   dibuat dengan jlink dari JDK, dan `cheat-flow.py` ikut menguji Java.

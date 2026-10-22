@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { and, asc, count, desc, eq, ne, type SQL } from 'drizzle-orm'
-import { typeToExtension, typeToLabel } from '#shared/languages'
+import { isArchiveType, typeToExtension, typeToLabel } from '#shared/languages'
 
 const { submissions } = schema
 
@@ -99,6 +99,11 @@ export async function submissionFilePath(s: typeof schema.submissions.$inferSele
 }
 
 export async function submissionReadFile(s: typeof schema.submissions.$inferSelect, type: 'code' | 'result' | 'log') {
+  // Java zips and JARs are binary: show their sources or their list of classes.
+  if (type === 'code' && isArchiveType(s.fileType)) {
+    const data = await readFile(await submissionFilePath(s, type)).catch(() => null)
+    return data ? javaArchiveText(s.fileType, new Uint8Array(data)) : 'File Not Found'
+  }
   return readFile(await submissionFilePath(s, type), 'utf8').catch(() => 'File Not Found')
 }
 

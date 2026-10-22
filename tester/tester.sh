@@ -212,7 +212,7 @@ if [[ $EXT = "c" || $EXT = "cpp" ]]; then
 	shj_log "C/C++ Shield: $C_SHIELD_ON"
 elif [[ $EXT = "py2" || $EXT = "py3" ]]; then
 	shj_log "Python Shield: $PY_SHIELD_ON"
-elif [[ $EXT = "java" ]]; then
+elif [[ $EXT = "java" || $EXT = "jzip" || $EXT = "jar" ]]; then
 	shj_log "JAVA_POLICY: \"$JAVA_POLICY\""
 	shj_log "DISPLAY_JAVA_EXCEPTION_ON: $DISPLAY_JAVA_EXCEPTION_ON"
 fi
@@ -293,6 +293,65 @@ if [ "$EXT" = "java" ]; then
 			shj_finish "Compilation Error"
 		fi
 	fi
+fi
+
+
+
+########################################################################################################
+################################## JAVA ARCHIVES: ZIP OF SOURCES, JAR ##################################
+########################################################################################################
+
+# Both are checked by java_archive.py (as the submission's user, in the jail), which prints the class
+# to run. A zip is extracted (only .java files) and compiled with javac; a JAR is run as it is.
+function shj_java_archive_error
+{
+	shj_log "$1"
+	shj_log "$(cat cerr | head -10)"
+	echo "<span class=\"shj_b\">$1</span>" >$PROBLEMPATH/$UN/result.html
+	echo '<span class="shj_r">' >> $PROBLEMPATH/$UN/result.html
+	(cat cerr | head -10 | sed 's/&/\&amp;/g' | sed 's/</\&lt;/g' | sed 's/>/\&gt;/g' | sed 's/"/\&quot;/g') >> $PROBLEMPATH/$UN/result.html
+	echo "</span>" >> $PROBLEMPATH/$UN/result.html
+	shj_log_exec "$(cat cerr)"
+	cd ..
+	rm -r $JAIL >/dev/null 2>/dev/null
+	shj_finish "Compilation Error"
+}
+
+if [ "$EXT" = "jzip" ] || [ "$EXT" = "jar" ]; then
+	cp ../java.policy java.policy
+	cp ../java_archive.py java_archive.py
+	if [ "$EXT" = "jzip" ]; then
+		cp $PROBLEMPATH/$UN/$FILENAME.zip sources.zip
+		shj_log "Compiling a zip of Java sources"
+		shj_log_exec "Compiling a zip of Java sources"
+		shj_log_exec ""
+		MAINCLASS="$($SHJ_RUNAS python3 -I java_archive.py sources sources.zip src 2>cerr)"
+		if [ $? -ne 0 ]; then
+			shj_java_archive_error "Compile Error"
+		fi
+		# -proc:none: no annotation processors run while compiling
+		$SHJ_RUNAS javac -proc:none -encoding UTF-8 -d classes @sources.txt >/dev/null 2>cerr
+		EXITCODE=$?
+		COMPILE_END_TIME=$(($(date +%s%N)/1000000));
+		shj_log "Compiled. Exit Code=$EXITCODE  Execution Time: $((COMPILE_END_TIME-COMPILE_BEGIN_TIME)) ms"
+		if [ $EXITCODE -ne 0 ]; then
+			shj_java_archive_error "Compile Error"
+		fi
+		JAVA_TARGET="-cp classes $MAINCLASS"
+	else
+		cp $PROBLEMPATH/$UN/$FILENAME.jar main.jar
+		shj_log "Checking the JAR file"
+		shj_log_exec "Checking the JAR file"
+		shj_log_exec ""
+		MAINCLASS="$($SHJ_RUNAS python3 -I java_archive.py jar main.jar 2>cerr)"
+		if [ $? -ne 0 ]; then
+			shj_java_archive_error "Invalid JAR File"
+		fi
+		# -cp with the manifest's Main-Class instead of -jar, so a Class-Path in the manifest is ignored
+		JAVA_TARGET="-cp main.jar $MAINCLASS"
+	fi
+	shj_log "Main class: $MAINCLASS"
+	MAINFILENAME=${MAINCLASS##*.}
 fi
 
 
@@ -530,6 +589,11 @@ fi
 ################################################ TESTING ###############################################
 ########################################################################################################
 
+# Single Java file: run the class it compiled to (MAINFILENAME may have been corrected above).
+if [ "$EXT" = "java" ]; then
+	JAVA_TARGET=$MAINFILENAME
+fi
+
 if ! $EXEC_ONLY; then
 	shj_log "\nTesting..."
 	shj_log "$TST test cases found"
@@ -569,11 +633,11 @@ if ! $EXEC_ONLY; then
 		
 		touch err
 		
-		if [ "$EXT" = "java" ]; then
+		if [ "$EXT" = "java" ] || [ "$EXT" = "jzip" ] || [ "$EXT" = "jar" ]; then
 			if $PERL_EXISTS; then
-				./runcode.sh $EXT $MEMLIMIT $TIMELIMIT $TIMELIMITINT $PROBLEMPATH/in/input$i.txt "./timeout --just-kill -nosandbox -l $OUTLIMIT -t $TIMELIMIT java -mx${MEMLIMIT}k $JAVA_POLICY $MAINFILENAME"
+				./runcode.sh $EXT $MEMLIMIT $TIMELIMIT $TIMELIMITINT $PROBLEMPATH/in/input$i.txt "./timeout --just-kill -nosandbox -l $OUTLIMIT -t $TIMELIMIT java -mx${MEMLIMIT}k $JAVA_POLICY $JAVA_TARGET"
 			else
-				./runcode.sh $EXT $MEMLIMIT $TIMELIMIT $TIMELIMITINT $PROBLEMPATH/in/input$i.txt "java -mx${MEMLIMIT}k $JAVA_POLICY $MAINFILENAME"
+				./runcode.sh $EXT $MEMLIMIT $TIMELIMIT $TIMELIMITINT $PROBLEMPATH/in/input$i.txt "java -mx${MEMLIMIT}k $JAVA_POLICY $JAVA_TARGET"
 			fi
 			EXITCODE=$?
 			if grep -iq -m 1 "Too small initial heap" out || grep -q -m 1 "java.lang.OutOfMemoryError" err; then
@@ -740,11 +804,11 @@ if ! $EXEC_ONLY; then
 
 else
 	touch err
-	if [ "$EXT" = "java" ]; then
+	if [ "$EXT" = "java" ] || [ "$EXT" = "jzip" ] || [ "$EXT" = "jar" ]; then
 			if $PERL_EXISTS; then
-				./runcode.sh $EXT $MEMLIMIT $TIMELIMIT $TIMELIMITINT $PROBLEMPATH/$UN/$EXEC_IN "./timeout --just-kill -nosandbox -l $OUTLIMIT -t $TIMELIMIT java -mx${MEMLIMIT}k $JAVA_POLICY $MAINFILENAME"
+				./runcode.sh $EXT $MEMLIMIT $TIMELIMIT $TIMELIMITINT $PROBLEMPATH/$UN/$EXEC_IN "./timeout --just-kill -nosandbox -l $OUTLIMIT -t $TIMELIMIT java -mx${MEMLIMIT}k $JAVA_POLICY $JAVA_TARGET"
 			else
-				./runcode.sh $EXT $MEMLIMIT $TIMELIMIT $TIMELIMITINT $PROBLEMPATH/$UN/$EXEC_IN "java -mx${MEMLIMIT}k $JAVA_POLICY $MAINFILENAME"
+				./runcode.sh $EXT $MEMLIMIT $TIMELIMIT $TIMELIMITINT $PROBLEMPATH/$UN/$EXEC_IN "java -mx${MEMLIMIT}k $JAVA_POLICY $JAVA_TARGET"
 			fi
 			EXITCODE=$?
 			if grep -iq -m 1 "Too small initial heap" out || grep -q -m 1 "java.lang.OutOfMemoryError" err; then
