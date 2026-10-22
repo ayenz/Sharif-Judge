@@ -21,6 +21,11 @@ Run the regression test first: the end-to-end tests use the users and assignment
 
 The browser test needs Chromium once: `uv run --with playwright python -m playwright install chromium`.
 
+## RADIUS
+
+[radius/README.md](radius/README.md) describes a manual test of RADIUS sign-in against FreeRADIUS and
+against a forged server.
+
 ## Corpora
 
 - `regression/corpus/`: the programs submitted by the regression test, named
