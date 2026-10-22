@@ -10,7 +10,7 @@ export interface BackupStatus {
   /** The service wrote a heartbeat in the last two minutes. */
   running: boolean
   schedule: { time: string, keepDays: number, timezone: string, next: string } | null
-  last: { time: string, status: 'ok' | 'failed' | 'running', folder: string, message: string } | null
+  last: { time: string, epoch?: number, status: 'ok' | 'failed' | 'running', folder: string, message: string } | null
   backups: { name: string, size: number }[]
   runRequested: boolean
 }
@@ -36,10 +36,10 @@ export async function backupStatus(): Promise<BackupStatus> {
   const root = dir()
   if (!root)
     return { configured: false, running: false, schedule: null, last: null, backups: [], runRequested: false }
-  const state = await json<{ time: string, keepDays: number, timezone: string, next: string, heartbeat: string }>(join(root, 'state.json'))
+  const state = await json<{ time: string, keepDays: number, timezone: string, next: string, heartbeat: string, heartbeatEpoch?: number }>(join(root, 'state.json'))
   const last = await json<BackupStatus['last']>(join(root, 'latest.json'))
-  const now = toEpoch(await nowStr())
-  const running = !!state && Math.abs(now - toEpoch(state.heartbeat)) < 120
+  // Epoch seconds from the service: independent of its time zone and the judge's.
+  const running = !!state?.heartbeatEpoch && Math.abs(Date.now() / 1000 - state.heartbeatEpoch) < 120
   const names = (await readdir(root).catch(() => [] as string[])).filter(n => /^\d{4}-\d{2}-\d{2}_\d{4}$/.test(n)).sort().reverse()
   const backups = await Promise.all(names.map(async name => ({ name, size: await folderSize(join(root, name)) })))
   const runRequested = await stat(join(root, 'control', 'run-now')).then(() => true, () => false)
@@ -74,7 +74,7 @@ export async function backupWarnings(): Promise<string[]> {
     return ['No backup has been made yet. It runs every day; you can also start one now.']
   if (s.last.status === 'failed')
     return [`The last backup failed (${s.last.time}): ${s.last.message}.`]
-  if (s.last.status === 'ok' && toEpoch(await nowStr()) - toEpoch(s.last.time) > 2 * 86400)
+  if (s.last.status === 'ok' && s.last.epoch && Date.now() / 1000 - s.last.epoch > 2 * 86400)
     return [`The last backup is from ${s.last.time}, more than two days ago.`]
   return []
 }
