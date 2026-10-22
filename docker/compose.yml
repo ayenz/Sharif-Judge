@@ -39,6 +39,8 @@ services:
     ports: ["8402:3000"]
     volumes:
       - web-data:/data
+      # Shield files edited in Settings > Shields; shared with the judge.
+      - shields:/app/tester/shield
       - ${BACKUP_DIR:-./backups}:/backups:ro
       # The only backup folder the web app can write: schedule and "back up now" requests.
       - ${BACKUP_DIR:-./backups}/control:/backups/control
@@ -55,6 +57,7 @@ services:
     network_mode: none
     volumes:
       - web-data:/data
+      - shields:/app/tester/shield:ro
     pids_limit: 512
     mem_limit: 2g
     cpus: 2
@@ -95,3 +98,5 @@ services:
 volumes:
   db:
   web-data:
+  # Filled from the image on first start; afterwards it keeps the admin's edits.
+  shields:
