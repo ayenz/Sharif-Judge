@@ -1,0 +1,13 @@
+/* Same pastel blue as the app (IF logo blue, hue 257.5). */
+:root {
+  --vp-c-brand-1: oklch(0.52 0.115 257.5);
+  --vp-c-brand-2: oklch(0.58 0.11 257.5);
+  --vp-c-brand-3: oklch(0.62 0.11 257.5);
+  --vp-c-brand-soft: oklch(0.66 0.11 257.5 / 0.14);
+}
+.dark {
+  --vp-c-brand-1: oklch(0.83 0.07 257.5);
+  --vp-c-brand-2: oklch(0.76 0.09 257.5);
+  --vp-c-brand-3: oklch(0.66 0.11 257.5);
+  --vp-c-brand-soft: oklch(0.66 0.11 257.5 / 0.16);
+}

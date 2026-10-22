@@ -34,7 +34,7 @@ rejudged (`tests/migration/`).
 - Plan a short downtime: no submissions should arrive during the copy.
 - Note the PHP settings **Tester path** and **Assignments root** (Settings page): you need the
   assignments folder.
-- Have Docker and Docker Compose on the new server (see the main [README](../README.md)).
+- Have Docker and Docker Compose on the new server (see [Installation](./installation)).
 
 ## Steps
 
