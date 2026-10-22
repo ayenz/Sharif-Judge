@@ -1,81 +1,142 @@
 # SharIF Judge
 
-[SharIF Judge](https://github.com/ifunpar/Sharif-Judge) is a free and open source online judge for C, C++, Java and
-Python programming courses. SharIF Judge is a fork of the original [Sharif Judge](https://github.com/mjnaderi/Sharif-Judge) beautifully created by [@mjnaderi](https://github.com/mjnaderi). This forked version contain many improvements, mostly due to the needs by our faculty at [@ifunpar](https://github.com/ifunpar).
+SharIF Judge is a free and open source online judge for C, C++, Java and Python programming
+courses. Students submit code (by file upload or in the built-in editor), the judge compiles and
+runs it against test cases, and instructors get scores, scoreboards, Excel exports and cheat
+detection.
 
-The web interface is written in PHP (CodeIgniter framework) and the main backend is written in BASH.
+This branch is a rewrite of the web application in [Nuxt](https://nuxt.com) (Vue + Node.js). It
+replaces the CodeIgniter 3 / PHP version while keeping the same database schema, the same
+assignment folder layout and the same judging engine, so an existing installation can switch
+over. See [MIGRATION.md](MIGRATION.md) for the plan, the regression test results and every
+intentional behavior change.
 
-Python in SharIF Judge is not sandboxed yet. Just a low level of security is provided for python.
-If you want to use SharIF Judge for python, USE IT AT YOUR OWN RISK or provide sandboxing yourself.
-
-The full documentation is at https://github.com/ifunpar/Sharif-Judge/tree/docs
-
-Download the latest release from https://github.com/ifunpar/Sharif-Judge/releases
-
-## Branches, Tags and Releases
-
-The numbering may be confusing, I apologize. However, here are some explanations:
-
-* Branches, sorted from newest to oldest:
-    - **`Version-1`** this is the **main branch**, since mjnaderi is using this naming for the main branch.
-    - `Version-1.5`, this is an older branch, containing action replay and (supposedly) PHP 8.3 compatibility
-    - `Version-1.1`, this is an even older branch, compatible up to PHP 7.4, but pretty stable
-    - `docs`, documentation branch, similar to mjnaderi's one but maybe with some adjustments
-    - Other branches are undocumented
-* Tags and releases, sorted from newest to oldest
-    - `v1.5.x-ifunpar` release of `Version-1.5` branch
-    - `v1.4.x-ifunpar` release of pre-`Version-1.1` branch. Named `1.4` because mjnaderi used that. We will no longer use mjnaderi's one.
+SharIF Judge is a fork of [Sharif Judge](https://github.com/mjnaderi/Sharif-Judge) by
+[@mjnaderi](https://github.com/mjnaderi), continued by [@ifunpar](https://github.com/ifunpar)
+([SharIF-Judge](https://github.com/ifunpar/SharIF-Judge)).
 
 ## Features
-  * Multiple user roles (admin, head instructor, instructor, student)
-  * Sandboxing _(not yet for python)_
-  * Cheat detection (similar codes detection) using [Moss](http://theory.stanford.edu/~aiken/moss/)
-  * Custom rule for grading late submissions
-  * Submission queue
-  * Download results in excel file
-  * Download submitted codes in zip file
-  * _"Output Comparison"_ and _"Tester Code"_ methods for checking output correctness
-  * Add multiple users
-  * Problem Descriptions (PDF/Markdown/HTML)
-  * Rejudge
-  * Scoreboard
-  * Notifications
-  * Lock Student's Display Name
-  * Archived Assignment
-  * Hall of Fame 
-  * 24-hour Logs
-  * ...
+
+- **Roles**: admin, head instructor, instructor, student.
+- **Assignments**: multiple problems, start/finish time, extra time with a custom late-penalty rule,
+  participant lists, PDF and Markdown/HTML problem descriptions, test cases from a zip file.
+- **Judging**: C, C++, Java, Python 3 (and Python 2 where installed); output comparison with `diff`
+  or a custom tester; time, memory and output limits; submission queue with pause, resume and rejudge.
+- **Submitting**: file upload, or a built-in code editor with "Run with custom input". The editor
+  records how the code was written; instructors can replay the recording.
+- **Results**: final and all submissions, scoreboard, Hall of Fame, Excel exports, zip downloads.
+- **Cheat detection**: local [JPlag](https://github.com/jplag/JPlag) analysis per problem and
+  language, side-by-side comparison, and a per-student review score that combines code similarity
+  with editor signals. [Moss](https://theory.stanford.edu/~aiken/moss/) is still available.
+  See [docs/cheat-detection.md](docs/cheat-detection.md).
+- **Accounts**: bulk user creation with optional email, self registration with a code, password
+  reset by email, optional LDAP or RADIUS login.
+- **Interface**: responsive (works on phones), light and dark mode, notifications, dashboard with
+  deadlines and calendar, 24-hour login log.
+
+## Repository layout
+
+```
+web/       Nuxt application: pages, API, judge queue worker, cheat detection
+tester/    Judging engine (Bash): compiles and runs a submission against the test cases
+docker/    Docker image and Compose files
+tests/     Regression test against the legacy PHP app, and end-to-end tests
+docs/      Feature documentation
+```
+
+The legacy PHP application (`application/`, `system/`, `assets/`, `index.php`) is still in this
+branch for the regression tests. It will be removed once the Nuxt version is merged.
 
 ## Requirements
 
-For running SharIF Judge, a Linux server with following requirements is needed:
+The supported way to run SharIF Judge is the Docker image, which contains everything:
+Node.js 24, the compilers (`gcc`, `g++`, Java 17, Python 3, Perl) and, for cheat detection,
+Java 25 with JPlag. You need:
 
-  * Webserver running PHP version 5.3 or later with `mysqli` extension
-  * PHP CLI (PHP command line interface, i.e. `php` shell command)
-  * MySql or PostgreSql database
-  * PHP must have permission to run shell commands using [`shell_exec()`](http://www.php.net/manual/en/function.shell-exec.php) php function (specially `shell_exec("php");`)
-  * Tools for compiling and running submitted codes (`gcc`, `g++`, `javac`, `java`, `python2` and `python3` commands)
-  * It is better to have `perl` installed for more precise time and memory limit and imposing size limit on output of submitted code.
+- A Linux server with Docker and Docker Compose
+- MySQL or MariaDB (the Compose file includes MariaDB 10.11)
 
-## Installation
+Running without Docker is possible: Node.js 24, the tools above on the `PATH`, and the paths in
+[Configuration](#configuration) set by hand.
 
-  1. `git clone` and switch to one of the tag, or...
-      * ...download the latest release from [release page](https://github.com/ifunpar/SharIF-Judge/releases) and unpack downloaded file in your public html directory.
-  2. **[Optional]** Move folders `system` and `application` somewhere outside your public directory. Then save their full path in `index.php` file (`$system_path` and `$application_folder` variables).
-  3. Create a MySql or PostgreSql database for SharIF Judge. Do not install any database connection package for C/C++, Java or Python.
-  4. Copy `application/config/config.example.php` to `application/config/config.php` and update `base__url` according to your server configuration.
-  5. Copy `application/config/database.example.php` to `application/config/database.php` and update the file according to your database configuration.
-  6. Copy `application/config/secrets.example.php` to `application/config/secrets.php` and update the file according to your RADIUS and SMTP configuration.
-  7. Make `application/cache/Twig` writable by php.
-  8. Open the main page of SharIF Judge in a web browser and follow the installation process.
-  9. Log in with your admin account.
-  10. **[IMPORTANT]** Move folders `tester` and `assignments` somewhere outside your public directory. Then save their full path in `Settings` page. **These two folders must be writable by PHP.** Submitted files will be stored in `assignments` folder. So it should be somewhere not publicly accessible.
-  11. **[IMPORTANT]** [Secure SharIF Judge](https://github.com/ifunpar/Sharif-Judge/blob/docs/v1.4/security.md)
+## Installation (Docker)
 
-## After Installation
+```bash
+git clone https://github.com/ayenz/Sharif-Judge.git
+cd Sharif-Judge/docker
+printf "SESSION_PASSWORD=%s\nDB_PASSWORD=%s\nDB_ROOT_PASSWORD=%s\n" \
+  "$(openssl rand -hex 24)" "$(openssl rand -hex 12)" "$(openssl rand -hex 12)" > .env
+docker compose up -d --build db web
+```
 
-  * Read the [documentation](https://github.com/ifunpar/Sharif-Judge/tree/docs)
+Then open `http://<server>:8402`. The first visit opens the installer, which creates the tables,
+the default settings and the first admin account. After logging in, review **Settings**.
+
+Put a reverse proxy with HTTPS in front of the app for real use, and set
+`NUXT_SESSION_COOKIE_SECURE=true` so the session cookie is only sent over HTTPS.
+[docker/README.md](docker/README.md) has more details (volumes, backups, the legacy app).
+
+## Configuration
+
+Environment variables (all optional except the database and the session password):
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `NUXT_DB_HOST`, `NUXT_DB_PORT` | `localhost`, `3306` | MySQL/MariaDB server |
+| `NUXT_DB_USER`, `NUXT_DB_PASSWORD`, `NUXT_DB_DATABASE` | | Database credentials |
+| `NUXT_DB_PREFIX` | `shj_` | Table prefix (same as the legacy app) |
+| `NUXT_SESSION_PASSWORD` | | Secret for the encrypted session cookie, at least 32 characters |
+| `NUXT_SESSION_COOKIE_SECURE` | `false` | Set to `true` behind HTTPS |
+| `NUXT_PATHS_TESTER`, `NUXT_PATHS_ASSIGNMENTS` | | Folders written to Settings on a fresh install (set by the image) |
+| `NUXT_QUEUE_ENABLED` | `true` | Set to `false` on extra web replicas so only one process judges |
+| `NUXT_CHEAT_JAVA`, `NUXT_CHEAT_JPLAG_JAR`, `NUXT_CHEAT_WORK_DIR` | | Java 25 and JPlag for cheat detection (set by the image); empty disables it |
+| `NUXT_MAIL_HOST`, `NUXT_MAIL_PORT`, `NUXT_MAIL_SECURE`, `NUXT_MAIL_USER`, `NUXT_MAIL_PASS` | port `465`, secure `true` | SMTP for password reset and new-account mails |
+| `NUXT_AUTH_METHOD` | | `ldap` or `radius` to also accept those passwords |
+| `NUXT_AUTH_LDAP_URL`, `NUXT_AUTH_LDAP_ACCOUNT_SUFFIX` | | e.g. `ldap://dc.example.edu`, `@example.edu` |
+| `NUXT_AUTH_RADIUS_SERVER`, `NUXT_AUTH_RADIUS_SECRET` | | e.g. `10.0.0.5:1812` |
+
+Everything else (time zone, limits, late rule, shields, mail templates, registration) is on the
+**Settings** page.
+
+## Upgrading from the PHP version
+
+The Nuxt app uses the same tables and the same assignment folders, so it can run on an existing
+database:
+
+1. Back up the database and the `assignments` folder.
+2. Point `NUXT_DB_*` at the existing database and mount the existing `assignments` folder into
+   the container. Check the tester and assignments paths in **Settings** afterwards.
+3. Start the app. Tables for new features (cheat detection) are created automatically.
+
+Existing passwords, submissions, scores and editor recordings keep working. Late rules written in
+PHP are translated automatically; the Assignments page shows `error` for a rule that cannot be
+translated. Users have to sign in again (sessions are not migrated).
+
+## Development
+
+```bash
+cd web
+cp .env.example .env   # point it at a MySQL/MariaDB database
+npm install
+npm run dev
+```
+
+See [web/README.md](web/README.md) for the code structure and [web/CONVENTIONS.md](web/CONVENTIONS.md)
+for the coding conventions. Tests are described in [tests/README.md](tests/README.md).
+
+## Security notes
+
+- Submitted programs run inside the web container as an unprivileged user. **C/C++ and Python
+  code is not sandboxed beyond that**: EasySandbox does not work on current glibc (the legacy
+  installation never built it either), and Python was never sandboxed. Only the C/C++ and Python
+  "shields" (blocked functions and imports) apply. Do not run untrusted code on a shared server
+  without additional isolation.
+- Java programs run with a Security Manager policy (`tester/java.policy`) on Java 17.
+- The Nuxt version fixes several legacy issues (SQL injection, shell command injection, zip-slip
+  and path traversal); details are in [MIGRATION.md](MIGRATION.md).
 
 ## License
 
-GPL v3
+SharIF Judge is licensed under the GNU General Public License v3, as stated in the source file
+headers (for example `tester/tester.sh`). `license.txt` and `CI_LICENSE` are the MIT license of the
+bundled CodeIgniter framework used by the legacy PHP app.

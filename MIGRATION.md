@@ -1,6 +1,7 @@
 # Rewrite: CodeIgniter 3 → Nuxt
 
-Status: fase 0–5 selesai di branch `nuxt-rewrite` (21 Okt 2026). Fase 6 (hapus kode PHP, merge) menunggu persetujuan.
+Status (22 Okt 2026): fase 0–5 selesai di branch `nuxt-rewrite`, ditambah fitur cheat detection JPlag.
+Fase 6 (hapus kode PHP, merge ke `main`) menunggu setelah aplikasi dicoba.
 
 ## Tujuan
 Menulis ulang aplikasi web SharIF Judge dengan Nuxt (Vue) tanpa mengubah perilaku penilaian,
@@ -8,9 +9,11 @@ dan tetap bisa memakai database serta folder tugas dari instalasi lama.
 
 ## Struktur repo (target)
 ```
-web/      aplikasi Nuxt (tampilan + API + worker antrian)
+web/      aplikasi Nuxt (tampilan + API + worker antrian + cheat detection)
 tester/   mesin penilai Bash (pindahan dari restricted/tester, isi tidak diubah)
 docker/   image dan compose untuk development dan produksi
+tests/    regresi terhadap versi lama dan tes end-to-end
+docs/     dokumentasi fitur (cheat detection)
 ```
 
 ## Keputusan teknis
@@ -29,6 +32,7 @@ docker/   image dan compose untuk development dan produksi
 | Zip | fflate | Ekstrak test case dan unduh kumpulan submission |
 | Markdown | markdown-it | Pengganti Parsedown |
 | Email | nodemailer | Reset password, kirim akun baru |
+| Deteksi kecurangan | JPlag 6.3 + Java 25 (terpisah dari Java 17 tester) | Lokal, sadar bahasa, hasil tersimpan |
 | PDF soal | Penampil PDF bawaan browser | Tidak perlu pdf.js (±300 file) |
 
 ## Kompatibilitas data lama
@@ -39,6 +43,11 @@ docker/   image dan compose untuk development dan produksi
   dan admin diminta memperbaikinya; nilai submission tidak diubah sampai aturan valid.
 - **Scoreboard**: dihitung ulang dari tabel submission, isi HTML lama di `shj_scoreboard` diabaikan.
 
+## Dokumentasi
+- [README.md](README.md): instalasi, konfigurasi, upgrade dari versi PHP
+- [docker/README.md](docker/README.md), [web/README.md](web/README.md), [tests/README.md](tests/README.md)
+- [docs/cheat-detection.md](docs/cheat-detection.md)
+
 ## Tahapan
 0. Fondasi: kerangka Nuxt, Docker, skema database, login/logout/instalasi, layout.
 1. Pengguna, profil, pengaturan, notifikasi, log login.
@@ -46,7 +55,8 @@ docker/   image dan compose untuk development dan produksi
 3. Submit (unggah file dan editor), worker antrian + tester, daftar submission, rejudge.
 4. Scoreboard, Hall of Fame, dashboard, Moss, rekaman ketikan, unduhan Excel/zip.
 5. Pengujian regresi terhadap versi lama (port 8401), uji end-to-end, cek ukuran bundle.
-6. Bersih-bersih: hapus kode PHP, perbarui README, merge ke `main`.
+6. Bersih-bersih: hapus kode PHP (`application/`, `system/`, `assets/`, `index.php`, `readme.rst`,
+   `license.txt`/`CI_LICENSE` milik CodeIgniter), merge ke `main`. README sudah diperbarui.
 
 ## Pengujian regresi
 Tampilan berbeda total, jadi yang dibandingkan adalah **perilaku**:
@@ -62,6 +72,7 @@ keterlambatan, dan urutan scoreboard harus identik.
 | Akses kode orang lain, path traversal, endpoint admin, instal ulang | `tests/e2e/security.py` | lulus |
 | Editor: simpan, jalankan, submit, rekaman, rejudge | `tests/e2e/editor-flow.py` | lulus |
 | Browser (Chromium): error JavaScript, hidrasi, layar HP 390px | `tests/e2e/browser.py` | lulus |
+| Cheat detection: salinan diganti nama/diurutkan ulang, solusi berbeda, sinyal paste | `tests/e2e/cheat-flow.py` | lulus |
 
 ## Perbedaan perilaku yang disengaja
 - **Keamanan**: semua query memakai parameter (versi lama punya SQL injection di Hall of Fame dan log login);
@@ -88,7 +99,7 @@ keterlambatan, dan urutan scoreboard harus identik.
   dengan alasan tertulis. Ini petunjuk untuk diperiksa, bukan vonis.
 - **Moss** tetap tersedia; bug lama diperbaiki: bahasa kini dikirim (`-l`, sebelumnya semua dianggap C),
   satu permintaan per bahasa, kode template ikut dikirim (`-b`).
-- Tes: `tests/e2e/cheat-flow.py`.
+- Tes: `tests/e2e/cheat-flow.py`. Dokumentasi lengkap: [docs/cheat-detection.md](docs/cheat-detection.md).
 
 ## Catatan keamanan yang belum diselesaikan
 - **EasySandbox tidak berfungsi** di glibc modern (semua program dimatikan), dan instalasi lama ternyata
