@@ -163,6 +163,14 @@ const columns: TableColumn<Row>[] = [{ id: 'select', header: srOnly('Select') },
 
 `tests/e2e/browser.py` reports hydration errors as console errors.
 
+### No `<form>` inside another form
+
+Browsers drop a `<form>` nested in another form while parsing the server HTML, so the page no longer
+matches what Vue renders (a hydration mismatch), and a submit button inside it submits the outer
+form instead. This happened with the backup schedule inside the Settings form (all tabs are in one
+`UForm`). Components that can end up inside a form use a `<div>` and a `type="button"` with
+`@click`.
+
 ### Auto-import scanner skipped a second `export const`
 
 The scanner that makes `server/utils/*` auto-importable has, at least once, skipped the second

@@ -106,7 +106,8 @@ const lastColor = computed(() => ({ ok: 'success', failed: 'error', running: 'in
       </UCard>
 
       <UCard>
-        <form class="flex flex-wrap items-end gap-4" @submit.prevent="saveSchedule">
+        <!-- Not a <form>: this tab sits inside the Settings form, and browsers drop nested forms. -->
+        <div class="flex flex-wrap items-end gap-4" @keydown.enter.prevent="saveSchedule">
           <UFormField :label="data.schedule ? `Daily at (${data.schedule.timezone})` : 'Daily at'">
             <UInput v-model="schedule.time" type="time" required class="w-32" />
           </UFormField>
@@ -117,8 +118,8 @@ const lastColor = computed(() => ({ ok: 'success', failed: 'error', running: 'in
               </template>
             </UInput>
           </UFormField>
-          <UButton type="submit" color="neutral" variant="outline" icon="i-lucide-save" label="Save schedule" :loading="saving" :disabled="!data.running" />
-        </form>
+          <UButton type="button" color="neutral" variant="outline" icon="i-lucide-save" label="Save schedule" :loading="saving" :disabled="!data.running" @click="saveSchedule" />
+        </div>
         <p class="mt-3 text-sm text-muted">
           Each backup holds the database and the assignment files (test cases, descriptions, submitted code).
           Keep copies on another disk or machine too; restoring is done on the server, see docker/README.md.
