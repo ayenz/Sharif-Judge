@@ -1,14 +1,8 @@
-# gitignore file for SharIF Judge
+# SharIF Judge
 
 .git
 .idea
 .vscode
-application/config/config.php
-application/config/database.php
-application/config/secrets.php
-
-# Ignore Twig Cache Files
-application/cache/Twig/*/
 
 # Ignore Compiled EasySandbox Files
 tester/easysandbox/EasySandbox.o
@@ -22,7 +16,9 @@ tester/moss
 
 # Ignore assignment data folders (not code folders named "assignments")
 /assignments/
-/restricted/assignments/
 
 # Local secrets for Docker
 docker/.env
+
+# Backups made by the backup service
+docker/backups/
