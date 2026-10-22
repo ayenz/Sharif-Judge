@@ -22,3 +22,6 @@ docker/.env
 
 # Backups made by the backup service
 docker/backups/
+
+# Python caches from the test scripts
+__pycache__/
