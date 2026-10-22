@@ -1,4 +1,6 @@
 export default defineEventHandler(async (event) => {
+  rateLimitEnforce(event, [{ key: `register-ip:${clientIp(event)}`, limit: 10, windowMs: 60 * 60 * 1000 }], 'Too many registration attempts.')
+  rateLimitHit(`register-ip:${clientIp(event)}`, 60 * 60 * 1000)
   if (await getSetting('enable_registration') !== '1')
     throw createError({ statusCode: 403, statusMessage: 'Registration is closed.' })
 

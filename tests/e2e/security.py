@@ -44,4 +44,13 @@ for _ in range(30):
     _time.sleep(1)
 leak = "LEAK" in out["content"]
 print(f"{'BAD' if leak else 'OK '} env secrets hidden from submitted code")
-sys.exit(1 if leak or bad else 0)
+
+# Password guessing: 8 failures per address and account, then 429 for 15 minutes,
+# also when the client sends a forged X-Forwarded-For.
+GUESS_USER = "guess" + "".join(__import__("random").choices("abcdefghij", k=8))
+guess = requests.Session()
+codes = [guess.post(B + "/api/auth/login", json={"username": GUESS_USER, "password": f"wrong{i:04d}"}).status_code for i in range(9)]
+spoofed = guess.post(B + "/api/auth/login", json={"username": GUESS_USER, "password": "wrong9999"}, headers={"X-Forwarded-For": "10.9.8.7"})
+limited = codes[:8] == [401] * 8 and codes[8] == 429 and spoofed.status_code == 429 and spoofed.headers.get("Retry-After")
+print(f"{'OK ' if limited else 'BAD'} login rate limit: {codes} spoofed={spoofed.status_code} retry-after={spoofed.headers.get('Retry-After')}")
+sys.exit(1 if leak or bad or not limited else 0)

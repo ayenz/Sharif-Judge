@@ -4,6 +4,9 @@ import { eq } from 'drizzle-orm'
 const { users } = schema
 
 export default defineEventHandler(async (event) => {
+  // Each request may send a mail: keep it from being used to flood inboxes.
+  rateLimitEnforce(event, [{ key: `lost-ip:${clientIp(event)}`, limit: 5, windowMs: 60 * 60 * 1000 }], 'Too many password reset requests.')
+  rateLimitHit(`lost-ip:${clientIp(event)}`, 60 * 60 * 1000)
   const { email } = await readForm(event, z.object({ email: rules.email }))
   // Always answer the same way so the form cannot be used to probe for accounts.
   if (await emailTaken(email)) {
