@@ -4,9 +4,11 @@ definePageMeta({ minLevel: 2 })
 const toast = useToast()
 const { data, refresh } = await useFetch('/api/queue')
 
+const live = useLive()
+live.on('queue', () => refresh())
 let timer: ReturnType<typeof setInterval> | undefined
 onMounted(() => {
-  timer = setInterval(() => document.visibilityState === 'visible' && refresh(), 3000)
+  timer = setInterval(() => !live.connected.value && document.visibilityState === 'visible' && refresh(), 3000)
 })
 onBeforeUnmount(() => clearInterval(timer))
 

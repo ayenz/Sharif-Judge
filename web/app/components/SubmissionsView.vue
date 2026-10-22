@@ -21,10 +21,16 @@ type Item = NonNullable<typeof data.value>['items'][number]
 
 // Keep refreshing while anything is still being judged.
 const pending = computed(() => data.value?.items.some(i => i.status === 'PENDING') ?? false)
+// Results arrive as live events; polling is only the fallback when the connection is down.
+const live = useLive()
+live.on('judged', (e) => {
+  if (e.assignment === me.value?.selectedAssignment.id)
+    refresh()
+})
 let timer: ReturnType<typeof setInterval> | undefined
 onMounted(() => {
   timer = setInterval(() => {
-    if (pending.value && document.visibilityState === 'visible')
+    if (pending.value && !live.connected.value && document.visibilityState === 'visible')
       refresh()
   }, 3000)
 })

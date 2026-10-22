@@ -83,8 +83,11 @@ async function openAssignment(id: number) {
 // Poll for new notifications (legacy notifications/check, every 30 s).
 let lastCheck = data.value?.serverTime ?? ''
 let timer: ReturnType<typeof setInterval> | undefined
+// Live updates announce new notifications; poll only when the live connection is down.
+const live = useLive()
+live.on('notification', () => refresh())
 async function checkNotifications() {
-  if (!lastCheck || document.hidden)
+  if (!lastCheck || document.hidden || live.connected.value)
     return
   try {
     const res = await $fetch('/api/notifications/check', { method: 'POST', body: { time: lastCheck } })
