@@ -186,6 +186,11 @@ if ! mkdir $JAIL; then
 	shj_log "Error: Folder 'tester' is not writable! Exiting..."
 	shj_finish "Judge Error"
 fi
+# Isolation (judge container): compile and run as an unprivileged user that owns only
+# the jail. SHJ_RUNAS is the command prefix (e.g. setpriv ... env), SHJ_RUN_UID its uid.
+if [ -n "$SHJ_RUN_UID" ]; then
+	chown "$SHJ_RUN_UID:$SHJ_RUN_UID" $JAIL
+fi
 cd $JAIL
 cp ../timeout ./timeout
 chmod +x timeout
@@ -225,7 +230,7 @@ if [ "$EXT" = "java" ]; then
 	shj_log_exec "Compiling as Java"
 	shj_log_exec ""
 	shj_log "Compiling as Java ${MAINFILENAME}.java"
-	javac $MAINFILENAME.java >/dev/null 2>cerr
+	$SHJ_RUNAS javac $MAINFILENAME.java >/dev/null 2>cerr
 	EXITCODE=$?
 	COMPILE_END_TIME=$(($(date +%s%N)/1000000));
 	shj_log "Compiled. Exit Code=$EXITCODE  Execution Time: $((COMPILE_END_TIME-COMPILE_BEGIN_TIME)) ms"
@@ -236,7 +241,7 @@ if [ "$EXT" = "java" ]; then
 			MAINFILENAME=$MSGCHECK
 			cp $PROBLEMPATH/$UN/$FILENAME.java $MAINFILENAME.java
 			shj_log "Compiling as Java ${MAINFILENAME}.java"
-			javac $MAINFILENAME.java >/dev/null 2>cerr
+			$SHJ_RUNAS javac $MAINFILENAME.java >/dev/null 2>cerr
 			EXITCODE=$?
 			COMPILE_END_TIME=$(($(date +%s%N)/1000000));
 			shj_log "Compiled. Exit Code=$EXITCODE  Execution Time: $((COMPILE_END_TIME-COMPILE_BEGIN_TIME)) ms"
@@ -270,7 +275,7 @@ if [ "$EXT" = "py2" ]; then
 	shj_log "Checking Python Syntax"
 	shj_log_exec "Checking Python Syntax"
 	shj_log_exec ""
-	python2 -O -m py_compile $FILENAME.py >/dev/null 2>cerr
+	$SHJ_RUNAS python2 -O -m py_compile $FILENAME.py >/dev/null 2>cerr
 	EXITCODE=$?
 	COMPILE_END_TIME=$(($(date +%s%N)/1000000));
 	shj_log "Syntax checked. Exit Code=$EXITCODE  Execution Time: $((COMPILE_END_TIME-COMPILE_BEGIN_TIME)) ms"
@@ -304,7 +309,7 @@ if [ "$EXT" = "py3" ]; then
 	shj_log "Checking Python Syntax"
 	shj_log_exec "Checking Python Syntax"
 	shj_log_exec ""
-	python3 -O -m py_compile $FILENAME.py >/dev/null 2>cerr
+	$SHJ_RUNAS python3 -O -m py_compile $FILENAME.py >/dev/null 2>cerr
 	EXITCODE=$?
 	COMPILE_END_TIME=$(($(date +%s%N)/1000000));
 	shj_log "Syntax checked. Exit Code=$EXITCODE  Execution Time: $((COMPILE_END_TIME-COMPILE_BEGIN_TIME)) ms"
@@ -364,12 +369,12 @@ if [ "$EXT" = "c" ] || [ "$EXT" = "cpp" ]; then
 			cp ../shield/def$EXT.h def.h
 			# adding define to beginning of code:
 			echo '#define main themainmainfunction' | cat - code.c > thetemp && mv thetemp code.c
-			$COMPILER shield.$EXT $C_OPTIONS $C_WARNING_OPTION -o $EXEFILE >/dev/null 2>cerr
+			$SHJ_RUNAS $COMPILER shield.$EXT $C_OPTIONS $C_WARNING_OPTION -o $EXEFILE >/dev/null 2>cerr
 			EXITCODE=$?
 		fi
 	else
 		mv code.c code.$EXT
-		$COMPILER code.$EXT $C_OPTIONS $C_WARNING_OPTION -o $EXEFILE >/dev/null 2>cerr
+		$SHJ_RUNAS $COMPILER code.$EXT $C_OPTIONS $C_WARNING_OPTION -o $EXEFILE >/dev/null 2>cerr
 		EXITCODE=$?
 	fi
 
@@ -456,6 +461,7 @@ if ! $EXEC_ONLY; then
 	PASSEDTESTS=0
 
 	for((i=1;i<=TST;i++)); do
+		rm -f correctout tmp1
 		shj_log "\n=== TEST $i ==="
 		echo "<span class=\"shj_b\">Test $i</span>" >>$PROBLEMPATH/$UN/result.html
 		

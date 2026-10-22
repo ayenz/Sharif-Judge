@@ -27,14 +27,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 COPY --from=build /src/web/.output ./web
 COPY tester ./tester
+COPY judge ./judge
 COPY --from=jplag /opt/jre25 /opt/jre25
 COPY --from=jplag /opt/jplag /opt/jplag
 # EasySandbox is intentionally not built: it kills every program on current glibc
 # (seccomp strict mode), and the legacy setup never built it either, so tester.sh
 # runs C/C++ without it. Replacing it with a working sandbox is tracked separately.
-RUN mkdir -p /data/assignments \
-    && mkdir -p /data/cheat \
-    && chown -R node:node /app/tester /data
+# shjrun (uid 2000) compiles and runs submissions in the judge container: it owns
+# nothing but its jail directory and cannot read /data.
+RUN useradd --system --uid 2000 --no-create-home --shell /usr/sbin/nologin shjrun \
+    && mkdir -p /data/assignments /data/cheat /data/jobs \
+    && chown -R node:node /app/tester /data \
+    && chmod 711 /data /data/assignments /app/tester \
+    && chmod 700 /data/jobs /data/cheat
 
 ENV NODE_ENV=production \
     PORT=3000 \

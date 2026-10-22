@@ -47,10 +47,10 @@ ulimit -t $TIMELIMITINT
 
 if $TIMEOUT_EXISTS; then
 	# Run the command with REAL time limit of TIMELIMITINT*2
-	timeout -s9 $((TIMELIMITINT*2)) $CMD <$IN >out 2>err
+	timeout -s9 $((TIMELIMITINT*2)) $SHJ_RUNAS $CMD <$IN >out 2>err
 else
 	# Run the command
-	$CMD <$IN >out 2>err	
+	$SHJ_RUNAS $CMD <$IN >out 2>err	
 fi
 # You can run submitted codes as another user:
 #

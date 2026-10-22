@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process'
-import { readdir, rename, rm, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
+import { randomBytes } from 'node:crypto'
 import { join } from 'node:path'
 import { and, asc, eq } from 'drizzle-orm'
 import { typeToExtension } from '#shared/languages'
@@ -215,6 +216,10 @@ async function judgeItem(item: typeof schema.queue.$inferSelect) {
 }
 
 function runTester(cwd: string, args: string[]): Promise<string> {
+  return useRuntimeConfig().judge.mode === 'remote' ? runRemote(args) : runLocal(cwd, args)
+}
+
+function runLocal(cwd: string, args: string[]): Promise<string> {
   return new Promise((resolve) => {
     const child = spawn('bash', ['./tester.sh', ...args], {
       cwd,
@@ -228,4 +233,35 @@ function runTester(cwd: string, args: string[]): Promise<string> {
     child.on('error', () => resolve('Judge Error'))
     child.on('close', () => resolve(out))
   })
+}
+
+const REMOTE_TIMEOUT_MS = 30 * 60 * 1000
+
+/** Hands the job to the judge container (judge/worker.mjs) and waits for its result file. */
+async function runRemote(args: string[]): Promise<string> {
+  const dir = useRuntimeConfig().judge.jobsDir
+  await mkdir(dir, { recursive: true, mode: 0o700 })
+  // Time-ordered names: the judge processes jobs in name order.
+  const id = `${Date.now().toString().padStart(15, '0')}-${randomBytes(4).toString('hex')}`
+  const jobFile = join(dir, `${id}.job.json`)
+  await writeFile(`${jobFile}.tmp`, JSON.stringify({ args }))
+  await rename(`${jobFile}.tmp`, jobFile)
+  const resultFile = join(dir, `${id}.result.json`)
+  const deadline = Date.now() + REMOTE_TIMEOUT_MS
+  while (Date.now() < deadline) {
+    const text = await readFile(resultFile, 'utf8').catch(() => null)
+    if (text !== null) {
+      await rm(resultFile, { force: true })
+      try {
+        return String(JSON.parse(text).output ?? '')
+      }
+      catch {
+        return 'Judge Error'
+      }
+    }
+    await new Promise(r => setTimeout(r, 250))
+  }
+  await rm(jobFile, { force: true })
+  console.error(`[queue] the judge did not answer job ${id} in time`)
+  return 'Judge Error'
 }
