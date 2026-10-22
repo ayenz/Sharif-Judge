@@ -22,6 +22,11 @@ Run the regression test first: the end-to-end tests use the users and assignment
 
 The browser test needs Chromium once: `uv run --with playwright python -m playwright install chromium`.
 
+## Migration from PHP
+
+[migration/README.md](migration/README.md): a Nuxt instance on a copy of a PHP installation is
+compared with the PHP app (`uv run tests/migration/verify.py`).
+
 ## RADIUS
 
 [radius/README.md](radius/README.md) describes a manual test of RADIUS sign-in against FreeRADIUS and

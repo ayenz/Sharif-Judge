@@ -1,3 +1,5 @@
+import { access } from 'node:fs/promises'
+
 // Tables added after the legacy schema. Created on startup (and on install) with
 // CREATE TABLE IF NOT EXISTS, so existing installations upgrade themselves.
 
@@ -55,5 +57,27 @@ export async function migrateExtraTables(): Promise<void> {
     const [rows] = await pool.query(`SELECT 1 FROM \`${table}\` WHERE shj_key = ? LIMIT 1`, [key])
     if (!(rows as unknown[]).length)
       await pool.query(`INSERT INTO \`${table}\` (shj_key, shj_value) VALUES (?, ?)`, [key, value])
+  }
+}
+
+/**
+ * A database taken over from the PHP version stores the PHP install's folders
+ * (e.g. /var/www/html/restricted/tester). When such a folder does not exist here but
+ * the configured one (NUXT_PATHS_*) does, switch the setting to it. Valid paths are
+ * never changed.
+ */
+export async function migrateLegacyPaths(): Promise<void> {
+  if (!(await tableExists('settings')))
+    return
+  const { paths } = useRuntimeConfig()
+  const exists = (path: string) => access(path).then(() => true, () => false)
+  for (const [key, configured] of [['tester_path', paths.tester], ['assignments_root', paths.assignments]] as const) {
+    if (!configured)
+      continue
+    const stored = await getSetting(key)
+    if (stored === configured || (stored && await exists(stored)) || !(await exists(configured)))
+      continue
+    await setSetting(key, configured)
+    console.warn(`[migrate] ${key}: "${stored}" does not exist here, using "${configured}"`)
   }
 }

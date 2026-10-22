@@ -109,19 +109,11 @@ The backup service reads `BACKUP_DIR` (default `docker/backups`), `BACKUP_TIME` 
 
 ## Upgrading from the PHP version
 
-The Nuxt app uses the same tables and the same assignment folders, so it can run on an existing
-database:
-
-1. Back up the database and the `assignments` folder.
-2. Point `NUXT_DB_*` at the existing database and mount the existing `assignments` folder into
-   the container. Check the tester and assignments paths in **Settings** afterwards.
-3. Start the app. Tables for new features (cheat detection) are created automatically.
-
-Existing passwords, submissions, scores and editor recordings keep working. **Python 2 is turned off
-after the upgrade** (it is end-of-life and not in the image); turn it on in Settings if you install a
-`python2` interpreter. Late rules written in
-PHP are translated automatically; the Assignments page shows `error` for a rule that cannot be
-translated. Users have to sign in again (sessions are not migrated).
+The Nuxt app runs on an existing PHP installation's database and assignment files: users,
+passwords, submissions, scores and recordings carry over, and the folder settings are adjusted
+automatically on start-up. Follow the step-by-step guide, which includes a check list and how to
+roll back: **[docs/migration-from-php.md](docs/migration-from-php.md)**. The procedure was tested
+end to end against the PHP app (`tests/migration/`).
 
 ## Development
 
@@ -164,6 +156,6 @@ Other measures:
 
 ## License
 
-SharIF Judge is licensed under the GNU General Public License v3, as stated in the source file
-headers (for example `tester/tester.sh`). `license.txt` and `CI_LICENSE` are the MIT license of the
-bundled CodeIgniter framework used by the legacy PHP app.
+SharIF Judge is free software under the GNU General Public License v3; see [LICENSE](LICENSE).
+It builds on [Sharif Judge](https://github.com/mjnaderi/Sharif-Judge) by Mohammad Javad Naderi
+and the SharIF Judge work of FTIS UNPAR / [ifunpar](https://github.com/ifunpar/SharIF-Judge).
