@@ -115,3 +115,38 @@ export interface CheatStudentSignal {
   level: CheatLevel
   reasons: string[]
 }
+
+/** Similarity across assignments (latest analysis of every assignment). */
+export interface CheatHistoryAssignment {
+  id: number
+  name: string
+  similarity: number
+  pairId: number
+}
+
+export interface CheatRepeatPair {
+  a: { username: string, displayName: string }
+  b: { username: string, displayName: string }
+  /** Number of assignments in which the two were similar. */
+  count: number
+  maxSimilarity: number
+  assignments: CheatHistoryAssignment[]
+}
+
+export interface CheatHistoryStudent {
+  username: string
+  displayName: string
+  /** Assignments with at least one similar pair involving this student. */
+  flaggedAssignments: number
+  pairs: number
+  maxSimilarity: number
+  partners: { username: string, count: number }[]
+  assignments: (CheatHistoryAssignment & { partner: string })[]
+}
+
+export interface CheatHistory {
+  minSimilarity: number
+  analysedAssignments: number
+  repeatPairs: CheatRepeatPair[]
+  students: CheatHistoryStudent[]
+}

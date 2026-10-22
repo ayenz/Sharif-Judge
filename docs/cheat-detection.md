@@ -103,6 +103,17 @@ they are too short or JPlag could not parse them (for example Python 2 syntax). 
 gives the raw JPlag report, which can be opened in the official
 [JPlag report viewer](https://jplag.github.io/JPlag/).
 
+## History across assignments
+
+**History** (button on the cheat detection page, or `/cheat/history`) combines the latest analysis of
+every assignment:
+
+- **Repeated pairs**: two students who are similar (70%+ by default; 50% and 90% can be chosen) in
+  two or more assignments. Copying that happens again and again is the strongest signal.
+- **Students**: for each student, in how many assignments they were similar to someone, their highest
+  similarity, and with whom (`bob ×3` means similar to bob in three assignments). Expand a row to
+  open each pair.
+
 ## Moss
 
 The **Moss (legacy)** tab keeps the previous integration with Stanford's

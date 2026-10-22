@@ -93,4 +93,23 @@ report = admin.get(B + f"/api/cheat/runs/{runs[0]['id']}/report")
 assert report.status_code == 200 and report.content[:2] == b"PK", "report download failed"
 alice = session("alice", "secret123")
 assert alice.get(B + f"/api/cheat/{aid}").status_code == 404, "student can see cheat detection"
+
+# A second assignment where alice and bob copy again: the history must show them as a repeated pair.
+body2 = dict(body, name="Cheat Lab 2")
+res = admin.post(B + "/api/assignments", files={"data": (None, json.dumps(body2)), "tests_desc": ("t.zip", tests.getvalue(), "application/zip")})
+res.raise_for_status(); aid2 = res.json()["id"]
+for user, f in [("alice", "alice.py"), ("bob", "bob.py"), ("carol", "carol.py")]:
+    s = session(user, "secret123"); s.post(B + "/api/assignments/select", json={"id": aid2}).raise_for_status()
+    s.post(B + "/api/submit", files={"problem": (None, "1"), "language": (None, "Python 3"), "file": (f, (HERE / f).read_bytes())}).raise_for_status()
+    wait_queue()
+admin.post(B + f"/api/cheat/{aid2}/run", json={"compareAssignments": [], "minTokens": None}).raise_for_status()
+for _ in range(120):
+    runs2 = admin.get(B + f"/api/cheat/{aid2}").json()["runs"]
+    if runs2 and all(r["status"] in ("done", "failed") for r in runs2): break
+    time.sleep(1)
+history = admin.get(B + "/api/cheat/history", params={"min": 0.7}).json()
+repeat = [(p["a"]["username"], p["b"]["username"], p["count"]) for p in history["repeatPairs"]]
+print("history: analysed", history["analysedAssignments"], "assignments; repeated pairs:", repeat)
+assert any({a, b} == {"alice", "bob"} and n >= 2 for a, b, n in repeat), "repeated pair alice/bob missing from history"
+assert not any("carol" in (a, b) for a, b, _ in repeat), "carol wrongly in repeated pairs"
 print("ALL GOOD")
