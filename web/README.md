@@ -47,8 +47,12 @@ public/                   favicon and static files
   `server/utils/time.ts`.
 - **Auth**: encrypted cookie session (`nuxt-auth-utils`) holding the username; the user row is
   loaded on every request (`requireUser(event, minLevel)`).
-- **Judge queue**: `server/utils/queue.ts` processes `shj_queue` in the background and runs
-  `tester/tester.sh` with an argument list (no shell).
+- **Judge queue**: `server/utils/queue.ts` processes `shj_queue` in the background. In `remote` mode
+  it writes a job file for the isolated judge container (`../judge/worker.mjs`) and waits for the
+  result; in `local` mode it runs `tester/tester.sh` itself with an argument list and no secrets in
+  the environment.
+- **Rate limits**: `server/utils/rate-limit.ts` (in memory) for sign-in, password reset and
+  registration; client addresses via `clientIp()`.
 - **Late rules**: legacy PHP snippets, translated and run in `node:vm` (`server/utils/late-rule.ts`).
 - **Editor recording**: `app/utils/editor-recorder.ts` produces the same JSON as the legacy editor,
   so old recordings replay in `RecordingPlayer.vue`.

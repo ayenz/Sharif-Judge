@@ -102,12 +102,18 @@ keterlambatan, dan urutan scoreboard harus identik.
 - Tes: `tests/e2e/cheat-flow.py`. Dokumentasi lengkap: [docs/cheat-detection.md](docs/cheat-detection.md).
 
 ## Catatan keamanan yang belum diselesaikan
-- **EasySandbox tidak berfungsi** di glibc modern (semua program dimatikan), dan instalasi lama ternyata
-  tidak pernah meng-compile-nya. Jadi kode C/C++ berjalan tanpa sandbox, hanya dibatasi shield dan
-  container. Python juga tidak di-sandbox (sudah begitu sejak versi lama). Perlu pengganti (mis. nsjail
-  atau bubblewrap) sebelum dipakai untuk peserta yang tidak dipercaya.
+- **EasySandbox tidak berfungsi** di glibc modern dan instalasi lama tidak pernah meng-compile-nya.
+  Perannya kini digantikan container `judge` terisolasi (lihat di bawah).
 - Kolom `shj_logins.ip_address` hanya 15 karakter, alamat IPv6 terpotong.
 - **Diperbaiki 22 Okt 2026**: program mahasiswa sempat bisa membaca variabel environment server
   (password database, kunci sesi) karena tester mewarisi environment Node. Sekarang tester dijalankan
   dengan environment minimal (`PATH`, `LANG`, `HOME`), dan `tests/e2e/security.py` mengeceknya.
-- Belum diaudit: apakah program Python/Java bisa membaca file di luar folder kerjanya (shield C memblokir `fopen`).
+- **Diperbaiki 22 Okt 2026 — isolasi eksekusi**: kode mahasiswa kini jalan di container `judge` terpisah
+  tanpa jaringan dan tanpa rahasia, di-compile dan dijalankan sebagai user `shjrun` yang tidak bisa
+  membaca test case, jawaban, atau kode mahasiswa lain (termasuk trik `#include` saat compile).
+  Diuji dengan shield dimatikan: semua percobaan diblokir (`tests/e2e/isolation.py`).
+- **Diperbaiki 22 Okt 2026 — bug lama tester**: file jawaban test sebelumnya (`correctout`) tertinggal
+  di folder kerja saat program dijalankan untuk test berikutnya; kini dihapus sebelum tiap test.
+- **Ditambahkan 22 Okt 2026 — batas login**: 8 gagal per alamat+akun, 30 per alamat, 50 per akun
+  dalam 15 menit; juga batas untuk lupa password dan registrasi. `X-Forwarded-For` hanya dipercaya
+  bila `NUXT_TRUST_PROXY=true` (sebelumnya selalu dipercaya, bisa dipalsukan).

@@ -9,7 +9,8 @@ development setup).
 |---|---|---|
 | Regression | `uv run tests/regression/run.py` | Resets both apps, sends 19 identical submissions (C, C++, Java, Python 3, upload; correct, wrong, partial, compile/syntax error, time limit, runtime error, late) and requires identical statuses, scores, coefficients, final flags, scoreboard, Hall of Fame and Excel exports |
 | Pages | `uv run --with requests python tests/e2e/smoke.py` | Every page loads for an admin and a student; staff pages return 404 for students |
-| Security | `uv run --with requests python tests/e2e/security.py` | Other students' code, path traversal, staff endpoints, re-install, SQL-like input |
+| Security | `uv run --with requests python tests/e2e/security.py` | Other students' code, path traversal, staff endpoints, re-install, SQL-like input, secrets hidden from submissions, sign-in rate limit (also with a forged `X-Forwarded-For`) |
+| Isolation | `uv run --with requests python tests/e2e/isolation.py` | Submissions (C, Python, Java) try to read expected outputs and other students' code, `#include` an answer at compile time, reach the database and read secrets; all must be blocked. Run it once with the shields off in Settings as well |
 | Editor | `uv run --with requests python tests/e2e/editor-flow.py` | Save, run with input, submit, recording, rejudge |
 | Cheat detection | `uv run --with requests python tests/e2e/cheat-flow.py` | Renamed, reordered and C copies are found, a different solution is not, paste signals, template code, older assignments, access |
 | Browser | `uv run --with requests --with playwright python tests/e2e/browser.py` | Every page in Chromium: no JavaScript or hydration errors, no horizontal scroll at phone width |
