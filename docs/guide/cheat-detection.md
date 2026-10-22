@@ -135,8 +135,10 @@ Moss has no Go grammar, so Go submissions are only compared by the local JPlag e
 
 ## For administrators
 
-- The Docker image contains a Java 25 runtime (`/opt/jre25`) and JPlag (`/opt/jplag/jplag.jar`),
-  both downloaded with pinned SHA-256 checksums. The judge itself stays on Java 17.
+- The Docker image contains a Java 25 runtime (`/opt/jre25`, made with `jlink` from the Temurin JDK
+  so that it includes the Java compiler module JPlag uses to parse Java) and JPlag
+  (`/opt/jplag/jplag.jar`), both downloaded with pinned SHA-256 checksums. The judge itself stays
+  on Java 17.
 - Work files go to `NUXT_CHEAT_WORK_DIR` (`/data/cheat` in the image) and are deleted after each
   run; only the `.jplag` report of the latest run per problem and language is kept.
 - Results are stored in the `shj_cheat_runs` and `shj_cheat_pairs` tables, created automatically

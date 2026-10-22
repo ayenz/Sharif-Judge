@@ -221,7 +221,9 @@ Details for users are in [Cheat detection](../guide/cheat-detection). For develo
 - The report is parsed into `cheat_pairs`, the `.jplag` file is kept as
   `reports/run-<id>.jplag`, and older runs of the same problem and language are deleted.
 - JPlag needs Java 25; the tester stays on Java 17 because `tester.sh` uses the Java Security
-  Manager, which was removed in Java 24. That is why the image carries two Java runtimes.
+  Manager, which was removed in Java 24. That is why the image carries two Java runtimes. The Java
+  25 one is made with `jlink` and must include `jdk.compiler`: JPlag's Java parser uses it, and
+  without it every Java submission is reported as not parsable.
 - Runs interrupted by a restart are marked `failed` by `server/plugins/migrate.ts`.
 
 Moss (the legacy option) still works through `server/utils/moss.ts`, which runs the Perl client

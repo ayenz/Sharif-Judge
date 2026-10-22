@@ -12,8 +12,9 @@
 `web.Dockerfile` has four stages:
 
 1. **build**: installs the npm packages and builds the Nuxt app.
-2. **jplag**: downloads a Java 25 runtime (Eclipse Temurin) and JPlag 6.3 with pinned SHA-256
-   checksums, for cheat detection.
+2. **jplag**: downloads the Java 25 JDK (Eclipse Temurin) and JPlag 6.3 with pinned SHA-256
+   checksums, for cheat detection, and makes a runtime with `jlink` that includes `jdk.compiler`
+   (JPlag parses Java with it; a plain JRE lacks it and every Java submission failed to parse).
 3. **golang**: downloads Go 1.27 with a pinned SHA-256 checksum and builds
    `docker/go-cache-warm.go` once, so `/opt/go-cache` holds the compiled standard packages that
    submissions commonly use. `tester.sh` copies that cache into each Go submission's jail, which
