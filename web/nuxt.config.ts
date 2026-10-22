@@ -4,6 +4,12 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   devtools: { enabled: false },
 
+  // Static assets are compressed once at build time (served as .br/.gz); pages and API
+  // responses are compressed on the fly by server/plugins/compression.ts.
+  nitro: {
+    compressPublicAssets: { gzip: true, brotli: true },
+  },
+
   app: {
     pageTransition: { name: 'page', mode: 'out-in' },
     head: {
@@ -68,6 +74,10 @@ export default defineNuxtConfig({
     judge: {
       mode: 'local',
       jobsDir: '/data/jobs',
+    },
+    // Folder of the backup service, read to warn admins about missing or failed backups.
+    backup: {
+      dir: '',
     },
     queue: {
       // Set to false on extra web replicas so only one process runs submissions.
