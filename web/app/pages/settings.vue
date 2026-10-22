@@ -131,7 +131,7 @@ function reset() {
       />
 
       <UForm ref="form" :state="state" @submit="save">
-        <UTabs v-model="tab" :items="tabs" :unmount-on-hide="false" variant="link" class="w-full" :ui="{ list: 'overflow-x-auto', content: 'pt-4' }">
+        <UTabs v-model="tab" :items="tabs" :unmount-on-hide="false" variant="link" class="w-full" :ui="{ list: 'tabs-scroll', content: 'pt-4' }">
           <!-- General -->
           <template #general>
             <UCard>

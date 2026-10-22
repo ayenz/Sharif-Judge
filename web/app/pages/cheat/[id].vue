@@ -183,7 +183,7 @@ function onQueued() {
         <UButton v-if="data.engineAvailable" variant="soft" icon="i-lucide-play" label="Run analysis" @click="runOpen = true" />
       </div>
 
-      <UTabs v-model="tab" :items="tabs" :content="false" variant="link" class="w-full" :ui="{ list: 'overflow-x-auto' }" />
+      <UTabs v-model="tab" :items="tabs" :content="false" variant="link" class="w-full" :ui="{ list: 'tabs-scroll' }" />
 
       <Transition name="cheat-tab" mode="out-in">
         <CheatStudentsTable

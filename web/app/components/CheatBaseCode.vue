@@ -99,7 +99,7 @@ async function save(content = draft.value) {
         <div class="flex flex-wrap items-center gap-2">
           <USelect v-model="problemId" :items="problemItems" size="sm" class="w-56" />
           <UBadge v-if="current?.isUploadOnly" size="sm" color="neutral" variant="soft" label="Upload only" />
-          <UTabs v-model="language" :items="tabs" :content="false" variant="link" size="sm" class="ms-auto" :ui="{ list: 'overflow-x-auto' }" />
+          <UTabs v-model="language" :items="tabs" :content="false" variant="link" size="sm" class="ms-auto" :ui="{ list: 'tabs-scroll' }" />
         </div>
       </template>
 
