@@ -107,3 +107,7 @@ keterlambatan, dan urutan scoreboard harus identik.
   container. Python juga tidak di-sandbox (sudah begitu sejak versi lama). Perlu pengganti (mis. nsjail
   atau bubblewrap) sebelum dipakai untuk peserta yang tidak dipercaya.
 - Kolom `shj_logins.ip_address` hanya 15 karakter, alamat IPv6 terpotong.
+- **Diperbaiki 22 Okt 2026**: program mahasiswa sempat bisa membaca variabel environment server
+  (password database, kunci sesi) karena tester mewarisi environment Node. Sekarang tester dijalankan
+  dengan environment minimal (`PATH`, `LANG`, `HOME`), dan `tests/e2e/security.py` mengeceknya.
+- Belum diaudit: apakah program Python/Java bisa membaca file di luar folder kerjanya (shield C memblokir `fopen`).

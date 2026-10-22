@@ -218,7 +218,9 @@ function runTester(cwd: string, args: string[]): Promise<string> {
   return new Promise((resolve) => {
     const child = spawn('bash', ['./tester.sh', ...args], {
       cwd,
-      env: { ...process.env, LANG: 'en_US.UTF-8' },
+      // Submitted programs inherit this environment: pass only what the tools need,
+      // never the server's secrets (database password, session key, ...).
+      env: { PATH: process.env.PATH ?? '/usr/local/bin:/usr/bin:/bin', LANG: 'en_US.UTF-8', HOME: '/tmp' },
       stdio: ['ignore', 'pipe', 'ignore'],
     })
     let out = ''
