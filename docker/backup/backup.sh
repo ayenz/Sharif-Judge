@@ -38,14 +38,15 @@ read_config() {
 }
 
 write_state() { # next run (epoch)
-  printf '{"time":"%s","keepDays":%s,"timezone":"%s","next":"%s","heartbeat":"%s"}\n' \
-    "$BACKUP_TIME" "$KEEP_DAYS" "${TZ:-UTC}" "$(date -d "@$1" '+%Y-%m-%d %H:%M:%S')" "$(date '+%Y-%m-%d %H:%M:%S')" > /backups/state.json.tmp
+  # *Epoch fields are seconds since 1970 (UTC), so readers in another time zone compare correctly.
+  printf '{"time":"%s","keepDays":%s,"timezone":"%s","next":"%s","heartbeat":"%s","heartbeatEpoch":%s}\n' \
+    "$BACKUP_TIME" "$KEEP_DAYS" "${TZ:-UTC}" "$(date -d "@$1" '+%Y-%m-%d %H:%M:%S')" "$(date '+%Y-%m-%d %H:%M:%S')" "$(date +%s)" > /backups/state.json.tmp
   mv /backups/state.json.tmp /backups/state.json
 }
 
 write_status() { # ok|failed, folder, message
-  printf '{"time":"%s","status":"%s","folder":"%s","message":"%s"}\n' \
-    "$(date '+%Y-%m-%d %H:%M:%S')" "$1" "$2" "$3" > /backups/latest.json.tmp
+  printf '{"time":"%s","epoch":%s,"status":"%s","folder":"%s","message":"%s"}\n' \
+    "$(date '+%Y-%m-%d %H:%M:%S')" "$(date +%s)" "$1" "$2" "$3" > /backups/latest.json.tmp
   mv /backups/latest.json.tmp /backups/latest.json
 }
 
