@@ -37,7 +37,8 @@ SharIF Judge is a fork of [Sharif Judge](https://github.com/mjnaderi/Sharif-Judg
 - **Interface**: responsive (works on phones), light and dark mode, notifications, dashboard with
   deadlines and calendar, 24-hour login log. Pages are compressed (about 250–320 KB on a first
   visit, a few KB afterwards).
-- **Backups**: a daily database dump and archive of the assignment files, kept for 14 days.
+- **Backups**: a daily database dump and archive of the assignment files, kept for 14 days, with
+  status, schedule and "back up now" in Settings.
 
 ## Repository layout
 

@@ -79,7 +79,13 @@ latest.json         status of the last run
 ```
 
 Cheat detection work files and the job queue are not backed up; they are rebuilt as needed.
-The admin dashboard warns when no backup exists, the last one failed, or it is older than two days.
+
+**Settings > Backups** in the app shows whether the service runs, the last and next backup and the
+stored backups, has a **Back up now** button, and changes the time and retention (stored in
+`BACKUP_DIR/control/config.json`, which overrides `BACKUP_TIME` and `BACKUP_KEEP_DAYS`). The web
+app can only read the backups; its one writable folder is `control/`, for these requests. The admin
+dashboard warns when the service is not running, no backup exists, the last one failed, or it is
+older than two days.
 
 **Keep copies somewhere else.** A backup on the same disk does not survive a disk failure. Point
 `BACKUP_DIR` at another disk or a mounted network share, or copy the folders off the server
@@ -87,7 +93,7 @@ regularly (for example with `rsync` from another machine). Set `BACKUP_DIR` to a
 outside the repository if you deploy by syncing the repository folder.
 
 ```bash
-# Make a backup now
+# Make a backup now (or use Settings > Backups)
 docker compose exec backup /bin/bash /backup.sh now
 
 # Check a backup

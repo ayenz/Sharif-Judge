@@ -31,8 +31,11 @@ const tabs: TabsItem[] = [
   { label: 'Shields', icon: 'i-lucide-shield', value: 'shields', slot: 'shields' as const },
   { label: 'Accounts & Mail', icon: 'i-lucide-mail', value: 'accounts', slot: 'accounts' as const },
   { label: 'Display', icon: 'i-lucide-monitor', value: 'display', slot: 'display' as const },
+  { label: 'Backups', icon: 'i-lucide-archive', value: 'backups', slot: 'backups' as const },
 ]
-const tab = ref('general')
+// ?tab=backups opens a tab directly (used by the dashboard warnings).
+const route = useRoute()
+const tab = ref(tabs.some(t => t.value === route.query.tab) ? String(route.query.tab) : 'general')
 
 const WEEK_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((label, value) => ({ label, value }))
 const timezones = computed(() => {
@@ -298,6 +301,9 @@ function reset() {
           </template>
 
           <!-- Display -->
+          <template #backups>
+            <SettingsBackups />
+          </template>
           <template #display>
             <UCard>
               <div class="grid gap-5 sm:grid-cols-2">
@@ -316,7 +322,7 @@ function reset() {
           </template>
         </UTabs>
 
-        <div class="sticky bottom-0 z-10 mt-4 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-default/90 backdrop-blur border-t border-default flex items-center gap-3">
+        <div v-show="tab !== 'backups'" class="sticky bottom-0 z-10 mt-4 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-default/90 backdrop-blur border-t border-default flex items-center gap-3">
           <UButton type="submit" :loading="saving" icon="i-lucide-save" label="Save changes" />
           <UButton color="neutral" variant="ghost" label="Discard" :disabled="!dirty || saving" @click="reset" />
           <span v-if="dirty" class="text-sm text-muted">Unsaved changes</span>

@@ -40,6 +40,8 @@ services:
     volumes:
       - web-data:/data
       - ${BACKUP_DIR:-./backups}:/backups:ro
+      # The only backup folder the web app can write: schedule and "back up now" requests.
+      - ${BACKUP_DIR:-./backups}/control:/backups/control
 
   # Runs submitted code. No network, no secrets, and the code itself runs as an
   # unprivileged user that can only touch its own jail directory.
