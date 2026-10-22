@@ -96,3 +96,12 @@
 .dark .judge-result .shj_r { color: #f87171; }
 .dark .judge-result .shj_g { color: #4ade80; }
 .dark .judge-result .shj_o { color: #fb923c; }
+
+/* Tab lists that scroll sideways on narrow screens. overflow-x: auto alone also turns
+   on vertical scrolling (CSS rule), and the active-tab indicator then shows a scrollbar.
+   The bottom line is drawn inside the box so the active indicator is not clipped, and
+   tabs keep their full labels: on a phone the list scrolls instead of truncating them. */
+.tabs-scroll { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; border-bottom: 0; margin-bottom: 0; box-shadow: inset 0 -1px var(--ui-border); }
+.tabs-scroll::-webkit-scrollbar { display: none; }
+.tabs-scroll > [data-slot="indicator"] { bottom: 0; }
+.tabs-scroll > [data-slot="trigger"] { flex-shrink: 0; }
