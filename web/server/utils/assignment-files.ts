@@ -178,10 +178,18 @@ async function addDirToZip(files: Record<string, Uint8Array>, abs: string, rel: 
   }
 }
 
-/** Files for the "tests and descriptions" download (legacy downloadtestsdesc). */
-export async function assignmentTestsZipFiles(assignmentId: number, problemCount: number): Promise<Record<string, Uint8Array>> {
+/**
+ * Files for the export download: the legacy "tests and descriptions" zip plus assignment.json
+ * with the settings and problems, which the add form can import. Extraction ignores .json
+ * files, so the zip also works as a plain tests upload.
+ */
+export async function assignmentTestsZipFiles(assignment: Assignment): Promise<Record<string, Uint8Array>> {
+  const assignmentId = assignment.id
+  const problemCount = assignment.problems
   const root = await assignmentDir(assignmentId)
   const files: Record<string, Uint8Array> = {}
+  const meta = { format: 1, exportedAt: await nowStr(), ...await assignmentFormValues(assignment, true) }
+  files['assignment.json'] = new TextEncoder().encode(`${JSON.stringify(meta, null, 2)}\n`)
   for (let i = 1; i <= problemCount; i++) {
     const p = join(root, `p${i}`)
     await addDirToZip(files, join(p, 'in'), `p${i}/in`)

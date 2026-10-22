@@ -116,6 +116,69 @@ function setUploadOnly(p: AssignmentProblemState, value: boolean) {
 const python2 = computed(() => Boolean(props.initial.python2Enabled))
 const languageItems = (p: AssignmentProblemState) => (p.isUploadOnly ? allLanguages(python2.value) : judgedLanguages(python2.value))
 
+// Import (add only): fill the form from the assignment.json of an exported zip and upload the
+// same zip as tests. Editing is left out on purpose: it could replace problems that already have
+// submissions.
+const importInput = useTemplateRef<HTMLInputElement>('importInput')
+const importing = ref(false)
+const importedFrom = ref('')
+
+async function importZip(file: File) {
+  importing.value = true
+  try {
+    const { unzipSync, strFromU8 } = await import('fflate')
+    const entries = unzipSync(new Uint8Array(await file.arrayBuffer()), { filter: f => f.name === 'assignment.json' })
+    const json = entries['assignment.json']
+    if (!json)
+      throw new Error('This zip has no assignment.json. Export the assignment again from the Assignments page, or upload it below as tests only.')
+    const meta = JSON.parse(strFromU8(json)) as Partial<AssignmentFormData> & { format?: number }
+    if (meta.format !== 1 || !Array.isArray(meta.problems) || !meta.problems.length)
+      throw new Error('assignment.json has an unknown format.')
+    state.archived = false
+    await nextTick() // let the archived watcher run before the schedule is set
+    Object.assign(state, {
+      name: String(meta.name ?? ''),
+      // The old schedule has almost certainly passed, and last term's participants and the
+      // open flag do not apply: set them again before saving.
+      startTime: '',
+      finishTime: '',
+      extraTime: String(meta.extraTime ?? '0'),
+      participants: 'ALL',
+      lateRule: String(meta.lateRule || props.initial.defaultLateRule),
+      open: false,
+      scoreboard: Boolean(meta.scoreboard),
+      javaexceptions: Boolean(meta.javaexceptions),
+      problems: meta.problems.map((p) => {
+        const row = { ...newProblem(), ...p, isUploadOnly: Boolean(p.isUploadOnly) }
+        const allowed = row.isUploadOnly ? allLanguages(python2.value) : judgedLanguages(python2.value)
+        return { ...row, languages: (Array.isArray(p.languages) ? p.languages : []).filter(l => allowed.includes(l)) }
+      }),
+    })
+    testsZip.value = file
+    importedFrom.value = file.name
+    toast.add({
+      title: `Imported ${state.problems.length} problem${state.problems.length > 1 ? 's' : ''}`,
+      description: 'Set the start and finish time, check the form, then save.',
+      color: 'success',
+      icon: 'i-lucide-file-input',
+    })
+  }
+  catch (e) {
+    toast.add({ title: 'Import failed', description: (e as Error).message, color: 'error' })
+  }
+  finally {
+    importing.value = false
+    if (importInput.value)
+      importInput.value.value = ''
+  }
+}
+
+function onImportPicked(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0]
+  if (file)
+    importZip(file)
+}
+
 const totalScore = computed(() => state.problems.reduce((s, p) => s + (Number(p.score) || 0), 0))
 
 // Submit
@@ -173,6 +236,18 @@ async function submit() {
 <template>
   <UForm ref="form" :state="state" :validate-on="[]" class="space-y-6" @submit="submit">
     <UAlert v-if="edit" icon="i-lucide-info" color="info" variant="subtle" title="If you don't want to change tests or the PDF file, just do not upload its file." />
+    <UAlert
+      v-else
+      icon="i-lucide-file-input"
+      color="neutral"
+      variant="subtle"
+      title="Reuse an assignment"
+      :description="importedFrom
+        ? `Filled from ${importedFrom}; its tests are uploaded when you save. Schedule, participants and Open were reset.`
+        : 'Import a zip exported from the Assignments page (any SharIF Judge installation) to fill this form with its problems, limits and tests.'"
+      :actions="[{ label: importedFrom ? 'Import another' : 'Import from export', icon: 'i-lucide-upload', color: 'neutral', variant: 'outline', loading: importing, onClick: () => importInput?.click() }]"
+    />
+    <input ref="importInput" type="file" accept=".zip,application/zip" class="hidden" aria-label="Import an exported assignment zip" @change="onImportPicked">
 
     <!-- Details -->
     <UCard>

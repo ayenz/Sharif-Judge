@@ -98,5 +98,25 @@ the assignment is open for them.
 
 ## Downloads
 
-From the assignment's menu: the test cases and descriptions as a zip, and the final submissions as a
-zip grouped by user or by problem. Submissions also export to Excel from the submissions pages.
+From the assignment's menu: **Export (tests + settings)**, and the final submissions as a zip grouped
+by user or by problem. Submissions also export to Excel from the submissions pages.
+
+## Reusing an assignment (export and import)
+
+**Export (tests + settings)** downloads the test cases, descriptions and PDFs as a zip, plus an
+`assignment.json` with the assignment's settings and its problems (scores, limits, languages, diff
+settings). To run the same assignment again, for example next semester or on another SharIF Judge
+installation:
+
+1. Export it from the Assignments page.
+2. **Add assignment** > **Import from export**, and pick the zip. The form is filled with the name,
+   extra time, late rule, scoreboard and Java-exception switches, and every problem.
+3. Set the **start and finish time**: they are left empty, because the old dates have passed.
+   **Participants** is reset to `ALL` and **Open** and **Archived** are off, so students do not see
+   the new assignment until you open it.
+4. Check the form and save. The same zip is uploaded as the tests.
+
+Python 2 is dropped from the languages when it is disabled in Settings. Import is only offered when
+adding an assignment, never when editing, so problems that already have submissions are not
+replaced. The export zip also works as a plain tests upload: `assignment.json` is ignored there, and
+older zips without it still work as before.

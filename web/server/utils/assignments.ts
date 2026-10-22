@@ -2,7 +2,7 @@ import type { H3Event } from 'h3'
 import { join } from 'node:path'
 import vm from 'node:vm'
 import { and, asc, eq, sql } from 'drizzle-orm'
-import { ALL_LANGUAGES, JUDGED_LANGUAGES } from '#shared/languages'
+import { ALL_LANGUAGES, JUDGED_LANGUAGES, parseAllowedLanguages } from '#shared/languages'
 
 const { problems, assignments, submissions } = schema
 
@@ -167,6 +167,39 @@ async function updateCoefficients(tx: Tx, assignmentId: number, extraTime: numbe
 }
 
 /** Inserts or updates an assignment and replaces its problems, in one transaction. */
+/**
+ * An assignment and its problems in the shape of the add/edit form (AssignmentFormBody).
+ * Used by the edit form and by the assignment.json of an export. Python 2 is left out while it
+ * is disabled in Settings.
+ */
+export async function assignmentFormValues(a: Assignment, python2: boolean) {
+  const problems = Object.values(await assignmentProblems(a.id))
+  return {
+    name: a.name,
+    startTime: a.startTime,
+    finishTime: a.finishTime,
+    extraTime: extraTimeFormat(a.extraTime),
+    participants: a.participants,
+    lateRule: a.lateRule,
+    open: Boolean(a.open),
+    scoreboard: Boolean(a.scoreboard),
+    javaexceptions: Boolean(a.javaexceptions),
+    archived: Boolean(a.archivedAssignment),
+    problems: problems.map(p => ({
+      name: p.name,
+      score: p.score,
+      cTimeLimit: p.cTimeLimit,
+      pythonTimeLimit: p.pythonTimeLimit,
+      javaTimeLimit: p.javaTimeLimit,
+      memoryLimit: p.memoryLimit,
+      languages: parseAllowedLanguages(p.allowedLanguages).filter(l => python2 || l !== 'Python 2'),
+      diffCmd: p.diffCmd,
+      diffArg: p.diffArg,
+      isUploadOnly: Boolean(p.isUploadOnly),
+    })),
+  }
+}
+
 export async function assignmentSave(id: number, input: AssignmentInput, edit: boolean): Promise<void> {
   await useDb().transaction(async (tx) => {
     const values = {
