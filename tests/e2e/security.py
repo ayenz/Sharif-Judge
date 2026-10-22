@@ -31,4 +31,17 @@ for name, fn, ok in checks:
     print(f"{'OK ' if good else 'BAD'} {r.status_code} {name}" + ("" if good else f"  -> {r.text[:150]}"))
 # select-final for another user must not change bob's rows: students always act on themselves
 print("bob final rows untouched:", requests.Session().get(B+"/api/install").ok)
-sys.exit(1 if bad else 0)
+
+# Submitted programs must not see the server's secrets (environment variables).
+import time as _time
+s.post(B + "/api/assignments/select", json={"id": 1})
+probe = '#include <stdio.h>\n#include <stdlib.h>\nint main(void){ puts(getenv("NUXT_DB_PASSWORD") || getenv("NUXT_SESSION_PASSWORD") ? "LEAK" : "clean"); return 0; }'
+s.post(B + "/api/submit/editor", json={"mode": "execute", "problemId": 1, "language": "C", "code": probe, "input": ""})
+for _ in range(30):
+    out = s.get(B + "/api/submit/editor/1/output").json()
+    if out["status"]:
+        break
+    _time.sleep(1)
+leak = "LEAK" in out["content"]
+print(f"{'BAD' if leak else 'OK '} env secrets hidden from submitted code")
+sys.exit(1 if leak or bad else 0)
