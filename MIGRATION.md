@@ -44,10 +44,10 @@ docs/     dokumentasi fitur (cheat detection)
 - **Scoreboard**: dihitung ulang dari tabel submission, isi HTML lama di `shj_scoreboard` diabaikan.
 
 ## Dokumentasi
-- [docs/migration-from-php.md](docs/migration-from-php.md): panduan migrasi instalasi PHP ke Nuxt (diuji ujung-ke-ujung)
+- [docs/guide/migration-from-php.md](docs/guide/migration-from-php.md): panduan migrasi instalasi PHP ke Nuxt (diuji ujung-ke-ujung)
 - [README.md](README.md): instalasi, konfigurasi, upgrade dari versi PHP
 - [docker/README.md](docker/README.md), [web/README.md](web/README.md), [tests/README.md](tests/README.md)
-- [docs/cheat-detection.md](docs/cheat-detection.md)
+- [docs/guide/cheat-detection.md](docs/guide/cheat-detection.md)
 
 ## Tahapan
 0. Fondasi: kerangka Nuxt, Docker, skema database, login/logout/instalasi, layout.
@@ -99,7 +99,7 @@ keterlambatan, dan urutan scoreboard harus identik.
   dengan alasan tertulis. Ini petunjuk untuk diperiksa, bukan vonis.
 - **Moss** tetap tersedia; bug lama diperbaiki: bahasa kini dikirim (`-l`, sebelumnya semua dianggap C),
   satu permintaan per bahasa, kode template ikut dikirim (`-b`).
-- Tes: `tests/e2e/cheat-flow.py`. Dokumentasi lengkap: [docs/cheat-detection.md](docs/cheat-detection.md).
+- Tes: `tests/e2e/cheat-flow.py`. Dokumentasi lengkap: [docs/guide/cheat-detection.md](docs/guide/cheat-detection.md).
 
 ## Catatan keamanan yang belum diselesaikan
 - **EasySandbox tidak berfungsi** di glibc modern dan instalasi lama tidak pernah meng-compile-nya.

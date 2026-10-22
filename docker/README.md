@@ -31,6 +31,10 @@ and reports). EasySandbox is intentionally not built; see the security notes in 
 | `judge` | `judge/worker.mjs` (same image) | **none** | Runs `tester.sh` for each job; submissions are compiled and run as `shjrun` (uid 2000) |
 | `backup` | `backup/backup.sh` (MariaDB image) | internal | Daily database dump + assignment files into `BACKUP_DIR` |
 
+Shield files (`/app/tester/shield`) are the named volume `shields`: written by `web` (Settings >
+Shields), read by `judge`. It is filled from the image on first start and then keeps the admin's
+edits; remove the volume to go back to the defaults.
+
 The judge container needs root only to switch to `shjrun` and to hand result files back to uid
 1000; all other capabilities are dropped. `/data`, `/data/assignments` and `/app/tester` are
 `711` and `/data/jobs` is `700`, so `shjrun` cannot list or read anything outside its jail.
@@ -53,7 +57,7 @@ features are created when the app starts.
 
 ### Using an existing installation
 
-The full procedure is in [docs/migration-from-php.md](../docs/migration-from-php.md). In short:
+The full procedure is in [docs/guide/migration-from-php.md](../docs/guide/migration-from-php.md). In short:
 
 To run on the database and files of a legacy installation:
 

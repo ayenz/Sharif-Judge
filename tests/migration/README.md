@@ -1,6 +1,6 @@
 # Migration test
 
-Checks [docs/migration-from-php.md](../../docs/migration-from-php.md): a Nuxt instance on a copy of a
+Checks [docs/guide/migration-from-php.md](../../docs/guide/migration-from-php.md): a Nuxt instance on a copy of a
 PHP installation must match the PHP app on the original data.
 
 Setup on the test server (after `tests/regression/run.py`, so the PHP app on port 8401 has data):

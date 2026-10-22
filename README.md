@@ -15,6 +15,12 @@ SharIF Judge is a fork of [Sharif Judge](https://github.com/mjnaderi/Sharif-Judg
 [@mjnaderi](https://github.com/mjnaderi), continued by [@ifunpar](https://github.com/ifunpar)
 ([SharIF-Judge](https://github.com/ifunpar/SharIF-Judge)).
 
+## Documentation
+
+**https://ayenz.github.io/Sharif-Judge/** — installation, configuration, assignments, judging,
+cheat detection, backups, migrating from PHP, security, and a development guide. The sources are in
+[`docs/`](docs/) (VitePress); changes to `main` are published automatically.
+
 ## Features
 
 - **Roles**: admin, head instructor, instructor, student.
@@ -31,7 +37,7 @@ SharIF Judge is a fork of [Sharif Judge](https://github.com/mjnaderi/Sharif-Judg
   language, side-by-side comparison, and a per-student review score that combines code similarity
   with editor signals, plus a history across assignments that shows students who are similar again
   and again. [Moss](https://theory.stanford.edu/~aiken/moss/) is still available.
-  See [docs/cheat-detection.md](docs/cheat-detection.md).
+  See [docs/guide/cheat-detection.md](docs/guide/cheat-detection.md).
 - **Accounts**: bulk user creation with optional email, self registration with a code, password
   reset by email, optional LDAP or RADIUS login.
 - **Interface**: responsive (works on phones), light and dark mode, notifications, dashboard with
@@ -94,6 +100,7 @@ Environment variables (all optional except the database and the session password
 | `NUXT_SESSION_COOKIE_SECURE` | `false` | Set to `true` behind HTTPS |
 | `NUXT_PATHS_TESTER`, `NUXT_PATHS_ASSIGNMENTS` | | Folders written to Settings on a fresh install (set by the image) |
 | `NUXT_QUEUE_ENABLED` | `true` | Set to `false` on extra web replicas so only one process judges |
+| `NUXT_BACKUP_DIR` | | Backup folder as seen by the app (set by Compose); empty hides Settings > Backups |
 | `NUXT_JUDGE_MODE`, `NUXT_JUDGE_JOBS_DIR` | `local`, `/data/jobs` | `remote` hands submissions to the isolated `judge` container (the Compose setup); `local` runs them in the web process (development) |
 | `NUXT_TRUST_PROXY` | `false` | Trust `X-Forwarded-For` for client addresses; set to `true` only behind a reverse proxy |
 | `NUXT_CHEAT_JAVA`, `NUXT_CHEAT_JPLAG_JAR`, `NUXT_CHEAT_WORK_DIR` | | Java 25 and JPlag for cheat detection (set by the image); empty disables it |
@@ -113,7 +120,7 @@ The backup service reads `BACKUP_DIR` (default `docker/backups`), `BACKUP_TIME` 
 The Nuxt app runs on an existing PHP installation's database and assignment files: users,
 passwords, submissions, scores and recordings carry over, and the folder settings are adjusted
 automatically on start-up. Follow the step-by-step guide, which includes a check list and how to
-roll back: **[docs/migration-from-php.md](docs/migration-from-php.md)**. The procedure was tested
+roll back: **[docs/guide/migration-from-php.md](docs/guide/migration-from-php.md)**. The procedure was tested
 end to end against the PHP app (`tests/migration/`).
 
 ## Development
