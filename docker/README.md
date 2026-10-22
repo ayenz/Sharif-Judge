@@ -3,9 +3,9 @@
 | File | Purpose |
 |---|---|
 | `web.Dockerfile` | The SharIF Judge image (build context: repository root) |
-| `compose.yml` | MariaDB, the web app, the isolated judge, and optionally the legacy PHP app |
+| `compose.yml` | MariaDB, the web app, the isolated judge, backups, and the legacy PHP app for tests |
+| `backup/backup.sh` | Daily backup script (run by the `backup` service) |
 | `initdb/` | Creates the `shj_web` and `shj_ci3` databases on the first start of MariaDB |
-| `legacy-php.Dockerfile`, `php.ini` | Image for the legacy CodeIgniter app (profile `legacy`) |
 
 ## The image
 
@@ -29,6 +29,7 @@ and reports). EasySandbox is intentionally not built; see the security notes in 
 | `db` | MariaDB 10.11 | internal | |
 | `web` | Nuxt app as `node` (uid 1000) | internal + port 8402 | Queues submissions as job files in `/data/jobs` (`NUXT_JUDGE_MODE=remote`) |
 | `judge` | `judge/worker.mjs` (same image) | **none** | Runs `tester.sh` for each job; submissions are compiled and run as `shjrun` (uid 2000) |
+| `backup` | `backup/backup.sh` (MariaDB image) | internal | Daily database dump + assignment files into `BACKUP_DIR` |
 
 The judge container needs root only to switch to `shjrun` and to hand result files back to uid
 1000; all other capabilities are dropped. `/data`, `/data/assignments` and `/app/tester` are
@@ -43,11 +44,11 @@ SESSION_PASSWORD=$(openssl rand -hex 24)
 DB_PASSWORD=$(openssl rand -hex 12)
 DB_ROOT_PASSWORD=$(openssl rand -hex 12)
 EOF
-docker compose up -d --build db web judge   # app on port 8402
+docker compose up -d --build db web judge backup   # app on port 8402
 docker compose logs -f web
 ```
 
-Rebuild after pulling changes with the same `up -d --build db web judge`. Database tables for new
+Rebuild after pulling changes with the same `up -d --build db web judge backup`. Database tables for new
 features are created when the app starts.
 
 ### Using an existing installation
@@ -63,12 +64,50 @@ To run on the database and files of a legacy installation:
 
 ### Backups
 
-Back up the database and the `/data` volume:
+The `backup` service makes one backup a day at `BACKUP_TIME` (default `02:00`, time zone `TZ`,
+default `Asia/Jakarta`) and keeps `BACKUP_KEEP_DAYS` days (default `14`). Each backup is a folder in
+`BACKUP_DIR` (default `docker/backups`):
+
+```
+2026-10-22_0200/
+  database.sql.gz   mariadb-dump of the app database
+  files.tar.gz      /data/assignments (test cases, descriptions, submitted code, results)
+  SHA256SUMS
+latest.json         status of the last run
+```
+
+Cheat detection work files and the job queue are not backed up; they are rebuilt as needed.
+The admin dashboard warns when no backup exists, the last one failed, or it is older than two days.
+
+**Keep copies somewhere else.** A backup on the same disk does not survive a disk failure. Point
+`BACKUP_DIR` at another disk or a mounted network share, or copy the folders off the server
+regularly (for example with `rsync` from another machine). Set `BACKUP_DIR` to an absolute path
+outside the repository if you deploy by syncing the repository folder.
 
 ```bash
-docker compose exec -T db mariadb-dump -uroot -p"$DB_ROOT_PASSWORD" shj_web > shj_web.sql
-docker run --rm -v sharif-judge_web-data:/data -v "$PWD":/backup busybox tar czf /backup/data.tgz /data
+# Make a backup now
+docker compose exec backup /bin/bash /backup.sh now
+
+# Check a backup
+cd backups/2026-10-22_0200 && sha256sum -c SHA256SUMS
 ```
+
+### Restoring
+
+```bash
+B=backups/2026-10-22_0200            # the backup to restore
+docker compose stop web judge
+# Database (the dump re-creates the database it was taken from)
+gunzip < $B/database.sql.gz | docker compose exec -T db mariadb -uroot -p"$DB_ROOT_PASSWORD"
+# Files
+docker compose run --rm --no-deps -v "$PWD/$B":/restore:ro --entrypoint sh web \
+  -c 'rm -rf /data/assignments && tar -xzf /restore/files.tar.gz -C /data'
+docker compose up -d web judge
+```
+
+To test a backup without touching the live data, restore the dump into a scratch database
+(`sed 's/`shj_web`/`shj_restore_test`/g'` on the dump) and compare row counts; this is how the backups
+were verified during development.
 
 ### Behind a reverse proxy
 
@@ -78,10 +117,11 @@ request open for several minutes; allow a long proxy timeout for `/api/moss/`.
 
 ## Legacy app for regression tests
 
-The `legacy` profile runs the CodeIgniter app on port 8401 from a copy of the legacy code
-(`CI3_SRC`, default `../ci3`, created with `git archive main`). The regression test in
-`tests/regression` drives both apps and compares the results.
+The `legacy` profile runs the last PHP version on port 8401 for `tests/regression`. Its image is in
+`tests/regression/legacy/`, and its code comes from the tag `archive/php-final`:
 
 ```bash
+git archive archive/php-final | tar -x -C ../ci3        # CI3_SRC, default ../ci3
+mkdir -p ../ci3/restricted/assignments
 docker compose --profile legacy up -d ci3
 ```

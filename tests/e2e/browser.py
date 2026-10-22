@@ -5,7 +5,7 @@ from playwright.sync_api import sync_playwright
 B = "http://172.30.30.101:8402"
 admin_pages = ["/", "/notifications", "/assignments", "/problems/1/1", "/submit?problem=1", "/submissions/final", "/submissions/all",
   "/scoreboard", "/hall-of-fame", "/profile", "/users", "/users/add", "/settings", "/logs", "/queue", "/rejudge", "/moss/1",
-  "/recordings", "/recordings/1/1/frank", "/cheat/1", "/assignments/add", "/assignments/1/edit", "/notifications/new", "/problems/1/1/edit"]
+  "/recordings", "/recordings/1/1/frank", "/cheat/1", "/cheat/history", "/assignments/add", "/assignments/1/edit", "/notifications/new", "/problems/1/1/edit"]
 problems = []
 with sync_playwright() as p:
     br = p.chromium.launch()
@@ -20,8 +20,8 @@ with sync_playwright() as p:
         page.click("button[type=submit]"); page.wait_for_url(B + "/")
         for path in pages:
             errs.clear()
-            page.goto(B + path, wait_until="networkidle")
-            page.wait_for_timeout(700)
+            page.goto(B + path, wait_until="load")
+            page.wait_for_timeout(1200)  # live updates keep a connection open, so "networkidle" never settles reliably
             name = path.strip("/").replace("/", "_").replace("?", "_") or "dashboard"
             page.screenshot(path=f"/tmp/sharif-shots/{user}-{name}.png", full_page=False)
             wide = page.evaluate("document.documentElement.scrollWidth > window.innerWidth + 1")
