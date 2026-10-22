@@ -11,9 +11,15 @@ npm install
 npm run dev             # http://localhost:3000
 ```
 
-You need a MySQL/MariaDB database. For judging and cheat detection on a development machine, point
-`NUXT_PATHS_TESTER` at `../tester` (Linux with the compilers installed) or set
-`NUXT_QUEUE_ENABLED=false` and use the Docker setup for judging.
+You need a MySQL/MariaDB database (a local one, or the Docker MariaDB through an SSH tunnel; use
+a separate database such as `shj_dev`, not the one a deployed app uses).
+
+Judging: with `NUXT_JUDGE_MODE=local` (the default) the app runs `../tester/tester.sh` itself, which
+needs Linux with `gcc`, `g++`, Java and Python, and runs submissions **without** the judge
+container's isolation. On macOS or Windows, test judging on the Docker setup instead. The judge
+queue only runs in the process that received the submission, so a dev server with
+`NUXT_QUEUE_ENABLED=false` leaves submissions `PENDING`. More in the
+[development guide](https://ayenz.github.io/Sharif-Judge/development/getting-started).
 
 | Script | Purpose |
 |---|---|
@@ -35,7 +41,7 @@ server/
   api/                    JSON endpoints, one file per route and method
   utils/                  auto-imported helpers: db, auth, settings, time, queue, scoreboard, cheat, ...
   database/               Drizzle schema, install DDL, migrations for new tables
-  plugins/                start-up: create new tables, resume the judge queue
+  plugins/                start-up migrations, resuming the judge queue, response compression
 shared/                   code used on both sides: roles, languages, cheat detection types
 public/                   favicon and static files
 ```
@@ -64,7 +70,7 @@ public/                   favicon and static files
 - **Editor recording**: `app/utils/editor-recorder.ts` produces the same JSON as the legacy editor,
   so old recordings replay in `RecordingPlayer.vue`.
 - **Cheat detection**: `server/utils/cheat.ts` runs JPlag and computes the review scores; see
-  [../docs/cheat-detection.md](../docs/cheat-detection.md).
+  [../docs/guide/cheat-detection.md](../docs/guide/cheat-detection.md).
 - **New tables**: add them to `server/database/schema.ts` and `server/database/migrate.ts`
   (`CREATE TABLE IF NOT EXISTS`, run on start-up and on install).
 

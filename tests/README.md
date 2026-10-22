@@ -13,8 +13,12 @@ development setup).
 | Isolation | `uv run --with requests python tests/e2e/isolation.py` | Submissions (C, Python, Java) try to read expected outputs and other students' code, `#include` an answer at compile time, reach the database and read secrets; all must be blocked. Run it once with the shields off in Settings as well |
 | Editor | `uv run --with requests python tests/e2e/editor-flow.py` | Save, run with input, submit, recording, rejudge |
 | Cheat detection | `uv run --with requests python tests/e2e/cheat-flow.py` | Renamed, reordered and C copies are found, a different solution is not, paste signals, template code, older assignments, access, history across assignments |
+| Python 2 setting | `uv run --with requests python tests/e2e/python2.py` | Off by default, hidden and refused while off, can be switched on and off, re-created for old installs |
 | Live updates | `uv run --with requests python tests/e2e/live.py` | Server-sent events: a student gets only their own results, staff get everyone's and queue events |
 | Browser | `uv run --with requests --with playwright python tests/e2e/browser.py` | Every page in Chromium: no JavaScript or hydration errors, no horizontal scroll at phone width |
+
+The scripts use the test database root password `shj_root` (the Compose default when
+`DB_ROOT_PASSWORD` is not set), so keep that default on the test server.
 
 Run the regression test first: the end-to-end tests use the users and assignments it creates
 (`admin`/`admin123`, students `alice` … `frank` with password `secret123`). The regression test

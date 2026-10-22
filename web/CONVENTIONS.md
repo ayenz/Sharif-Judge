@@ -1,6 +1,7 @@
 # Code conventions (web/)
 
-The legacy PHP app in `../application` is the specification. Port behavior faithfully:
+The legacy PHP app is the specification for anything ported from it (its code is in the git tag
+`archive/php-final`, e.g. `git show archive/php-final:application/controllers/Submit.php`). Keep behavior faithful:
 same permission checks, same validation limits, same error messages where users see them,
 same computations. Improve UX, not semantics. When legacy behavior is clearly a bug or a
 security hole (SQL injection, path traversal, shell injection), fix it and leave a short
