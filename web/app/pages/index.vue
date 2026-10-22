@@ -116,12 +116,14 @@ const greeting = computed(() => {
       <UAlert
         v-for="(err, i) in data.errors"
         :key="i"
-        color="error"
+        :color="err.kind === 'backup' ? 'warning' : 'error'"
         variant="subtle"
-        icon="i-lucide-folder-x"
-        :title="err.path ? `The folder &quot;${err.path}&quot; is not writable.` : 'Folder not found'"
+        :icon="err.kind === 'backup' ? 'i-lucide-archive' : 'i-lucide-folder-x'"
+        :title="err.kind === 'backup' ? 'Backups' : err.path ? `The folder &quot;${err.path}&quot; is not writable.` : 'Folder not found'"
         :description="err.message"
-        :actions="[{ label: 'Settings', to: '/settings', color: 'error', variant: 'outline' }]"
+        :actions="err.kind === 'backup'
+          ? [{ label: 'Open backups', to: '/settings?tab=backups', color: 'warning', variant: 'outline' }]
+          : [{ label: 'Settings', to: '/settings', color: 'error', variant: 'outline' }]"
       />
 
       <div>
