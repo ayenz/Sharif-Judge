@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process'
 import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { randomBytes } from 'node:crypto'
 import { join } from 'node:path'
-import { and, asc, eq } from 'drizzle-orm'
+import { and, asc, count, eq } from 'drizzle-orm'
 import { typeToExtension } from '#shared/languages'
 
 const { queue, submissions } = schema
@@ -23,6 +23,11 @@ const keyWhere = (k: SubmissionKey) => and(
   eq(submissions.problem, k.problem),
 )
 
+async function publishQueueLength() {
+  const [row] = await useDb().select({ n: count() }).from(queue)
+  livePublish({ type: 'queue', length: row?.n ?? 0 }, { minLevel: 2 })
+}
+
 /** True if the user already has an item waiting for this problem. */
 export async function queueHasItem(username: string, assignment: number, problem: number): Promise<boolean> {
   const rows = await useDb().select({ id: queue.id }).from(queue)
@@ -42,6 +47,7 @@ export async function queueAddSubmission(info: Omit<SubmissionRow, 'isFinal' | '
       type,
     })
   })
+  await publishQueueLength()
 }
 
 /** Rejudges every submission of a problem (skips upload-only problems). */
@@ -127,6 +133,7 @@ async function removeItem(item: typeof schema.queue.$inferSelect) {
   // The editor's "execute" creates a temporary submission with id 0.
   if (item.submitId === EDITOR.submitId)
     await useDb().delete(submissions).where(keyWhere(item))
+  await publishQueueLength()
 }
 
 async function judgeItem(item: typeof schema.queue.$inferSelect) {
@@ -213,6 +220,11 @@ async function judgeItem(item: typeof schema.queue.$inferSelect) {
     await db.update(submissions).set({ status, preScore }).where(keyWhere(item))
   }
   await removeItem(item)
+  const where = { assignment: item.assignment, problem: item.problem }
+  if (type === 'exec')
+    livePublish({ type: 'executed', username: item.username, ...where }, { username: item.username })
+  else
+    livePublish({ type: 'judged', username: item.username, submitId: item.submitId, status, preScore, ...where }, { username: item.username, minLevel: 1 })
 }
 
 function runTester(cwd: string, args: string[]): Promise<string> {

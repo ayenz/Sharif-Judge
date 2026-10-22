@@ -9,5 +9,6 @@ export default defineEventHandler(async (event) => {
     text: notificationSanitize(form.text),
     time: await nowStr(),
   })
+  livePublish({ type: 'notification', id: result.insertId, title: form.title })
   return { ok: true, id: result.insertId }
 })
