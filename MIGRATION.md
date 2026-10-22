@@ -44,6 +44,7 @@ docs/     dokumentasi fitur (cheat detection)
 - **Scoreboard**: dihitung ulang dari tabel submission, isi HTML lama di `shj_scoreboard` diabaikan.
 
 ## Dokumentasi
+- [docs/migration-from-php.md](docs/migration-from-php.md): panduan migrasi instalasi PHP ke Nuxt (diuji ujung-ke-ujung)
 - [README.md](README.md): instalasi, konfigurasi, upgrade dari versi PHP
 - [docker/README.md](docker/README.md), [web/README.md](web/README.md), [tests/README.md](tests/README.md)
 - [docs/cheat-detection.md](docs/cheat-detection.md)

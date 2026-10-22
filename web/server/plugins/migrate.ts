@@ -1,4 +1,4 @@
-import { migrateExtraTables } from '../database/migrate'
+import { migrateExtraTables, migrateLegacyPaths } from '../database/migrate'
 import { inArray } from 'drizzle-orm'
 
 // Creates tables added after the legacy schema and clears cheat detection runs
@@ -9,6 +9,7 @@ export default defineNitroPlugin(() => {
   setTimeout(async () => {
     try {
       await migrateExtraTables()
+      await migrateLegacyPaths()
       if (await tableExists('cheat_runs')) {
         await useDb().update(schema.cheatRuns)
           .set({ status: 'failed', error: 'Interrupted by a server restart.' })

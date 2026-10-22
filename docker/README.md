@@ -53,6 +53,8 @@ features are created when the app starts.
 
 ### Using an existing installation
 
+The full procedure is in [docs/migration-from-php.md](../docs/migration-from-php.md). In short:
+
 To run on the database and files of a legacy installation:
 
 - set `WEB_DB` in `.env` to the existing database name (and grant the `shj` user access to it, or
