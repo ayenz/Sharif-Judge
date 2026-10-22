@@ -36,6 +36,13 @@ const { data: pairs, refresh: refreshPairs, status: pairsStatus } = useLazyFetch
 const active = computed(() => data.value?.runs.some(r => r.status === 'queued' || r.status === 'running') ?? false)
 const analysed = computed(() => data.value?.runs.some(r => r.status === 'done') ?? false)
 
+// Live events report run changes; polling is the fallback while the connection is down.
+const live = useLive()
+live.on('cheat', (e) => {
+  if (e.assignment === id.value)
+    refresh()
+})
+
 // Poll while runs are queued or running; reload the results once they are finished.
 let timer: ReturnType<typeof setInterval> | undefined
 function stopPolling() {
@@ -48,7 +55,7 @@ function startPolling() {
   timer = setInterval(() => {
     if (!active.value)
       return stopPolling()
-    if (document.visibilityState === 'visible')
+    if (!live.connected.value && document.visibilityState === 'visible')
       refresh()
   }, 2000)
 }
@@ -132,6 +139,7 @@ function onQueued() {
           </p>
         </div>
         <div class="flex items-center gap-2">
+          <UButton to="/cheat/history" color="neutral" variant="outline" icon="i-lucide-history" label="History" class="hidden sm:inline-flex" />
           <UButton color="neutral" variant="ghost" icon="i-lucide-refresh-cw" aria-label="Refresh" :loading="status === 'pending'" @click="refresh(); refreshStudents(); refreshPairs()" />
           <UButton
             icon="i-lucide-scan-search"

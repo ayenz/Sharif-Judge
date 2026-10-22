@@ -180,7 +180,11 @@ export function cheatKick() {
       const [next] = await useDb().select().from(cheatRuns).where(eq(cheatRuns.status, 'queued')).orderBy(asc(cheatRuns.id)).limit(1)
       if (!next)
         break
+      const notify = async (status: string) => livePublish({ type: 'cheat', assignment: next.assignment, runId: next.id, status }, { minLevel: 2 })
+      await notify('running')
       await executeRun(toRun(next))
+      const [after] = await useDb().select({ status: cheatRuns.status }).from(cheatRuns).where(eq(cheatRuns.id, next.id))
+      await notify(after?.status ?? 'failed')
     }
   })()
     .catch(error => console.error('[cheat] worker stopped:', error))
@@ -630,3 +634,84 @@ export async function cheatOtherAssignments(assignmentId: number) {
     .from(assignments).where(ne(assignments.id, assignmentId)).orderBy(desc(assignments.id))
 }
 
+
+// ---------------------------------------------------------------------------
+// History across assignments
+
+/**
+ * Similar pairs from the latest analysis of every assignment, grouped by student and by
+ * pair of students. Pairs that show up in several assignments are the strongest signal.
+ */
+export async function cheatHistory(minSimilarity: number): Promise<import('#shared/cheat').CheatHistory> {
+  const rows = await useDb().select({
+    pairId: cheatPairs.id,
+    assignment: cheatRuns.assignment,
+    userA: cheatPairs.userA,
+    userB: cheatPairs.userB,
+    similarity: cheatPairs.similarity,
+  }).from(cheatPairs)
+    .innerJoin(cheatRuns, eq(cheatRuns.id, cheatPairs.runId))
+    .where(and(eq(cheatRuns.status, 'done')))
+  const names = await getNames()
+  const assignmentNames = new Map((await useDb().select({ id: assignments.id, name: assignments.name }).from(assignments)).map(a => [a.id, a.name]))
+  const analysed = new Set((await useDb().select({ assignment: cheatRuns.assignment }).from(cheatRuns).where(eq(cheatRuns.status, 'done'))).map(r => r.assignment))
+
+  type Hit = { assignment: number, similarity: number, pairId: number }
+  const byPair = new Map<string, Map<number, Hit>>()
+  const byStudent = new Map<string, { pairs: number, hits: Map<number, Hit & { partner: string }>, partners: Map<string, Set<number>> }>()
+
+  for (const r of rows) {
+    if (r.similarity < minSimilarity || r.userA === r.userB)
+      continue
+    const [a, b] = [r.userA, r.userB].sort() as [string, string]
+    const key = `${a}\u0000${b}`
+    const perAssignment = byPair.get(key) ?? new Map<number, Hit>()
+    const prev = perAssignment.get(r.assignment)
+    if (!prev || r.similarity > prev.similarity)
+      perAssignment.set(r.assignment, { assignment: r.assignment, similarity: r.similarity, pairId: r.pairId })
+    byPair.set(key, perAssignment)
+
+    for (const [me, other] of [[r.userA, r.userB], [r.userB, r.userA]] as const) {
+      const s = byStudent.get(me) ?? { pairs: 0, hits: new Map(), partners: new Map() }
+      s.pairs++
+      const hit = s.hits.get(r.assignment)
+      if (!hit || r.similarity > hit.similarity)
+        s.hits.set(r.assignment, { assignment: r.assignment, similarity: r.similarity, pairId: r.pairId, partner: other })
+      s.partners.set(other, (s.partners.get(other) ?? new Set()).add(r.assignment))
+      byStudent.set(me, s)
+    }
+  }
+
+  const toAssignment = (h: Hit) => ({ id: h.assignment, name: assignmentNames.get(h.assignment) ?? `Assignment ${h.assignment}`, similarity: h.similarity, pairId: h.pairId })
+  const repeatPairs = [...byPair.entries()]
+    .filter(([, hits]) => hits.size >= 2)
+    .map(([key, hits]) => {
+      const [a, b] = key.split('\u0000') as [string, string]
+      const list = [...hits.values()].sort((x, y) => x.assignment - y.assignment)
+      return {
+        a: { username: a, displayName: names[a] ?? '' },
+        b: { username: b, displayName: names[b] ?? '' },
+        count: hits.size,
+        maxSimilarity: Math.max(...list.map(h => h.similarity)),
+        assignments: list.map(toAssignment),
+      }
+    })
+    .sort((x, y) => y.count - x.count || y.maxSimilarity - x.maxSimilarity)
+
+  const students = [...byStudent.entries()]
+    .map(([username, s]) => {
+      const hits = [...s.hits.values()].sort((x, y) => x.assignment - y.assignment)
+      return {
+        username,
+        displayName: names[username] ?? '',
+        flaggedAssignments: s.hits.size,
+        pairs: s.pairs,
+        maxSimilarity: Math.max(...hits.map(h => h.similarity)),
+        partners: [...s.partners.entries()].map(([u, set]) => ({ username: u, count: set.size })).sort((x, y) => y.count - x.count),
+        assignments: hits.map(h => ({ ...toAssignment(h), partner: h.partner })),
+      }
+    })
+    .sort((x, y) => y.flaggedAssignments - x.flaggedAssignments || y.maxSimilarity - x.maxSimilarity || x.username.localeCompare(y.username))
+
+  return { minSimilarity, analysedAssignments: analysed.size, repeatPairs, students }
+}
