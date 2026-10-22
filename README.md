@@ -37,7 +37,8 @@ SharIF Judge is a fork of [Sharif Judge](https://github.com/mjnaderi/Sharif-Judg
 ## Repository layout
 
 ```
-web/       Nuxt application: pages, API, judge queue worker, cheat detection
+web/       Nuxt application: pages, API, judge queue, cheat detection
+judge/     Worker of the isolated judge container: runs tester.sh for queued submissions
 tester/    Judging engine (Bash): compiles and runs a submission against the test cases
 docker/    Docker image and Compose files
 tests/     Regression test against the legacy PHP app, and end-to-end tests
@@ -66,14 +67,15 @@ git clone https://github.com/ayenz/Sharif-Judge.git
 cd Sharif-Judge/docker
 printf "SESSION_PASSWORD=%s\nDB_PASSWORD=%s\nDB_ROOT_PASSWORD=%s\n" \
   "$(openssl rand -hex 24)" "$(openssl rand -hex 12)" "$(openssl rand -hex 12)" > .env
-docker compose up -d --build db web
+docker compose up -d --build db web judge
 ```
 
 Then open `http://<server>:8402`. The first visit opens the installer, which creates the tables,
 the default settings and the first admin account. After logging in, review **Settings**.
 
 Put a reverse proxy with HTTPS in front of the app for real use, and set
-`NUXT_SESSION_COOKIE_SECURE=true` so the session cookie is only sent over HTTPS.
+`NUXT_SESSION_COOKIE_SECURE=true` (cookie only over HTTPS) and `NUXT_TRUST_PROXY=true` (real client
+addresses for the login limits).
 [docker/README.md](docker/README.md) has more details (volumes, backups, the legacy app).
 
 ## Configuration
@@ -89,6 +91,8 @@ Environment variables (all optional except the database and the session password
 | `NUXT_SESSION_COOKIE_SECURE` | `false` | Set to `true` behind HTTPS |
 | `NUXT_PATHS_TESTER`, `NUXT_PATHS_ASSIGNMENTS` | | Folders written to Settings on a fresh install (set by the image) |
 | `NUXT_QUEUE_ENABLED` | `true` | Set to `false` on extra web replicas so only one process judges |
+| `NUXT_JUDGE_MODE`, `NUXT_JUDGE_JOBS_DIR` | `local`, `/data/jobs` | `remote` hands submissions to the isolated `judge` container (the Compose setup); `local` runs them in the web process (development) |
+| `NUXT_TRUST_PROXY` | `false` | Trust `X-Forwarded-For` for client addresses; set to `true` only behind a reverse proxy |
 | `NUXT_CHEAT_JAVA`, `NUXT_CHEAT_JPLAG_JAR`, `NUXT_CHEAT_WORK_DIR` | | Java 25 and JPlag for cheat detection (set by the image); empty disables it |
 | `NUXT_MAIL_HOST`, `NUXT_MAIL_PORT`, `NUXT_MAIL_SECURE`, `NUXT_MAIL_USER`, `NUXT_MAIL_PASS` | port `465`, secure `true` | SMTP for password reset and new-account mails |
 | `NUXT_AUTH_METHOD` | | `ldap` or `radius` to also accept those passwords |
@@ -126,14 +130,30 @@ for the coding conventions. Tests are described in [tests/README.md](tests/READM
 
 ## Security notes
 
-- Submitted programs run inside the web container as an unprivileged user. **C/C++ and Python
-  code is not sandboxed beyond that**: EasySandbox does not work on current glibc (the legacy
-  installation never built it either), and Python was never sandboxed. Only the C/C++ and Python
-  "shields" (blocked functions and imports) apply. Do not run untrusted code on a shared server
-  without additional isolation.
-- Java programs run with a Security Manager policy (`tester/java.policy`) on Java 17.
-- The Nuxt version fixes several legacy issues (SQL injection, shell command injection, zip-slip
-  and path traversal); details are in [MIGRATION.md](MIGRATION.md).
+Submitted code runs in a separate **judge container** (`judge/worker.mjs`), not in the web app:
+
+- **No network** (`network_mode: none`), so programs cannot reach the database or the internet.
+- **No secrets**: the container gets no database password or session key, and `tester.sh` runs with
+  only `PATH`, `LANG` and `HOME`.
+- **Unprivileged user**: programs are compiled *and* run as `shjrun` (uid 2000), which owns only its
+  jail directory. It cannot read test cases, expected outputs or other students' code; this also
+  covers compile-time tricks such as `#include` of an answer file.
+- **Limits**: per-test time, memory and output limits from `tester.sh`, plus container limits on
+  processes (512), memory (2 GB) and CPUs (2), all capabilities dropped except those needed to
+  switch user, and `no-new-privileges`.
+- The C/C++ and Python **shields** and the Java **policy** still apply as a second layer.
+  `tests/e2e/isolation.py` checks that the isolation holds even with the shields turned off.
+
+Other measures:
+
+- Failed sign-ins are limited: 8 per address and account, 30 per address, 50 per account in
+  15 minutes (then HTTP 429). Password-reset mails (5 per hour per address) and registrations are
+  limited too.
+- EasySandbox is not used: it does not work on current glibc (the legacy installation never built it
+  either). The judge container replaces it.
+- The Nuxt version fixes several legacy issues (SQL injection, shell command injection, zip-slip,
+  path traversal, an expected output left readable between test cases); details are in
+  [MIGRATION.md](MIGRATION.md).
 
 ## License
 

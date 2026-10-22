@@ -3,7 +3,7 @@
 | File | Purpose |
 |---|---|
 | `web.Dockerfile` | The SharIF Judge image (build context: repository root) |
-| `compose.yml` | MariaDB + the web app, and optionally the legacy PHP app for regression tests |
+| `compose.yml` | MariaDB, the web app, the isolated judge, and optionally the legacy PHP app |
 | `initdb/` | Creates the `shj_web` and `shj_ci3` databases on the first start of MariaDB |
 | `legacy-php.Dockerfile`, `php.ini` | Image for the legacy CodeIgniter app (profile `legacy`) |
 
@@ -22,6 +22,18 @@ The app runs as the unprivileged `node` user on port 3000. Data lives in the `/d
 `/data/assignments` (test cases and submitted files) and `/data/cheat` (cheat detection work files
 and reports). EasySandbox is intentionally not built; see the security notes in the main README.
 
+## Services
+
+| Service | Runs | Network | Notes |
+|---|---|---|---|
+| `db` | MariaDB 10.11 | internal | |
+| `web` | Nuxt app as `node` (uid 1000) | internal + port 8402 | Queues submissions as job files in `/data/jobs` (`NUXT_JUDGE_MODE=remote`) |
+| `judge` | `judge/worker.mjs` (same image) | **none** | Runs `tester.sh` for each job; submissions are compiled and run as `shjrun` (uid 2000) |
+
+The judge container needs root only to switch to `shjrun` and to hand result files back to uid
+1000; all other capabilities are dropped. `/data`, `/data/assignments` and `/app/tester` are
+`711` and `/data/jobs` is `700`, so `shjrun` cannot list or read anything outside its jail.
+
 ## Running
 
 ```bash
@@ -31,11 +43,11 @@ SESSION_PASSWORD=$(openssl rand -hex 24)
 DB_PASSWORD=$(openssl rand -hex 12)
 DB_ROOT_PASSWORD=$(openssl rand -hex 12)
 EOF
-docker compose up -d --build db web      # app on port 8402
+docker compose up -d --build db web judge   # app on port 8402
 docker compose logs -f web
 ```
 
-Rebuild after pulling changes with the same `up -d --build db web`. Database tables for new
+Rebuild after pulling changes with the same `up -d --build db web judge`. Database tables for new
 features are created when the app starts.
 
 ### Using an existing installation
@@ -61,7 +73,7 @@ docker run --rm -v sharif-judge_web-data:/data -v "$PWD":/backup busybox tar czf
 ### Behind a reverse proxy
 
 Terminate HTTPS at the proxy, forward to port 8402, and add
-`NUXT_SESSION_COOKIE_SECURE: "true"` to the `web` environment. Cheat detection with Moss can keep a
+`NUXT_SESSION_COOKIE_SECURE: "true"` and `NUXT_TRUST_PROXY: "true"` to the `web` environment. Cheat detection with Moss can keep a
 request open for several minutes; allow a long proxy timeout for `/api/moss/`.
 
 ## Legacy app for regression tests
