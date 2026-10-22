@@ -36,7 +36,9 @@ fi
 
 
 # Imposing memory limit with ulimit
-if [ "$EXT" != "java" ]; then
+# Java, Node.js and Go reserve far more address space than they use, so they cannot run
+# under a virtual-memory limit; their memory is limited by the runtime and ./timeout --rss.
+if [ "$EXT" != "java" ] && [ "$EXT" != "js" ] && [ "$EXT" != "go" ]; then
 	ulimit -v $((MEMLIMIT+10000))
 	ulimit -m $((MEMLIMIT+10000))
 	ulimit -s $((MEMLIMIT+10000))
@@ -45,12 +47,21 @@ fi
 # Imposing time limit with ulimit
 ulimit -t $TIMELIMITINT
 
+# JavaScript and Go: record the exact peak resident memory (checked by tester.sh). GNU time runs
+# outside SHJ_RUNAS, so the file is written by the judge, not by the submitted program.
+PEAK=""
+if [ "$EXT" = "js" ] || [ "$EXT" = "go" ]; then
+	if [ -n "$SHJ_PEAK_FILE" ] && [ -x /usr/bin/time ]; then
+		PEAK="/usr/bin/time -q -f %M -o $SHJ_PEAK_FILE"
+	fi
+fi
+
 if $TIMEOUT_EXISTS; then
 	# Run the command with REAL time limit of TIMELIMITINT*2
-	timeout -s9 $((TIMELIMITINT*2)) $SHJ_RUNAS $CMD <$IN >out 2>err
+	timeout -s9 $((TIMELIMITINT*2)) $PEAK $SHJ_RUNAS $CMD <$IN >out 2>err
 else
 	# Run the command
-	$SHJ_RUNAS $CMD <$IN >out 2>err	
+	$PEAK $SHJ_RUNAS $CMD <$IN >out 2>err	
 fi
 # You can run submitted codes as another user:
 #

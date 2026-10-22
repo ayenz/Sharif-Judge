@@ -31,7 +31,7 @@ const FRAGMENT_LONGEST_MATCH = 6
 const FRAGMENT_MAX_SIMILARITY = 0.6
 const JPLAG_TIMEOUT_MS = 15 * 60 * 1000
 /** JPlag's default minimum match length per language. */
-const DEFAULT_MIN_TOKENS: Record<CheatLanguage, number> = { c: 12, cpp: 12, java: 9, python3: 12 }
+const DEFAULT_MIN_TOKENS: Record<CheatLanguage, number> = { c: 12, cpp: 12, java: 9, python3: 12, javascript: 12, go: 8 }
 /** Below this a match is too small to mean anything (3 already flags unrelated code). */
 const LOWEST_MIN_TOKENS = 4
 

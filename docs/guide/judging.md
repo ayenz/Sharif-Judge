@@ -34,6 +34,16 @@ large) is in the submission's result. Staff can also see the full judge log.
 | Java | `javac` / `java` with a Security Manager policy (Java 17); the class with `main` is found automatically |
 | Python 3 | `python3`, syntax checked first |
 | Python 2 | Only when enabled in Settings and a `python2` interpreter is installed |
+| JavaScript | Node.js 24 (`node main.js`), syntax checked first. CommonJS (`require`) and ES modules (`import`) both work; read input with `require('fs').readFileSync(0, 'utf8')` or `readline` |
+| Go | Go 1.27 (`go build`), a single `package main` file using the standard library |
+
+**Time limits**: Go uses the problem's C/C++ limit, JavaScript the Java limit (Node.js needs some
+start-up time, like Java).
+
+**Memory limits** for JavaScript and Go count the memory the program really uses (resident memory)
+plus an allowance for the runtime itself: about 64 MB for Node.js and 10 MB for Go. C, C++ and
+Python are limited as before. A program that goes over the limit, even briefly, gets *Memory Limit
+Exceeded*.
 
 ## The queue
 

@@ -9,14 +9,19 @@
 
 ## The image
 
-`web.Dockerfile` has three stages:
+`web.Dockerfile` has four stages:
 
 1. **build**: installs the npm packages and builds the Nuxt app.
 2. **jplag**: downloads a Java 25 runtime (Eclipse Temurin) and JPlag 6.3 with pinned SHA-256
    checksums, for cheat detection.
-3. **runtime**: `node:24-bookworm-slim` with `gcc`, `g++`, Java 17, Python 3 and Perl for the
-   judge, the built app in `/app/web`, the judge in `/app/tester`, and the stage-2 files in
-   `/opt/jre25` and `/opt/jplag`.
+3. **golang**: downloads Go 1.27 with a pinned SHA-256 checksum and builds
+   `docker/go-cache-warm.go` once, so `/opt/go-cache` holds the compiled standard packages that
+   submissions commonly use. `tester.sh` copies that cache into each Go submission's jail, which
+   makes a build take about 0.25 s instead of 4 s.
+4. **runtime**: `node:24-bookworm-slim` with `gcc`, `g++`, Java 17, Python 3, Perl and GNU `time`
+   for the judge (Node.js itself runs JavaScript submissions), the built app in `/app/web`, the
+   judge in `/app/tester`, and the files of stages 2 and 3 in `/opt/jre25`, `/opt/jplag`,
+   `/usr/local/go` and `/opt/go-cache`.
 
 The app runs as the unprivileged `node` user on port 3000. Data lives in the `/data` volume:
 `/data/assignments` (test cases and submitted files) and `/data/cheat` (cheat detection work files

@@ -10,7 +10,8 @@ an assignment on the Assignments page.
 ## How it works
 
 1. **Collect.** For every problem of the assignment, the final submission of each student is taken
-   and grouped by language (C, C++, Java, Python). Upload-only files (zip, pdf, txt) are skipped.
+   and grouped by language (C, C++, Java, Python, JavaScript, Go). Upload-only files (zip, pdf, txt)
+   are skipped.
 2. **Compare.** [JPlag](https://github.com/jplag/JPlag) 6.3 compares every pair within a group. It
    parses the code into tokens (keywords, operators, structure) instead of comparing text, so
    renaming variables, changing comments or reformatting does not hide a copy. Neighbouring
@@ -121,6 +122,7 @@ The **Moss (legacy)** tab keeps the previous integration with Stanford's
 email with Moss), sends the code to Stanford's server, and returns a link that expires after about
 14 days. The Nuxt version fixes a legacy bug: the language is now sent to Moss (`-l`); before, every
 file was parsed as C. Each language is a separate request, and template code is sent with `-b`.
+Moss has no Go grammar, so Go submissions are only compared by the local JPlag engine.
 
 ## Limits
 

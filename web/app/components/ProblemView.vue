@@ -54,9 +54,9 @@ const limits = computed(() => {
   if (!p)
     return []
   return [
-    { label: 'C/C++', value: `${p.cTimeLimit} ms` },
+    { label: 'C/C++, Go', value: `${p.cTimeLimit} ms` },
     { label: 'Python', value: `${p.pythonTimeLimit} ms` },
-    { label: 'Java', value: `${p.javaTimeLimit} ms` },
+    { label: 'Java, JavaScript', value: `${p.javaTimeLimit} ms` },
     { label: 'Memory', value: `${p.memoryLimit.toLocaleString('en')} kB` },
   ]
 })

@@ -15,7 +15,8 @@ and the judge container hand jobs to each other.
 web: judgeItem()                          judge container: worker.mjs
   build 18 positional arguments  ──job──►   bash tester.sh <args>      (cwd /app/tester)
                                              ├─ mkdir jail-<random>, chown to shjrun
-                                             ├─ compile as shjrun       (javac / gcc / g++ / py_compile)
+                                             ├─ compile as shjrun       (javac / gcc / g++ / py_compile /
+                                             │                           node --check / go build)
                                              ├─ for each test i:
                                              │    runcode.sh → timeout → program as shjrun
                                              │    compare out with out/output<i>.txt
@@ -38,7 +39,7 @@ in the same order as the legacy `Queueprocess` controller:
 | 2 | `UN` | `submissions.username` | `alice` |
 | 3 | `MAINFILENAME` | `submissions.main_file_name` (used for Java only) | `Main` |
 | 4 | `FILENAME` | `submissions.file_name`, without extension | `Main-12` |
-| 5 | `EXT` | `submissions.file_type` | `c`, `cpp`, `java`, `py2`, `py3` |
+| 5 | `EXT` | `submissions.file_type` | `c`, `cpp`, `java`, `py2`, `py3`, `js`, `go` |
 | 6 | `TIMELIMIT` | problem time limit for the language, ms ÷ 1000 | `0.5` |
 | 7 | `TIMELIMITINT` | `floor(TIMELIMIT) + 1` | `1` |
 | 8 | `MEMLIMIT` | `problems.memory_limit`, kB | `50000` |
@@ -53,8 +54,9 @@ in the same order as the legacy `Queueprocess` controller:
 | 17 | `DISPLAY_JAVA_EXCEPTION_ON` | `assignments.javaexceptions` | `0` |
 | 18 | `EXEC_ONLY` | `1` for an editor "Run", else `0` | `0` |
 
-The time limit (6) comes from `c_time_limit` for C and C++, `java_time_limit` for Java and
-`python_time_limit` for both Pythons.
+The time limit (6) comes from `c_time_limit` for C, C++ and Go, `java_time_limit` for Java and
+JavaScript, and `python_time_limit` for both Pythons. `shj_problems` has no columns for the newer
+languages, and legacy tables do not change.
 
 ::: warning Multi-word diff arguments shift every later argument
 The legacy command line was not quoted, so a `diff_arg` such as `-b -B` became two arguments. The
@@ -106,8 +108,8 @@ assignment_<a>/
 | Output | Stored as | Meaning |
 |---|---|---|
 | a number 0–10000 | `status = 'SCORE'`, `pre_score = number` | `passed × 10000 / tests` (integer division) |
-| `Compilation Error` | status | C, C++ or Java did not compile |
-| `Syntax Error` | status | Python `py_compile` failed |
+| `Compilation Error` | status | C, C++, Java or Go did not compile |
+| `Syntax Error` | status | Python `py_compile` or JavaScript `node --check` failed |
 | `Invalid Tester Code` | status | `tester.cpp` did not compile |
 | `File Format Not Supported` | status | unknown `EXT` |
 | `Judge Error` | status | the tester folder was not writable, the judge did not answer in 30 minutes, or anything else failed |
@@ -146,6 +148,35 @@ Java gets its memory limit as `java -mx<MEMLIMIT>k`; `Too small initial heap` or
 If `perl` is missing, `tester.sh` runs programs without the monitor (only the `ulimit` and
 `timeout` layer). The image installs Perl.
 
+### JavaScript and Go memory
+
+Node.js and Go reserve far more address space than they use (Node.js fails to start under a
+`ulimit -v` below about 4 GB, a Go program under 100 MB), so `runcode.sh` skips the `ulimit -v/-m/-s`
+block for `js` and `go`, as it does for Java. Instead:
+
+| Layer | JavaScript | Go |
+|---|---|---|
+| Runtime limit | `node --max-old-space-size=<MEMLIMIT in MB, at least 16>`; "JavaScript heap out of memory" is Memory Limit Exceeded | `GOMEMLIMIT=<MEMLIMIT>KiB` (makes the garbage collector work harder near the limit); "runtime: out of memory" is Memory Limit Exceeded |
+| Monitor | `./timeout --rss -m <MEMLIMIT + 64000>`: resident memory instead of virtual size | `./timeout --rss -m <MEMLIMIT + 10000>` |
+| Exact peak | `runcode.sh` runs the program under GNU `time -f %M`, outside `SHJ_RUNAS`, which writes the peak resident memory to `SHJ_PEAK_FILE` (`jail-<n>-peak`, next to the jail, so the program cannot change it); above the same limit is Memory Limit Exceeded | same |
+
+The monitor samples every 50 ms and stops a program that keeps growing; the peak from GNU `time`
+catches a short burst between two samples (tested with a 200 MB allocation that ends at once). The
+allowances (64000 kB, 10000 kB) are the runtimes' own resident memory. `--rss` is a new option of
+`tester/timeout`; without it the monitor measures virtual size as before, so C, C++ and Python
+results are unchanged. Go programs run with `GOMAXPROCS=1`, so the garbage collector does not add
+CPU time from several cores.
+
+### Go build cache
+
+`go build` with an empty cache takes about 4 s, because it compiles the standard packages too. The
+image fills `/opt/go-cache` once (`docker/go-cache-warm.go` imports the packages submissions
+commonly use). For each Go submission `tester.sh` copies it into the jail (`gocache/`, about 40 MB,
+55 ms) and builds with `GOCACHE` there, as `shjrun`, with `CGO_ENABLED=0` and `GOTOOLCHAIN=local`.
+A build then takes about 0.25 s. The cache is per submission on purpose: a shared writable cache
+would let one submission plant compiled packages for the next. Packages not in the warm program
+still work; they are compiled during the build.
+
 ## Comparing output
 
 - **Default**: the output and the expected output each get a trailing newline, then
@@ -167,7 +198,8 @@ upload test archives; treat a checker like any other code you deploy.
 ## Shields, EasySandbox and the Java policy
 
 These are the legacy, language-level protections. They still apply but are no longer the main line
-of defence (that is the container, see [Isolation](#isolation)).
+of defence (that is the container, see [Isolation](#isolation)). JavaScript and Go have no shield;
+they rely on the container alone, which `tests/e2e/languages.py` checks.
 
 - **C/C++ shield** (`enable_c_shield`, `enable_cpp_shield`): code containing `#undef` is refused.
   Otherwise `#define main themainmainfunction` is prepended and
@@ -246,7 +278,8 @@ The container itself has no network (`network_mode: none`), drops all capabiliti
 `CHOWN`, `DAC_OVERRIDE`, `FOWNER`, `SETUID`, `SETGID` and `KILL`, and sets `no-new-privileges`.
 [`tests/e2e/isolation.py`](https://github.com/ayenz/Sharif-Judge/blob/main/tests/e2e/isolation.py)
 checks that C, Python and Java programs cannot read answers or other code, `#include` an answer,
-reach the database or see `NUXT_*` variables, also with the shields off.
+reach the database or see `NUXT_*` variables, also with the shields off; `tests/e2e/languages.py`
+runs the same probes from JavaScript (plus a shell started from Node.js) and Go.
 
 In local mode `SHJ_RUNAS` and `SHJ_RUN_UID` are empty: programs run as the web user with only
 `PATH`, `LANG` and `HOME` in their environment. Secrets are hidden, files are not.
@@ -321,18 +354,23 @@ is excluded explicitly from submission lists and cheat detection.
   jail).
 - The web app passes arguments as an array (no shell) and starts `tester.sh` with a minimal
   environment.
+- JavaScript and Go (`js`, `go`): compile and run branches in `tester.sh`, the `--rss` option in
+  `timeout`, and `runcode.sh` skips the virtual-memory limit for them (see
+  [JavaScript and Go memory](#javascript-and-go-memory)).
 
-## Adding a language (guidance)
+## Adding a language
 
-SharIF Judge does not support adding languages through configuration; it would be a code change in
-several places. This is a map of what would need to change, not a tested procedure.
+SharIF Judge does not support adding languages through configuration; it is a code change in
+several places. JavaScript and Go were added this way, so `git log -- tester/tester.sh` and the
+`js` / `go` branches show a complete example.
 
 1. **`tester/tester.sh`**: a compile block for the new `EXT` (prefix compiler calls with
    `$SHJ_RUNAS`, write `result.html` and call `shj_finish "Compilation Error"` on failure), and a run
    branch in both the test loop and the execute section that calls `./runcode.sh` with the
    `./timeout` monitor, like the existing languages.
-2. **`tester/runcode.sh`**: only if the runtime needs special memory handling (as Java and Python
-   do).
+2. **`tester/runcode.sh`**: only if the runtime needs special memory handling (as Java, Python,
+   JavaScript and Go do). Check first whether the runtime starts under `ulimit -v`; if not, use
+   `./timeout --rss` and the peak check like JavaScript and Go.
 3. **The image** (`docker/web.Dockerfile`): install the compiler or runtime in the runtime stage.
 4. **[`web/shared/languages.ts`](https://github.com/ayenz/Sharif-Judge/blob/main/web/shared/languages.ts)**:
    the language name (stored in `problems.allowed_languages`), the file type (stored in
@@ -348,6 +386,8 @@ several places. This is a map of what would need to change, not a tested procedu
    `MOSS_LANGUAGE` in `server/utils/moss.ts`. `cheat_runs.language` is `varchar(10)`.
 7. **UI**: editor modes in `app/utils/ace-loader.ts` and `recordingAceMode()` in
    `app/utils/recording.ts`; the language list in `AssignmentForm.vue` comes from `shared/languages.ts`.
-8. **Tests**: add programs to `tests/regression/corpus/` and expectations to the e2e tests. The
-   regression test compares with the legacy app, which will not know the new language, so it needs
-   a web-only check (`--only web`).
+8. **Tests**: the regression test compares with the legacy app, which does not know the new
+   language, so test it in its own script like `tests/e2e/languages.py` (accepted, wrong, compile
+   error, time limit, runtime error, memory limit including a short burst, "Run", isolation probes)
+   and add copies to `tests/e2e/cheat-flow.py`.
+9. **Docs**: the language tables in `docs/guide/judging.md` and this page.

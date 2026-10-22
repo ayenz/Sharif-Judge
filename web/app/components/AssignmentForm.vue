@@ -274,13 +274,13 @@ async function submit() {
           <UFormField label="Score" :name="`problems.${i}.score`" size="sm">
             <UInput v-model.number="p.score" type="number" class="w-full" />
           </UFormField>
-          <UFormField label="C/C++ (ms)" :name="`problems.${i}.cTimeLimit`" size="sm">
+          <UFormField label="C/C++, Go (ms)" :name="`problems.${i}.cTimeLimit`" size="sm">
             <UInput v-model.number="p.cTimeLimit" type="number" min="0" class="w-full" />
           </UFormField>
           <UFormField label="Python (ms)" :name="`problems.${i}.pythonTimeLimit`" size="sm">
             <UInput v-model.number="p.pythonTimeLimit" type="number" min="0" class="w-full" />
           </UFormField>
-          <UFormField label="Java (ms)" :name="`problems.${i}.javaTimeLimit`" size="sm">
+          <UFormField label="Java, JS (ms)" :name="`problems.${i}.javaTimeLimit`" size="sm">
             <UInput v-model.number="p.javaTimeLimit" type="number" min="0" class="w-full" />
           </UFormField>
           <UFormField label="Memory (kB)" :name="`problems.${i}.memoryLimit`" size="sm">

@@ -112,4 +112,29 @@ repeat = [(p["a"]["username"], p["b"]["username"], p["count"]) for p in history[
 print("history: analysed", history["analysedAssignments"], "assignments; repeated pairs:", repeat)
 assert any({a, b} == {"alice", "bob"} and n >= 2 for a, b, n in repeat), "repeated pair alice/bob missing from history"
 assert not any("carol" in (a, b) for a, b, _ in repeat), "carol wrongly in repeated pairs"
+
+# JavaScript and Go: a renamed JS copy, a renamed and reordered Go copy, and an independent Go solution.
+body3 = dict(body, name="Cheat Lab JS/Go", problems=[dict(body["problems"][0], languages=["JavaScript", "Go"])])
+res = admin.post(B + "/api/assignments", files={"data": (None, json.dumps(body3)), "tests_desc": ("t.zip", tests.getvalue(), "application/zip")})
+res.raise_for_status(); aid3 = res.json()["id"]
+for user, lang, f in [("alice", "JavaScript", "alice.js"), ("bob", "JavaScript", "bob.js"), ("carol", "Go", "carol.go"),
+                      ("dave", "Go", "dave.go"), ("erin", "Go", "erin.go")]:
+    s = session(user, "secret123"); s.post(B + "/api/assignments/select", json={"id": aid3}).raise_for_status()
+    s.post(B + "/api/submit", files={"problem": (None, "1"), "language": (None, lang), "file": (f, (HERE / f).read_bytes())}).raise_for_status()
+    wait_queue()
+admin.post(B + f"/api/cheat/{aid3}/run", json={"compareAssignments": [], "minTokens": None}).raise_for_status()
+for _ in range(120):
+    runs3 = admin.get(B + f"/api/cheat/{aid3}").json()["runs"]
+    if len(runs3) == 2 and all(r["status"] in ("done", "failed") for r in runs3): break
+    time.sleep(1)
+for r in runs3:
+    print(f"  run {r['language']}: {r['status']} subs={r['submissions']} comparisons={r['comparisons']} failed={r['failed']} {r['error'][:200]}")
+assert sorted(r["language"] for r in runs3) == ["go", "javascript"] and all(r["status"] == "done" for r in runs3)
+pairs3 = admin.get(B + f"/api/cheat/{aid3}/pairs").json()
+for p in pairs3:
+    print(f"  {p['similarity']*100:5.1f}%  {p['a']['username']:6} <-> {p['b']['username']:6} {p['language']:10} longest={p['longestMatch']}")
+sim3 = {frozenset([p["a"]["username"], p["b"]["username"]]): p["similarity"] for p in pairs3}
+assert sim3.get(frozenset(["alice", "bob"]), 0) >= 0.8, "JavaScript copy not detected"
+assert sim3.get(frozenset(["carol", "dave"]), 0) >= 0.75, "Go copy not detected"
+assert sim3.get(frozenset(["carol", "erin"]), 0) < 0.5, "different Go solution flagged"
 print("ALL GOOD")

@@ -71,8 +71,9 @@ for the queue to drain, so they take minutes, not seconds.
 | Isolation | `uv run --with requests python tests/e2e/isolation.py` | C, Python and Java submissions try to read expected outputs and other students' code, `#include` an answer at compile time, reach the database and read `NUXT_*` variables. Every probe must print `blocked`. |
 | Editor | `uv run --with requests python tests/e2e/editor-flow.py` | Save, run with custom input, submit, recording, rejudge. |
 | Live updates | `uv run --with requests python tests/e2e/live.py` | Server-sent events: a student receives only their own results; staff receive everyone's and the queue events. |
+| JavaScript and Go | `uv run --with requests python tests/e2e/languages.py` | 18 programs from `tests/e2e/languages/` get the expected result: accepted, wrong, syntax or compile error, time limit, runtime error, memory limit (a growing program and a 200 MB burst that ends before the 50 ms sampling sees it), a program that fits the limit, and a Go package outside the image's build cache. Then "Run" in the editor, and isolation probes (answers, other students' code, database, secrets, a shell from Node) from both languages. |
 | Python 2 | `uv run --with requests python tests/e2e/python2.py` | Python 2 is off by default, hidden and refused; can be switched on and off; an installation without the `enable_python2` row gets it (value 0) after a restart. |
-| Cheat detection | `uv run --with requests python tests/e2e/cheat-flow.py` | Renamed, reordered and C copies are found, an independent solution is not; paste signals, template code, comparison with older assignments, access rules, history across assignments. |
+| Cheat detection | `uv run --with requests python tests/e2e/cheat-flow.py` | Renamed, reordered, C, JavaScript and Go copies are found, an independent solution is not; paste signals, template code, comparison with older assignments, access rules, history across assignments. |
 | Browser | `uv run --with requests --with playwright python tests/e2e/browser.py` | Every page in Chromium: no console or page errors (this catches hydration mismatches), no horizontal page scroll at 390 px for a student, the Ace editor renders on the submit page. Screenshots go to `/tmp/sharif-shots/`. |
 
 The browser test needs Chromium once:
@@ -143,7 +144,7 @@ It does not run the migration or RADIUS tests. `SSH_HOST` only affects the shiel
 | A page or component | `smoke.py`, `browser.py` |
 | An API endpoint or permission check | `smoke.py`, `security.py` |
 | Judging, queue, scores, late rule, scoreboard, Excel | the regression test |
-| `tester/`, `judge/`, `docker/` | the regression test, `isolation.py` (shields on and off), `editor-flow.py` |
+| `tester/`, `judge/`, `docker/` | the regression test, `isolation.py` (shields on and off), `languages.py`, `editor-flow.py` |
 | Live events | `live.py` |
 | Cheat detection | `cheat-flow.py` |
 | Start-up migration, settings, paths | `python2.py` and, for path or schema changes, the migration test |

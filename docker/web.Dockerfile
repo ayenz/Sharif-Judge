@@ -18,10 +18,23 @@ RUN mkdir -p /opt/jre25 && tar -xzf /tmp/jre.tar.gz -C /opt/jre25 --strip-compon
     && rm -rf /opt/jre25/man /opt/jre25/legal /tmp/jre.tar.gz \
     && chmod 644 /opt/jplag/jplag.jar
 
+# Go toolchain for Go submissions, plus a build cache of the common standard packages
+# (see docker/go-cache-warm.go). CGO is off here and in tester.sh so the cache matches.
+FROM node:24-bookworm-slim AS golang
+ADD --checksum=sha256:65efbc80fdc1fa2cd2631cad5b481777a68e8725f34e89f50fc6ac714e379b40 \
+    https://go.dev/dl/go1.27.3.linux-amd64.tar.gz /tmp/go.tar.gz
+COPY docker/go-cache-warm.go /tmp/warm/main.go
+RUN tar -xzf /tmp/go.tar.gz -C /usr/local && rm /tmp/go.tar.gz \
+    && rm -rf /usr/local/go/test /usr/local/go/api /usr/local/go/doc /usr/local/go/misc \
+    && cd /tmp/warm \
+    && HOME=/tmp GOCACHE=/opt/go-cache GOTOOLCHAIN=local GOTELEMETRY=off CGO_ENABLED=0 \
+       /usr/local/go/bin/go build -o /tmp/warm/warm main.go \
+    && chmod -R a+rX /opt/go-cache
+
 # Runtime: Node plus the compilers and tools tester.sh needs.
 FROM node:24-bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        gcc g++ make libc6-dev default-jdk-headless python3 perl procps diffutils \
+        gcc g++ make libc6-dev default-jdk-headless python3 perl procps diffutils time \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -30,6 +43,9 @@ COPY tester ./tester
 COPY judge ./judge
 COPY --from=jplag /opt/jre25 /opt/jre25
 COPY --from=jplag /opt/jplag /opt/jplag
+COPY --from=golang /usr/local/go /usr/local/go
+COPY --from=golang /opt/go-cache /opt/go-cache
+RUN ln -s /usr/local/go/bin/go /usr/local/bin/go
 # EasySandbox is intentionally not built: it kills every program on current glibc
 # (seccomp strict mode), and the legacy setup never built it either, so tester.sh
 # runs C/C++ without it. Replacing it with a working sandbox is tracked separately.

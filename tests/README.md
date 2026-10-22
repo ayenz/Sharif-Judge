@@ -12,7 +12,8 @@ development setup).
 | Security | `uv run --with requests python tests/e2e/security.py` | Other students' code, path traversal, staff endpoints, re-install, SQL-like input, secrets hidden from submissions, sign-in rate limit (also with a forged `X-Forwarded-For`) |
 | Isolation | `uv run --with requests python tests/e2e/isolation.py` | Submissions (C, Python, Java) try to read expected outputs and other students' code, `#include` an answer at compile time, reach the database and read secrets; all must be blocked. Run it once with the shields off in Settings as well |
 | Editor | `uv run --with requests python tests/e2e/editor-flow.py` | Save, run with input, submit, recording, rejudge |
-| Cheat detection | `uv run --with requests python tests/e2e/cheat-flow.py` | Renamed, reordered and C copies are found, a different solution is not, paste signals, template code, older assignments, access, history across assignments |
+| Cheat detection | `uv run --with requests python tests/e2e/cheat-flow.py` | Renamed, reordered, C, JavaScript and Go copies are found, a different solution is not, paste signals, template code, older assignments, access, history across assignments |
+| JavaScript and Go | `uv run --with requests python tests/e2e/languages.py` | 18 programs (`e2e/languages/`): accepted, wrong, syntax/compile error, time limit, runtime error, memory limit (growing and a short burst), a program that fits the limit, a Go package outside the build cache; "Run" in the editor; isolation probes from both languages |
 | Python 2 setting | `uv run --with requests python tests/e2e/python2.py` | Off by default, hidden and refused while off, can be switched on and off, re-created for old installs |
 | Live updates | `uv run --with requests python tests/e2e/live.py` | Server-sent events: a student gets only their own results, staff get everyone's and queue events |
 | Browser | `uv run --with requests --with playwright python tests/e2e/browser.py` | Every page in Chromium: no JavaScript or hydration errors, no horizontal scroll at phone width |
@@ -41,5 +42,7 @@ against a forged server.
 - `regression/corpus/`: the programs submitted by the regression test, named
   `p<problem>_<language>_<case>`.
 - `e2e/cheat/`: an original solution (`alice.py`), a renamed copy (`bob.py`), a reordered copy with
-  comments (`dave.py`), an independent solution (`carol.py`), and a C original and copy
-  (`erin.c`, `frank.c`).
+  comments (`dave.py`), an independent solution (`carol.py`), a C original and copy
+  (`erin.c`, `frank.c`), a JavaScript original and copy (`alice.js`, `bob.js`), and a Go original,
+  copy and independent solution (`carol.go`, `dave.go`, `erin.go`).
+- `e2e/languages/`: JavaScript and Go programs for `languages.py`, named `<language>_<case>`.

@@ -1,14 +1,15 @@
 # Installation
 
-SharIF Judge runs with Docker Compose. The image contains everything the judge needs: Node.js,
-`gcc`/`g++`, Java 17, Python 3, Perl, and Java 25 with JPlag for cheat detection.
+SharIF Judge runs with Docker Compose. The image contains everything the judge needs: Node.js
+(also for JavaScript submissions), `gcc`/`g++`, Java 17, Python 3, Go 1.27, Perl, and Java 25 with
+JPlag for cheat detection.
 
 ## Requirements
 
 - A Linux server with Docker and Docker Compose v2
 - 2 CPU cores and 4 GB RAM are comfortable for a class; the judge container is limited to 2 CPUs
   and 2 GB by default
-- About 3 GB of disk for the images and build cache (the app image is about 1.2 GB), plus space for submissions and backups
+- About 3 GB of disk for the images and build cache (the app image is about 1.4 GB), plus space for submissions and backups
 
 The app is designed for a campus network. If it must be reachable from the internet, put it behind
 a reverse proxy with HTTPS (see [below](#behind-a-reverse-proxy)).
