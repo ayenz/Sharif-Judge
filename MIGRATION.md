@@ -114,6 +114,10 @@ keterlambatan, dan urutan scoreboard harus identik.
   Diuji dengan shield dimatikan: semua percobaan diblokir (`tests/e2e/isolation.py`).
 - **Diperbaiki 22 Okt 2026 — bug lama tester**: file jawaban test sebelumnya (`correctout`) tertinggal
   di folder kerja saat program dijalankan untuk test berikutnya; kini dihapus sebelum tiap test.
+- **Diperbaiki 22 Okt 2026 — login RADIUS**: diuji terhadap FreeRADIUS 3.2. Klien kini mengirim
+  Message-Authenticator (perlindungan BlastRADIUS, CVE-2024-3596), **memverifikasi tanda tangan
+  jawaban** (sebelumnya Access-Accept palsu dari jaringan diterima tanpa cek), mengulang kirim sampai
+  3 kali (UDP), dan mencatat alasan gagal di log. Prosedur tes: `tests/radius/README.md`.
 - **Ditambahkan 22 Okt 2026 — batas login**: 8 gagal per alamat+akun, 30 per alamat, 50 per akun
   dalam 15 menit; juga batas untuk lupa password dan registrasi. `X-Forwarded-For` hanya dipercaya
   bila `NUXT_TRUST_PROXY=true` (sebelumnya selalu dipercaya, bisa dipalsukan).

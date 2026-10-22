@@ -33,32 +33,66 @@ async function ldapAuth(username: string, password: string): Promise<boolean> {
   }
 }
 
+const RADIUS_TIMEOUT_MS = 2000
+const RADIUS_TRIES = 3
+
+/**
+ * PAP Access-Request. Sends a Message-Authenticator (required by servers hardened
+ * against BlastRADIUS, CVE-2024-3596), verifies that the answer is signed with the shared
+ * secret (so a spoofed Access-Accept is rejected), and retransmits a few times because
+ * RADIUS runs over UDP.
+ */
 function radiusAuth(username: string, password: string): Promise<boolean> {
   const { auth } = useRuntimeConfig()
-  const [host, port = '1812'] = String(auth.radiusServer).split(':')
-  const packet = radius.encode({
+  const secret = String(auth.radiusSecret)
+  const [host = '', port = '1812'] = String(auth.radiusServer).split(':')
+  const identifier = Math.floor(Math.random() * 256)
+  const request = radius.encode({
     code: 'Access-Request',
-    secret: auth.radiusSecret,
-    identifier: Math.floor(Math.random() * 256),
-    attributes: [['User-Name', username], ['User-Password', password]],
+    secret,
+    identifier,
+    add_message_authenticator: true,
+    attributes: [['User-Name', username], ['User-Password', password], ['NAS-Identifier', 'sharif-judge']],
   })
+
   return new Promise((resolve) => {
     const socket = dgram.createSocket('udp4')
-    const timer = setTimeout(() => {
-      socket.close()
-      resolve(false)
-    }, 5000)
-    socket.on('message', (msg) => {
+    let tries = 0
+    let timer: ReturnType<typeof setTimeout> | undefined
+    let done = false
+    const finish = (ok: boolean, reason?: string) => {
+      if (done)
+        return
+      done = true
       clearTimeout(timer)
       socket.close()
+      if (reason)
+        console.warn(`[auth] RADIUS ${host}:${port}: ${reason}`)
+      resolve(ok)
+    }
+    const send = () => {
+      if (tries++ >= RADIUS_TRIES)
+        return finish(false, `no answer after ${RADIUS_TRIES} tries`)
+      socket.send(request, Number(port), host, (error) => {
+        if (error)
+          finish(false, error.message)
+      })
+      timer = setTimeout(send, RADIUS_TIMEOUT_MS)
+    }
+    socket.on('error', error => finish(false, error.message))
+    socket.on('message', (response) => {
       try {
-        const response = radius.decode({ packet: msg, secret: auth.radiusSecret })
-        resolve(response.code === 'Access-Accept')
+        const decoded = radius.decode({ packet: response, secret })
+        if (decoded.identifier !== identifier)
+          return // an answer to something else: keep waiting
+        if (!radius.verify_response({ request, response, secret }))
+          return finish(false, 'answer failed verification (wrong shared secret or spoofed packet)')
+        finish(decoded.code === 'Access-Accept')
       }
-      catch {
-        resolve(false)
+      catch (error) {
+        finish(false, `unreadable answer: ${(error as Error).message}`)
       }
     })
-    socket.send(packet, Number(port), host)
+    send()
   })
 }
