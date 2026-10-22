@@ -237,14 +237,15 @@ check(bob.post(B + "/api/submissions/view", json=dict(type="code", username="ali
       "another student cannot see the zip's code")
 
 # 6. Cheat detection: a single-file Java solution and a zip that splits the same code over packages
+# (erin and frank: the pair cheat-flow.py already treats as copying, so its history stays as expected)
+frank = session("frank")
+frank.post(B + "/api/assignments/select", json={"id": aid}).raise_for_status()
+submit(frank, "Java (zip)", "project.zip", make_zip(ZIPS["packages"][0]))
 erin = session("erin")
 erin.post(B + "/api/assignments/select", json={"id": aid}).raise_for_status()
-submit(erin, "Java (zip)", "project.zip", make_zip(ZIPS["packages"][0]))
-carol = session("carol")
-carol.post(B + "/api/assignments/select", json={"id": aid}).raise_for_status()
 single = MAIN_APP.replace("package app;\n\n", "").replace("import util.Calc;\n", "").replace("Calc.add(a, b)", "add(a, b)").rstrip()[:-1] + \
     "    static long add(long a, long b) {\n        return a + b;\n    }\n}\n"
-submit(carol, "Java", "Main.java", single.encode())
+submit(erin, "Java", "Main.java", single.encode())
 dave = session("dave")
 dave.post(B + "/api/assignments/select", json={"id": aid}).raise_for_status()
 submit(dave, "JAR", "ok.jar", jars["ok"])  # a JAR cannot be compared and must be left out
@@ -259,7 +260,7 @@ check(java_run is not None and java_run["status"] == "done", f"Java run done ({j
 pairs = admin.get(B + f"/api/cheat/{aid}/pairs").json()
 sim = {frozenset([p["a"]["username"], p["b"]["username"]]): p["similarity"] for p in pairs}
 print("  pairs:", {" / ".join(sorted(k)): round(v, 2) for k, v in sim.items()})
-check(sim.get(frozenset(["erin", "carol"]), 0) >= 0.7, "a zip and a single Java file with the same code are matched")
+check(sim.get(frozenset(["frank", "erin"]), 0) >= 0.7, "a zip and a single Java file with the same code are matched")
 check(not any("dave" in k for k in sim), "the JAR is not compared")
 if pairs:
     detail = admin.get(B + f"/api/cheat/pairs/{pairs[0]['id']}").json()

@@ -9,7 +9,7 @@
 
 ## The image
 
-`web.Dockerfile` has four stages:
+`web.Dockerfile` has six stages:
 
 1. **build**: installs the npm packages and builds the Nuxt app.
 2. **jplag**: downloads the Java 25 JDK (Eclipse Temurin) and JPlag 6.3 with pinned SHA-256
@@ -19,10 +19,16 @@
    `docker/go-cache-warm.go` once, so `/opt/go-cache` holds the compiled standard packages that
    submissions commonly use. `tester.sh` copies that cache into each Go submission's jail, which
    makes a build take about 0.25 s instead of 4 s.
-4. **runtime**: `node:24-bookworm-slim` with `gcc`, `g++`, Java 17, Python 3, Perl and GNU `time`
+4. **kotlin**: downloads the Kotlin 2.4 compiler with a pinned SHA-256 checksum into
+   `/opt/kotlinc`.
+5. **swift**: only with the build argument `WITH_SWIFT=1` (from `docker/.env`, default `0`):
+   downloads Swift 6.4 for Debian 12, checks its SHA-256, and keeps only what `swiftc` needs to
+   compile and link (about 1.2 GB) in `/opt/swift`. Otherwise `/opt/swift` is empty.
+6. **runtime**: `node:24-bookworm-slim` with `gcc`, `g++`, Java 17, Python 3, Perl and GNU `time`
    for the judge (Node.js itself runs JavaScript submissions), the built app in `/app/web`, the
-   judge in `/app/tester`, and the files of stages 2 and 3 in `/opt/jre25`, `/opt/jplag`,
-   `/usr/local/go` and `/opt/go-cache`.
+   judge in `/app/tester`, and the files of stages 2 to 5 in `/opt/jre25`, `/opt/jplag`,
+   `/usr/local/go`, `/opt/go-cache`, `/opt/kotlinc` and `/opt/swift`. With `WITH_SWIFT=1` it also
+   installs `libncurses6` and `libxml2` for the Swift compiler.
 
 The app runs as the unprivileged `node` user on port 3000. Data lives in the `/data` volume:
 `/data/assignments` (test cases and submitted files) and `/data/cheat` (cheat detection work files

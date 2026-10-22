@@ -27,6 +27,8 @@ export async function submitCheck(user: CurrentUser, problemId: number, language
   const fileType = languageToType(language)
   if (fileType === 'py2' && !(await python2Enabled()))
     throw createError({ statusCode: 400, statusMessage: 'Python 2 is disabled on this judge.' })
+  if (fileType === 'swift' && !swiftInstalled())
+    throw createError({ statusCode: 400, statusMessage: 'Swift is not installed on this judge.' })
   const allowed = parseAllowedLanguages(problem.allowedLanguages).map(l => languageToType(l))
   if (!fileType || !allowed.includes(fileType))
     throw createError({ statusCode: 400, statusMessage: 'This file type is not allowed for this problem.' })

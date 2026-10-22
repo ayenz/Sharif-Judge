@@ -1,7 +1,7 @@
 // Mappings between the language names stored in problems.allowed_languages,
 // the file types stored in submissions.file_type, and file extensions.
 
-export const FILE_TYPES = ['c', 'cpp', 'py2', 'py3', 'java', 'jzip', 'jar', 'js', 'go', 'zip', 'pdf', 'txt'] as const
+export const FILE_TYPES = ['c', 'cpp', 'py2', 'py3', 'java', 'jzip', 'jar', 'kt', 'js', 'go', 'swift', 'zip', 'pdf', 'txt'] as const
 export type FileType = typeof FILE_TYPES[number]
 
 /** "C++" -> "cpp", "Python 3" -> "py3", ... (case-insensitive). */
@@ -14,8 +14,10 @@ export function languageToType(language: string): FileType | null {
     case 'java': return 'java'
     case 'java (zip)': return 'jzip'
     case 'jar': return 'jar'
+    case 'kotlin': return 'kt'
     case 'javascript': return 'js'
     case 'go': return 'go'
+    case 'swift': return 'swift'
     case 'zip': return 'zip'
     case 'pdf': return 'pdf'
     case 'txt': return 'txt'
@@ -32,8 +34,10 @@ export function typeToExtension(type: string): string | null {
     case 'java': return 'java'
     case 'jzip': return 'zip'
     case 'jar': return 'jar'
+    case 'kt': return 'kt'
     case 'js': return 'js'
     case 'go': return 'go'
+    case 'swift': return 'swift'
     case 'zip': return 'zip'
     case 'pdf': return 'pdf'
     case 'txt': return 'txt'
@@ -51,8 +55,10 @@ export function typeToLabel(type: string): string {
     case 'java': return 'Java'
     case 'jzip': return 'Java zip'
     case 'jar': return 'JAR'
+    case 'kt': return 'Kotlin'
     case 'js': return 'JS'
     case 'go': return 'Go'
+    case 'swift': return 'Swift'
     case 'zip': return 'Zip'
     case 'pdf': return 'PDF'
     case 'txt': return 'TXT'
@@ -61,7 +67,7 @@ export function typeToLabel(type: string): string {
 }
 
 /** Languages that are judged (the rest are upload-only). */
-export const JUDGED_LANGUAGES = ['C', 'C++', 'Python 2', 'Python 3', 'Java', 'Java (zip)', 'JAR', 'JavaScript', 'Go']
+export const JUDGED_LANGUAGES = ['C', 'C++', 'Python 2', 'Python 3', 'Java', 'Java (zip)', 'JAR', 'Kotlin', 'JavaScript', 'Go', 'Swift']
 
 /**
  * Judged languages submitted as an archive (several Java files in a zip, or a JAR): file upload
@@ -75,18 +81,22 @@ export function isArchiveType(type: string): boolean {
 }
 export const ALL_LANGUAGES = [...JUDGED_LANGUAGES, 'Zip', 'PDF', 'TXT']
 
-/** Languages offered for new problems; Python 2 only when enabled in Settings. */
-export function judgedLanguages(python2: boolean): string[] {
-  return python2 ? JUDGED_LANGUAGES : JUDGED_LANGUAGES.filter(l => l !== 'Python 2')
+/**
+ * Languages offered for problems. `unavailable` are the ones this judge cannot run right now
+ * (Python 2 while disabled in Settings, Swift when the image was built without it); they are
+ * hidden everywhere and refused on submit.
+ */
+export function judgedLanguages(unavailable: readonly string[] = []): string[] {
+  return JUDGED_LANGUAGES.filter(l => !unavailable.includes(l))
 }
 
 /** Languages selected for a new problem: the judged ones except the archive languages. */
-export function defaultProblemLanguages(python2: boolean): string[] {
-  return judgedLanguages(python2).filter(l => !ARCHIVE_LANGUAGES.includes(l))
+export function defaultProblemLanguages(unavailable: readonly string[] = []): string[] {
+  return judgedLanguages(unavailable).filter(l => !ARCHIVE_LANGUAGES.includes(l))
 }
 
-export function allLanguages(python2: boolean): string[] {
-  return python2 ? ALL_LANGUAGES : ALL_LANGUAGES.filter(l => l !== 'Python 2')
+export function allLanguages(unavailable: readonly string[] = []): string[] {
+  return ALL_LANGUAGES.filter(l => !unavailable.includes(l))
 }
 
 export function parseAllowedLanguages(allowed: string): string[] {

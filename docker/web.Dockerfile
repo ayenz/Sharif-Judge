@@ -38,10 +38,42 @@ RUN tar -xzf /tmp/go.tar.gz -C /usr/local && rm /tmp/go.tar.gz \
        /usr/local/go/bin/go build -o /tmp/warm/warm main.go \
     && chmod -R a+rX /opt/go-cache
 
+# Kotlin compiler. Programs run on the tester's Java 17 with the Kotlin standard library.
+FROM node:24-bookworm-slim AS kotlin
+ADD --checksum=sha256:7cc140e76daf416a0424a5557f99afd7ca89ebd463ea1101261e3e01c33e75cd \
+    https://github.com/JetBrains/kotlin/releases/download/v2.4.21/kotlin-compiler-2.4.21.zip /tmp/kotlin.zip
+RUN apt-get update && apt-get install -y --no-install-recommends unzip && rm -rf /var/lib/apt/lists/* \
+    && unzip -q /tmp/kotlin.zip -d /opt && rm /tmp/kotlin.zip \
+    && rm -f /opt/kotlinc/lib/*-sources.jar && chmod -R a+rX /opt/kotlinc && chmod a+x /opt/kotlinc/bin/*
+
+# Swift compiler, only with the build argument WITH_SWIFT=1 (the toolchain adds about 1.2 GB,
+# so it is optional). Only what swiftc needs to compile and link is kept: no debugger, language
+# server, package manager or embedded targets. Without it /opt/swift stays empty and the app
+# does not offer Swift.
+FROM node:24-bookworm-slim AS swift
+ARG WITH_SWIFT=0
+ARG SWIFT_URL=https://download.swift.org/swift-6.4.1-release/debian12/swift-6.4.1-RELEASE/swift-6.4.1-RELEASE-debian12.tar.gz
+ARG SWIFT_SHA256=12a01b5658a679bc5970017a5173bfc28af3d45274e0878f586f2bcdc90acb60
+RUN mkdir -p /opt/swift && if [ "$WITH_SWIFT" = "1" ]; then \
+      apt-get update && apt-get install -y --no-install-recommends curl ca-certificates && rm -rf /var/lib/apt/lists/* \
+      && curl -fsSLo /tmp/swift.tar.gz "$SWIFT_URL" \
+      && echo "$SWIFT_SHA256  /tmp/swift.tar.gz" | sha256sum -c - \
+      && tar -xzf /tmp/swift.tar.gz -C /opt/swift --strip-components=1 && rm /tmp/swift.tar.gz \
+      && cd /opt/swift/usr/bin && for f in *; do case "$f" in \
+           swift|swiftc|swift-frontend|swift-driver|swift-autolink-extract|clang|clang-[0-9]*|clang++|lld|ld.lld) ;; \
+           *) rm -rf "$f" ;; esac; done \
+      && cd /opt/swift/usr/lib && rm -rf liblldb* lldb* sourcekitd* libsourcekit* libSwiftSourceKit* \
+           swift/embedded swift/pm swift/FrameworkABIBaseline swift_static \
+      && rm -rf /opt/swift/usr/share /opt/swift/usr/include /opt/swift/usr/local; \
+    fi
+
 # Runtime: Node plus the compilers and tools tester.sh needs.
 FROM node:24-bookworm-slim
+ARG WITH_SWIFT=0
+# libncurses6 and libxml2 are what the Swift compiler needs beyond the C toolchain.
 RUN apt-get update && apt-get install -y --no-install-recommends \
         gcc g++ make libc6-dev default-jdk-headless python3 perl procps diffutils time \
+        $([ "$WITH_SWIFT" = "1" ] && echo libncurses6 libxml2) \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -53,6 +85,8 @@ COPY --from=jplag /opt/jplag /opt/jplag
 COPY --from=golang /usr/local/go /usr/local/go
 COPY --from=golang /opt/go-cache /opt/go-cache
 RUN ln -s /usr/local/go/bin/go /usr/local/bin/go
+COPY --from=kotlin /opt/kotlinc /opt/kotlinc
+COPY --from=swift /opt/swift /opt/swift
 # EasySandbox is intentionally not built: it kills every program on current glibc
 # (seccomp strict mode), and the legacy setup never built it either, so tester.sh
 # runs C/C++ without it. Replacing it with a working sandbox is tracked separately.

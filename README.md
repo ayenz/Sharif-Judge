@@ -26,8 +26,8 @@ cheat detection, backups, migrating from PHP, security, and a development guide.
 - **Roles**: admin, head instructor, instructor, student.
 - **Assignments**: multiple problems, start/finish time, extra time with a custom late-penalty rule,
   participant lists, PDF and Markdown/HTML problem descriptions, test cases from a zip file.
-- **Judging**: C, C++, Java (single files, zips of sources, JARs), Python 3, JavaScript and Go
-  (Python 2 optional, off by default); output comparison with
+- **Judging**: C, C++, Java (single files, zips of sources, JARs), Kotlin, Python 3, JavaScript and
+  Go; Python 2 (off by default) and Swift (optional in the image) as well; output comparison with
   `diff` or a custom tester; time, memory and output limits; submission queue with pause, resume and
   rejudge. Submissions run in an isolated container (see [Security notes](#security-notes)).
 - **Submitting**: file upload, or a built-in code editor with "Run with custom input". The editor
@@ -62,7 +62,7 @@ docs/      Feature documentation
 
 The supported way to run SharIF Judge is the Docker image, which contains everything:
 Node.js 24 (also runs JavaScript submissions), the compilers (`gcc`, `g++`, Java 17, Python 3,
-Go 1.27, Perl) and, for cheat detection,
+Go 1.27, Kotlin 2.4, Perl; Swift optional) and, for cheat detection,
 Java 25 with JPlag. You need:
 
 - A Linux server with Docker and Docker Compose

@@ -39,7 +39,7 @@ in the same order as the legacy `Queueprocess` controller:
 | 2 | `UN` | `submissions.username` | `alice` |
 | 3 | `MAINFILENAME` | `submissions.main_file_name` (used for Java only) | `Main` |
 | 4 | `FILENAME` | `submissions.file_name`, without extension | `Main-12` |
-| 5 | `EXT` | `submissions.file_type` | `c`, `cpp`, `java`, `jzip`, `jar`, `py2`, `py3`, `js`, `go` |
+| 5 | `EXT` | `submissions.file_type` | `c`, `cpp`, `java`, `jzip`, `jar`, `kt`, `py2`, `py3`, `js`, `go`, `swift` |
 | 6 | `TIMELIMIT` | problem time limit for the language, ms ÷ 1000 | `0.5` |
 | 7 | `TIMELIMITINT` | `floor(TIMELIMIT) + 1` | `1` |
 | 8 | `MEMLIMIT` | `problems.memory_limit`, kB | `50000` |
@@ -54,8 +54,8 @@ in the same order as the legacy `Queueprocess` controller:
 | 17 | `DISPLAY_JAVA_EXCEPTION_ON` | `assignments.javaexceptions` | `0` |
 | 18 | `EXEC_ONLY` | `1` for an editor "Run", else `0` | `0` |
 
-The time limit (6) comes from `c_time_limit` for C, C++ and Go, `java_time_limit` for Java, Java
-zips, JARs and JavaScript, and `python_time_limit` for both Pythons. `shj_problems` has no columns for the newer
+The time limit (6) comes from `c_time_limit` for C, C++, Go and Swift, `java_time_limit` for Java,
+Java zips, JARs, Kotlin and JavaScript, and `python_time_limit` for both Pythons. `shj_problems` has no columns for the newer
 languages, and legacy tables do not change.
 
 ::: warning Multi-word diff arguments shift every later argument
@@ -108,7 +108,7 @@ assignment_<a>/
 | Output | Stored as | Meaning |
 |---|---|---|
 | a number 0–10000 | `status = 'SCORE'`, `pre_score = number` | `passed × 10000 / tests` (integer division) |
-| `Compilation Error` | status | C, C++, Java or Go did not compile, or a Java zip / JAR failed its checks |
+| `Compilation Error` | status | C, C++, Java, Kotlin, Go or Swift did not compile, or a Java zip / JAR failed its checks |
 | `Syntax Error` | status | Python `py_compile` or JavaScript `node --check` failed |
 | `Invalid Tester Code` | status | `tester.cpp` did not compile |
 | `File Format Not Supported` | status | unknown `EXT` |
@@ -188,6 +188,28 @@ and `runcode.sh` treatment as single-file Java. The web app checks uploads early
 shows a zip's sources or a JAR's class list in the code view, and gives cheat detection a zip's
 sources joined into one file (`javaArchiveFlatten`: package lines dropped, imports moved to the
 top).
+
+### Kotlin and Swift
+
+**Kotlin** (`kt`) is compiled as `shjrun` with
+`kotlinc -nowarn -jvm-target 17 main.kt -d main.jar` (`HOME` and `TMPDIR` in the jail). kotlinc
+writes the class with `main` as the JAR's `Main-Class` (`MainKt` for a top-level `main`, the object
+for `@JvmStatic main`); `java_archive.py jar` reads it. The program then runs through the Java
+branches with `JAVA_TARGET="-cp main.jar:/opt/kotlinc/lib/kotlin-stdlib.jar <class>"`, so the
+memory limit, policy, `runcode.sh` treatment and exception handling are Java's. kotlinc itself is a
+JVM program, hence about 4 s per compile. The Kotlin daemon would be faster, but it is one process
+shared by all submissions, so it is not used.
+
+**Swift** (`swift`) is optional: `/opt/swift/usr/bin/swiftc` exists only in an image built with
+`WITH_SWIFT=1`. Without it `tester.sh` answers `File Format Not Supported`, and the web app hides
+Swift and refuses Swift submissions (`swiftInstalled()` / `unavailableLanguages()` in
+`server/utils/settings.ts`, the same mechanism that hides Python 2 while it is disabled). With it,
+`swiftc -O -module-cache-path <jail>/modulecache` compiles as `shjrun` (a fresh module cache per
+submission, as with Go; about 0.7 s), and `s_main` runs like a C program: `ulimit -v/-m/-s` in
+`runcode.sh` and `./timeout -m`. Swift programs load the Swift runtime libraries from
+`/opt/swift/usr/lib/swift/linux`; their size (read from the binary's `NEEDED` entries with
+`readelf`, never by running it) is added to the memory limit, like Python's interpreter. That is
+about 70 MB with Foundation (ICU data) and little without.
 
 ### Go build cache
 
@@ -376,6 +398,8 @@ is excluded explicitly from submission lists and cheat detection.
   jail).
 - The web app passes arguments as an array (no shell) and starts `tester.sh` with a minimal
   environment.
+- Kotlin and Swift (`kt`, `swift`): compile blocks in `tester.sh`; Kotlin shares the Java run
+  branches, Swift has a C-like run branch (see [Kotlin and Swift](#kotlin-and-swift)).
 - Java zips and JARs (`jzip`, `jar`): `java_archive.py` and a check/compile block in `tester.sh`;
   they share the Java run branches through `JAVA_TARGET` (see [Java zips and JARs](#java-zips-and-jars)).
 - JavaScript and Go (`js`, `go`): compile and run branches in `tester.sh`, the `--rss` option in

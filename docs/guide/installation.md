@@ -1,15 +1,16 @@
 # Installation
 
 SharIF Judge runs with Docker Compose. The image contains everything the judge needs: Node.js
-(also for JavaScript submissions), `gcc`/`g++`, Java 17, Python 3, Go 1.27, Perl, and Java 25 with
-JPlag for cheat detection.
+(also for JavaScript submissions), `gcc`/`g++`, Java 17, Kotlin 2.4, Python 3, Go 1.27, Perl, and
+Java 25 with JPlag for cheat detection. Swift is optional (see [below](#swift)).
 
 ## Requirements
 
 - A Linux server with Docker and Docker Compose v2
 - 2 CPU cores and 4 GB RAM are comfortable for a class; the judge container is limited to 2 CPUs
   and 2 GB by default
-- About 3 GB of disk for the images and build cache (the app image is about 1.4 GB), plus space for submissions and backups
+- About 3 GB of disk for the images and build cache (the app image is about 1.5 GB; 2.8 GB with
+  Swift), plus space for submissions and backups
 
 The app is designed for a campus network. If it must be reachable from the internet, put it behind
 a reverse proxy with HTTPS (see [below](#behind-a-reverse-proxy)).
@@ -36,6 +37,19 @@ default settings and the first admin account. Then sign in and go through
 It holds the database passwords and the session secret. Anyone with the session secret can forge
 sessions. Do not commit it; it is already in `.gitignore`.
 :::
+
+## Swift
+
+The Swift compiler is large (about 1.2 GB even after removing the debugger and tools the judge
+does not need), so it is not in the image by default. To offer Swift, add to `docker/.env`:
+
+```bash
+WITH_SWIFT=1
+```
+
+and build again (`docker compose up -d --build db web judge backup`). The image grows from about
+1.5 GB to about 2.8 GB. Without it, Swift does not appear in the problem form or the submit page,
+and Swift submissions are refused. Building without `WITH_SWIFT=1` later removes it again.
 
 ## The services
 

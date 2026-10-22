@@ -32,11 +32,14 @@ export interface AssignmentFormData {
   defaultLateRule: string
   /** Python 2 can be offered only when it is enabled in Settings. */
   python2Enabled?: boolean
+  /** Languages this judge cannot run (Python 2 while disabled, Swift when not installed). */
+  unavailableLanguages?: string[]
 }
 
 const props = defineProps<{ initial: AssignmentFormData }>()
 
 const edit = computed(() => props.initial.id > 0)
+const unavailable = computed(() => props.initial.unavailableLanguages ?? (props.initial.python2Enabled ? [] : ['Python 2']))
 const toast = useToast()
 const { refresh: refreshMe } = useMe()
 
@@ -49,7 +52,7 @@ function newProblem(): AssignmentProblemState {
     pythonTimeLimit: 1500,
     javaTimeLimit: 2000,
     memoryLimit: 50000,
-    languages: defaultProblemLanguages(Boolean(props.initial.python2Enabled)),
+    languages: defaultProblemLanguages(unavailable.value),
     diffCmd: 'diff',
     diffArg: '-bB',
     isUploadOnly: false,
@@ -111,10 +114,9 @@ function setUploadOnly(p: AssignmentProblemState, value: boolean) {
   p.isUploadOnly = value
   // Judged problems can only keep judged languages (same filter as the server).
   if (!value)
-    p.languages = p.languages.filter(l => judgedLanguages(true).includes(l))
+    p.languages = p.languages.filter(l => judgedLanguages().includes(l))
 }
-const python2 = computed(() => Boolean(props.initial.python2Enabled))
-const languageItems = (p: AssignmentProblemState) => (p.isUploadOnly ? allLanguages(python2.value) : judgedLanguages(python2.value))
+const languageItems = (p: AssignmentProblemState) => (p.isUploadOnly ? allLanguages(unavailable.value) : judgedLanguages(unavailable.value))
 
 // Import (add only): fill the form from the assignment.json of an exported zip and upload the
 // same zip as tests. Editing is left out on purpose: it could replace problems that already have
@@ -150,7 +152,7 @@ async function importZip(file: File) {
       javaexceptions: Boolean(meta.javaexceptions),
       problems: meta.problems.map((p) => {
         const row = { ...newProblem(), ...p, isUploadOnly: Boolean(p.isUploadOnly) }
-        const allowed = row.isUploadOnly ? allLanguages(python2.value) : judgedLanguages(python2.value)
+        const allowed = row.isUploadOnly ? allLanguages(unavailable.value) : judgedLanguages(unavailable.value)
         return { ...row, languages: (Array.isArray(p.languages) ? p.languages : []).filter(l => allowed.includes(l)) }
       }),
     })
@@ -349,13 +351,13 @@ async function submit() {
           <UFormField label="Score" :name="`problems.${i}.score`" size="sm">
             <UInput v-model.number="p.score" type="number" class="w-full" />
           </UFormField>
-          <UFormField label="C/C++, Go (ms)" :name="`problems.${i}.cTimeLimit`" size="sm">
+          <UFormField label="C/C++, Go, Swift (ms)" :name="`problems.${i}.cTimeLimit`" size="sm">
             <UInput v-model.number="p.cTimeLimit" type="number" min="0" class="w-full" />
           </UFormField>
           <UFormField label="Python (ms)" :name="`problems.${i}.pythonTimeLimit`" size="sm">
             <UInput v-model.number="p.pythonTimeLimit" type="number" min="0" class="w-full" />
           </UFormField>
-          <UFormField label="Java, JS (ms)" :name="`problems.${i}.javaTimeLimit`" size="sm">
+          <UFormField label="Java, Kotlin, JS (ms)" :name="`problems.${i}.javaTimeLimit`" size="sm">
             <UInput v-model.number="p.javaTimeLimit" type="number" min="0" class="w-full" />
           </UFormField>
           <UFormField label="Memory (kB)" :name="`problems.${i}.memoryLimit`" size="sm">

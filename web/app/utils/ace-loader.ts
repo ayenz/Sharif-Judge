@@ -12,6 +12,8 @@ export function loadAce(): Promise<AceModule> {
       import('ace-builds/src-noconflict/mode-java'),
       import('ace-builds/src-noconflict/mode-javascript'),
       import('ace-builds/src-noconflict/mode-golang'),
+      import('ace-builds/src-noconflict/mode-kotlin'),
+      import('ace-builds/src-noconflict/mode-swift'),
       import('ace-builds/src-noconflict/mode-python'),
       import('ace-builds/src-noconflict/mode-plain_text'),
       import('ace-builds/src-noconflict/theme-github_light_default'),
@@ -30,6 +32,10 @@ export function aceModeFor(language: string): string {
     return 'ace/mode/javascript'
   if (l === 'go')
     return 'ace/mode/golang'
+  if (l === 'kotlin' || l === 'kt')
+    return 'ace/mode/kotlin'
+  if (l === 'swift')
+    return 'ace/mode/swift'
   if (l.includes('java'))
     return 'ace/mode/java'
   if (l.includes('python') || l.startsWith('py'))
