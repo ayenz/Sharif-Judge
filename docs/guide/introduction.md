@@ -44,7 +44,8 @@ The [Development](/development/architecture) section explains the architecture i
 ## History
 
 SharIF Judge is a fork of [Sharif Judge](https://github.com/mjnaderi/Sharif-Judge) by Mohammad
-Javad Naderi, continued by FTIS UNPAR ([ifunpar/SharIF-Judge](https://github.com/ifunpar/SharIF-Judge)).
+Javad Naderi, continued from 2017 by Stillmen Vallian ([@ayenz](https://github.com/ayenz)) and then
+by FTIS UNPAR ([ifunpar/SharIF-Judge](https://github.com/ifunpar/SharIF-Judge)).
 The web application was rewritten from PHP/CodeIgniter 3 to Nuxt in 2026, keeping the database and
 the judging engine; the last PHP version is the git tag `archive/php-final`. Existing PHP
 installations can [migrate](./migration-from-php).
