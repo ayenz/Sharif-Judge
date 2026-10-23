@@ -12,8 +12,9 @@ version is kept as the tag `archive/php-final`. [MIGRATION.md](MIGRATION.md) has
 test results and every intentional behavior change.
 
 SharIF Judge is a fork of [Sharif Judge](https://github.com/mjnaderi/Sharif-Judge) by
-[@mjnaderi](https://github.com/mjnaderi), continued by [@ifunpar](https://github.com/ifunpar)
-([SharIF-Judge](https://github.com/ifunpar/SharIF-Judge)).
+[@mjnaderi](https://github.com/mjnaderi), continued from 2017 by Stillmen Vallian
+([@ayenz](https://github.com/ayenz)) and then by FTIS UNPAR ([@ifunpar](https://github.com/ifunpar),
+[SharIF-Judge](https://github.com/ifunpar/SharIF-Judge)).
 
 ## Documentation
 
@@ -167,5 +168,6 @@ Other measures:
 ## License
 
 SharIF Judge is free software under the GNU General Public License v3; see [LICENSE](LICENSE).
-It builds on [Sharif Judge](https://github.com/mjnaderi/Sharif-Judge) by Mohammad Javad Naderi
-and the SharIF Judge work of FTIS UNPAR / [ifunpar](https://github.com/ifunpar/SharIF-Judge).
+It builds on [Sharif Judge](https://github.com/mjnaderi/Sharif-Judge) by Mohammad Javad Naderi,
+the work of Stillmen Vallian ([@ayenz](https://github.com/ayenz)), and the SharIF Judge work of
+FTIS UNPAR / [ifunpar](https://github.com/ifunpar/SharIF-Judge).
