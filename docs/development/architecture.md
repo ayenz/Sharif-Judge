@@ -83,7 +83,8 @@ exists for extra replicas, but rate limits and live events would then be per pro
 - **Rate limits** ([`server/utils/rate-limit.ts`](https://github.com/ayenz/Sharif-Judge/blob/main/web/server/utils/rate-limit.ts)):
   in-memory sliding windows. Failed sign-ins: 8 per address and account, 30 per address, 50 per
   account in 15 minutes, then HTTP 429 with `Retry-After`. Password reset and registration have
-  their own limits. `clientIp()` trusts `X-Forwarded-For` only when `NUXT_TRUST_PROXY=true`.
+  their own limits. `clientIp()` trusts `X-Forwarded-For` only when `NUXT_TRUST_PROXY` is set, and
+  counts from the right (the entries the proxies added), since the first entry comes from the client.
 
 Permission levels come from the `role` column
 ([`shared/roles.ts`](https://github.com/ayenz/Sharif-Judge/blob/main/web/shared/roles.ts)):
