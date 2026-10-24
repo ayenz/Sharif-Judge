@@ -41,11 +41,23 @@ export function rateLimitEnforce(event: H3Event, rules: { key: string, limit: nu
 }
 
 /**
- * Client address. X-Forwarded-For is only trusted when NUXT_TRUST_PROXY=true (behind a
+ * Client address. X-Forwarded-For is only trusted when NUXT_TRUST_PROXY is set (behind a
  * reverse proxy); otherwise anyone could pick their own address and dodge the limits.
+ * Proxies append to the header (nginx's $proxy_add_x_forwarded_for), so its first entry is
+ * whatever the client sent. The address is counted from the right instead: NUXT_TRUST_PROXY=true
+ * is one proxy (the last entry), a number N is N proxies in a row (e.g. 2 for Cloudflare in
+ * front of nginx).
  */
 export function clientIp(event: H3Event): string {
-  return getRequestIP(event, { xForwardedFor: Boolean(useRuntimeConfig().trustProxy) }) ?? 'unknown'
+  const trust = useRuntimeConfig().trustProxy as boolean | number | string
+  const hops = trust === true || trust === 'true' ? 1 : Math.max(0, Math.floor(Number(trust)) || 0)
+  if (hops) {
+    const entries = (getRequestHeader(event, 'x-forwarded-for') ?? '').split(',').map(s => s.trim()).filter(Boolean)
+    const ip = entries[Math.max(0, entries.length - hops)]
+    if (ip)
+      return ip
+  }
+  return getRequestIP(event) ?? 'unknown'
 }
 
 // Drop expired entries now and then so the map does not grow without bound.
