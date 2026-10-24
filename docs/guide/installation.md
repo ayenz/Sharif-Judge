@@ -68,8 +68,14 @@ All four must run. Without `judge`, submissions stay `PENDING`.
 cd Sharif-Judge
 git pull
 cd docker
-docker compose up -d --build db web judge backup
+docker compose build --pull web
+docker compose up -d db web judge backup
 ```
+
+`--pull` fetches the newest base images, so security updates of Node.js and Debian are included
+even when the code did not change. Rebuild this way after a Node.js security release (see
+[nodejs.org/en/blog/vulnerability](https://nodejs.org/en/blog/vulnerability)); `docker exec
+<web container> node --version` shows the running version.
 
 Database changes for new features are applied automatically when the app starts. Making a backup
 first (Settings > Backups > Back up now) is a good habit.
