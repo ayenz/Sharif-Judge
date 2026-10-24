@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased
+
+### New
+
+- **ARM64 servers**: the Docker image builds on ARM64 (aarch64) as well as x86-64. Java 25, Go and
+  the optional Swift are downloaded for the build machine's processor, with pinned checksums for
+  both.
+- **Sub-path installations**: with `BASE_URL=/judge/` in `docker/.env` the judge runs under a path
+  of an existing site (`https://example.com/judge/`). Downloads, the PDF viewer, live updates,
+  favicons and the links in mails include the path, and the session cookie is limited to it. See
+  [Installation](https://ayenz.github.io/Sharif-Judge/guide/installation#under-a-sub-path).
+- `docker/.env` also takes `WEB_PORT` (e.g. `127.0.0.1:8402`), `TRUST_PROXY`,
+  `SESSION_COOKIE_SECURE` and `IMAGE` (name of the built image); with `COMPOSE_PROJECT_NAME` this
+  allows two installations on one server.
+- The tests take `SHJ_URL`, `SHJ_SSH` and `SHJ_COMPOSE` to run against another installation.
+
+### Changed
+
+- With `NUXT_TRUST_PROXY=true`, links in mails use the scheme from the proxy's
+  `X-Forwarded-Proto` header, so they are `https://` behind a TLS proxy.
+
+### Fixed
+
+- With `NUXT_TRUST_PROXY=true`, the sign-in limits took the client address from the first entry of
+  `X-Forwarded-For`, which the client can choose when the proxy appends to the header (nginx's
+  `$proxy_add_x_forwarded_for`). A forged header no longer gets around the limits: the last entry,
+  added by the proxy, is used. With two proxies in a row (e.g. a Cloudflare Tunnel in front of
+  nginx) set `NUXT_TRUST_PROXY=2` (`TRUST_PROXY=2` in `docker/.env`).
+
 ## 2.0.0 (2026-10-23)
 
 SharIF Judge 2.0 is a rewrite of the web application from PHP / CodeIgniter 3 to
