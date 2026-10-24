@@ -2,15 +2,16 @@
 # Python 2 is off by default: hidden from forms and the submit page, refused on submit,
 # and it can be switched on and off in Settings.
 import json
+import os
 import subprocess
 import sys
 import time
 
 import requests
 
-B = "http://172.30.30.101:8402"
-SSH = ["ssh", "stillmen.dell"]
-COMPOSE = "cd ~/stillmen/sharif-judge/repo/docker && docker compose"
+B = os.environ.get("SHJ_URL", "http://172.30.30.101:8402").rstrip("/")  # e.g. http://127.0.0.1:8499/judge
+SSH = ["ssh", os.environ.get("SHJ_SSH", "stillmen.dell")]
+COMPOSE = os.environ.get("SHJ_COMPOSE", "cd ~/stillmen/sharif-judge/repo/docker && docker compose")
 PY2 = 'print "hello"\n'
 failures = []
 

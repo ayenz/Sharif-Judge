@@ -10,6 +10,7 @@
 # Swift is hidden and refused.
 import io
 import json
+import os
 import re
 import sys
 import time
@@ -20,7 +21,7 @@ from zoneinfo import ZoneInfo
 
 import requests
 
-B = "http://172.30.30.101:8402"
+B = os.environ.get("SHJ_URL", "http://172.30.30.101:8402").rstrip("/")  # e.g. http://127.0.0.1:8499/judge
 HERE = Path(__file__).parent / "languages"
 TESTS = [("1 2", "3"), ("5 7", "12"), ("100 200", "300"), ("-4 4", "0"), ("123456 654321", "777777")]
 now = datetime.now(ZoneInfo("Asia/Jakarta"))

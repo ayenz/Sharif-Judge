@@ -1,6 +1,7 @@
 # Run after tests/regression/run.py (uses its users and assignments): uv run --with requests --with playwright python tests/e2e/editor-flow.py
+import os
 import requests, time, json, sys
-B = "http://172.30.30.101:8402"
+B = os.environ.get("SHJ_URL", "http://172.30.30.101:8402").rstrip("/")  # e.g. http://127.0.0.1:8499/judge
 s = requests.Session(); s.post(B+"/api/auth/login", json={"username":"frank","password":"secret123"}).raise_for_status()
 s.post(B+"/api/assignments/select", json={"id":1}).raise_for_status()
 code = open(__import__("pathlib").Path(__file__).parent.parent / "regression/corpus/p1_c_ok.c").read()

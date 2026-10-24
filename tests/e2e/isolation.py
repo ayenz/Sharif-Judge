@@ -3,12 +3,13 @@
 # Submitted code tries to read expected outputs, other students' code and server
 # secrets, and to reach the network. Every probe must print "blocked". Run it once
 # with the shields off (Settings) too: the container isolation must hold on its own.
+import os
 import sys
 import time
 
 import requests
 
-B = "http://172.30.30.101:8402"
+B = os.environ.get("SHJ_URL", "http://172.30.30.101:8402").rstrip("/")  # e.g. http://127.0.0.1:8499/judge
 ANSWER = "/data/assignments/assignment_1/p1/out/output1.txt"
 OTHER = "/data/assignments/assignment_1/p1/alice/p1-c-ok-1.c"
 

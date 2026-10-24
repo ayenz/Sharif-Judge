@@ -2,6 +2,7 @@
 # Live events (server-sent events): a student gets their own judging results and
 # nothing about other students; staff get queue events.
 import json
+import os
 import sys
 import threading
 import time
@@ -9,7 +10,7 @@ from pathlib import Path
 
 import requests
 
-B = "http://172.30.30.101:8402"
+B = os.environ.get("SHJ_URL", "http://172.30.30.101:8402").rstrip("/")  # e.g. http://127.0.0.1:8499/judge
 CODE = (Path(__file__).parent.parent / "regression/corpus/p1_c_ok.c").read_bytes()
 
 

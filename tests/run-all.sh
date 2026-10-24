@@ -3,9 +3,13 @@
 # WARNING: the regression test deletes all data of both apps on the test server.
 #
 #   tests/run-all.sh
+#
+# Another stack (no legacy app there, so the regression test runs with --only web):
+#   SHJ_URL=http://127.0.0.1:8499/judge SHJ_SSH=host SHJ_COMPOSE="cd ~/shj-test/docker && docker compose -p shj-test" tests/run-all.sh
 cd "$(dirname "$0")/.." || exit 1
-SSH_HOST=${SSH_HOST:-stillmen.dell}
-COMPOSE="cd ~/stillmen/sharif-judge/repo/docker && docker compose"
+SSH_HOST=${SSH_HOST:-${SHJ_SSH:-stillmen.dell}}
+COMPOSE=${SHJ_COMPOSE:-"cd ~/stillmen/sharif-judge/repo/docker && docker compose"}
+export SHJ_SSH=$SSH_HOST SHJ_COMPOSE=$COMPOSE
 results=()
 failed=0
 
@@ -32,7 +36,7 @@ isolation_without_shields() {
 }
 py() { uv run --with requests python "$@"; }
 
-step "Regression: legacy PHP vs Nuxt" uv run tests/regression/run.py
+step "Regression: legacy PHP vs Nuxt" uv run tests/regression/run.py ${SHJ_URL:+--only web}
 step "Pages and permissions"           py tests/e2e/smoke.py
 step "Security"                        py tests/e2e/security.py
 step "Isolation (shields on)"          py tests/e2e/isolation.py

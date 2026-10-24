@@ -1,6 +1,7 @@
 # Run after tests/regression/run.py (uses its users and assignments): uv run --with requests --with playwright python tests/e2e/smoke.py
+import os
 import requests, re, sys
-B = "http://172.30.30.101:8402"
+B = os.environ.get("SHJ_URL", "http://172.30.30.101:8402").rstrip("/")  # e.g. http://127.0.0.1:8499/judge
 pages_all = ["/", "/notifications", "/assignments", "/problems", "/problems/1/1", "/problems/1/2", "/submit", "/submit?problem=1",
              "/submissions/final", "/submissions/all", "/submissions/all?user=alice&problem=1", "/scoreboard", "/hall-of-fame", "/profile"]
 pages_admin = ["/users", "/users/add", "/settings", "/logs", "/queue", "/rejudge", "/moss/1", "/cheat/1", "/recordings",

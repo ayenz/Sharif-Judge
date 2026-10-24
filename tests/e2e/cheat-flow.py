@@ -1,12 +1,13 @@
 # End-to-end test of cheat detection (JPlag) on the deployed app.
 # Run after tests/regression/run.py: uv run --with requests python tests/e2e/cheat-flow.py
+import os
 import io, json, sys, time, zipfile
 from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 import requests
 
-B = "http://172.30.30.101:8402"
+B = os.environ.get("SHJ_URL", "http://172.30.30.101:8402").rstrip("/")  # e.g. http://127.0.0.1:8499/judge
 HERE = Path(__file__).parent / "cheat"
 now = datetime.now(ZoneInfo("Asia/Jakarta"))
 fmt = "%Y-%m-%d %H:%M:%S"

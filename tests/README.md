@@ -3,7 +3,8 @@
 The tests run against the apps deployed with `docker/compose.yml` (new app on port 8402, legacy
 PHP app on port 8401 from the tag `archive/php-final`, see [docker/README.md](../docker/README.md)). They use [uv](https://docs.astral.sh/uv/) to fetch their Python dependencies.
 Host names and ports are set at the top of each script (`stillmen.dell` / `172.30.30.101` in the
-development setup).
+development setup); `SHJ_URL`, `SHJ_SSH` and `SHJ_COMPOSE` point them at another stack, also one under
+a sub-path (see [Testing](../docs/development/testing.md#the-test-server)).
 
 | Test | Command | What it checks |
 |---|---|---|

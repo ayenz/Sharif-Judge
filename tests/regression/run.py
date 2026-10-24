@@ -12,6 +12,8 @@ are compared. The apps run with Docker on a remote host reached over SSH.
 
     uv run tests/regression/run.py            # full run
     uv run tests/regression/run.py --only web # just exercise the new app
+
+SHJ_URL, SHJ_SSH and SHJ_COMPOSE point it at another stack (see below).
 """
 from __future__ import annotations
 
@@ -19,6 +21,7 @@ import argparse
 import concurrent.futures as cf
 import io
 import json
+import os
 import re
 import subprocess
 import sys
@@ -34,11 +37,13 @@ import requests
 
 HERE = Path(__file__).parent
 CORPUS = HERE / "corpus"
-SSH_HOST = "stillmen.dell"
+SSH_HOST = os.environ.get("SHJ_SSH", "stillmen.dell")
 HOST_IP = "172.30.30.101"
-COMPOSE_DIR = "~/stillmen/sharif-judge/repo/docker"
+# Another test stack (with --only web): SHJ_URL=http://127.0.0.1:8499/judge SHJ_SSH=<host>
+# SHJ_COMPOSE="cd ~/shj-test/docker && docker compose -p shj-test"
+COMPOSE = os.environ.get("SHJ_COMPOSE", "cd ~/stillmen/sharif-judge/repo/docker && docker compose")
 LEGACY_URL = f"http://{HOST_IP}:8401"
-WEB_URL = f"http://{HOST_IP}:8402"
+WEB_URL = os.environ.get("SHJ_URL", f"http://{HOST_IP}:8402").rstrip("/")
 TZ = ZoneInfo("Asia/Jakarta")
 ADMIN = ("admin", "admin123")
 STUDENT_PASSWORD = "secret123"
@@ -123,18 +128,19 @@ def ssh(cmd: str, check=True) -> str:
 
 def sql(db: str, query: str) -> list[list[str]]:
     q = query.replace('"', '\\"')
-    out = ssh(f'cd {COMPOSE_DIR} && docker compose exec -T db mariadb -uroot -pshj_root -N -B {db} -e "{q}"')
+    out = ssh(f'{COMPOSE} exec -T db mariadb -uroot -pshj_root -N -B {db} -e "{q}"')
     return [line.split("\t") for line in out.splitlines() if line]
 
 
-def reset_databases():
-    for db in ("shj_ci3", "shj_web"):
-        ssh(f'cd {COMPOSE_DIR} && docker compose exec -T db mariadb -uroot -pshj_root -e '
+def reset_databases(legacy=True):
+    for db in ("shj_ci3", "shj_web") if legacy else ("shj_web",):
+        ssh(f'{COMPOSE} exec -T db mariadb -uroot -pshj_root -e '
             f'"DROP DATABASE IF EXISTS {db}; CREATE DATABASE {db} CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"')
-    ssh("rm -rf ~/stillmen/sharif-judge/ci3/restricted/assignments/* ~/stillmen/sharif-judge/ci3/application/cache/Twig/*")
-    ssh(f"cd {COMPOSE_DIR} && docker compose exec -T web sh -c 'rm -rf /data/assignments/*'")
+    if legacy:
+        ssh("rm -rf ~/stillmen/sharif-judge/ci3/restricted/assignments/* ~/stillmen/sharif-judge/ci3/application/cache/Twig/*")
+    ssh(f"{COMPOSE} exec -T web sh -c 'rm -rf /data/assignments/*'")
     # Restart the web app so no worker state or cached connections survive the reset.
-    ssh(f"cd {COMPOSE_DIR} && docker compose restart web >/dev/null 2>&1")
+    ssh(f"{COMPOSE} restart web >/dev/null 2>&1")
     for _ in range(30):
         try:
             if requests.get(f"{WEB_URL}/api/install", timeout=2).ok:
@@ -406,7 +412,7 @@ def main():
 
     if not args.no_reset:
         print("Resetting databases and assignment folders…")
-        reset_databases()
+        reset_databases(legacy=args.only != "web")
     now = datetime.now(TZ).replace(microsecond=0)
     clients = [c for c in (LegacyClient(), WebClient()) if not args.only or c.name == args.only]
 

@@ -11,7 +11,7 @@ use [uv](https://docs.astral.sh/uv/), which fetches the Python dependencies (`re
 ## The test server
 
 The scripts expect the Docker setup from `docker/compose.yml` running on a test server. Its
-addresses are hard-coded at the top of each script:
+addresses are set at the top of each script, and environment variables override them:
 
 | Assumption | Value in the scripts | Used by |
 |---|---|---|
@@ -25,9 +25,36 @@ addresses are hard-coded at the top of each script:
 | Databases | `shj_web` (Nuxt), `shj_ci3` (PHP), `shj_migrated` | regression, migration |
 | Time zone | `Asia/Jakarta` | regression |
 
-If you use a different server, change those constants. The scripts run commands on the server with
+If you use a different server, set these variables instead of editing the scripts:
+
+| Variable | Default | Replaces |
+|---|---|---|
+| `SHJ_URL` | `http://172.30.30.101:8402` | Address of the Nuxt app, with the sub-path if any (`http://127.0.0.1:8499/judge`) |
+| `SHJ_SSH` | `stillmen.dell` | SSH host |
+| `SHJ_COMPOSE` | `cd ~/stillmen/sharif-judge/repo/docker && docker compose` | How to call Compose on the server, e.g. with `-p <project>` |
+
+The legacy app has no variable; against another stack run the regression test with `--only web`
+(`run-all.sh` does this when `SHJ_URL` is set). With `--only web` only the `shj_web` database is
+reset.
+
+The scripts run commands on the server with
 `ssh <host> "cd <compose dir> && docker compose exec -T db mariadb -uroot -pshj_root …"`, so you
 need key-based SSH access and Docker rights there.
+
+### Testing a sub-path installation
+
+Run the stack with `BASE_URL=/judge/` behind a proxy that serves `/judge/` (see
+[Installation](/guide/installation#under-a-sub-path)) and point the tests at it:
+
+```bash
+export SHJ_URL=http://127.0.0.1:8499/judge SHJ_SSH=test-host SHJ_COMPOSE="cd ~/shj-test/docker && docker compose -p shj-test"
+uv run tests/regression/run.py --only web
+uv run --with requests python tests/e2e/smoke.py
+uv run --with requests --with playwright python tests/e2e/browser.py
+```
+
+`browser.py` fails on any request the browser makes, and any link or frame on a page, that leaves
+the sub-path.
 
 ::: danger The regression test deletes everything
 `tests/regression/run.py` drops and recreates `shj_web` and `shj_ci3`, deletes all assignment
@@ -136,8 +163,8 @@ tests/run-all.sh                 # SSH_HOST defaults to stillmen.dell
 SSH_HOST=other-host tests/run-all.sh
 ```
 
-It does not run the migration or RADIUS tests. `SSH_HOST` only affects the shield toggling in
-`run-all.sh`; the other scripts keep their own constants.
+It does not run the migration or RADIUS tests. `SSH_HOST` (or `SHJ_SSH`), `SHJ_COMPOSE` and
+`SHJ_URL` are passed on to every script.
 
 ## What to run for a change
 

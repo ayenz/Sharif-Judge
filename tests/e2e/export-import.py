@@ -7,6 +7,7 @@
 # never land in the assignment folder, also when the zip is uploaded as plain tests.
 import io
 import json
+import os
 import subprocess
 import sys
 import zipfile
@@ -16,9 +17,9 @@ from zoneinfo import ZoneInfo
 import requests
 from playwright.sync_api import sync_playwright
 
-B = "http://172.30.30.101:8402"
-SSH = ["ssh", "stillmen.dell"]
-COMPOSE = "cd ~/stillmen/sharif-judge/repo/docker && docker compose"
+B = os.environ.get("SHJ_URL", "http://172.30.30.101:8402").rstrip("/")  # e.g. http://127.0.0.1:8499/judge
+SSH = ["ssh", os.environ.get("SHJ_SSH", "stillmen.dell")]
+COMPOSE = os.environ.get("SHJ_COMPOSE", "cd ~/stillmen/sharif-judge/repo/docker && docker compose")
 SOURCE = 1
 failures = []
 
