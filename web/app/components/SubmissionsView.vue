@@ -69,7 +69,7 @@ const excelUrl = computed(() => {
     params.set('user', query.value.user)
   if (query.value.problem)
     params.set('problem', String(query.value.problem))
-  return `/api/submissions/excel?${params}`
+  return withAppBase(`/api/submissions/excel?${params}`)
 })
 
 const finished = computed(() => {
@@ -131,7 +131,7 @@ function statusColor(item: Item) {
 
 const downloadable = (item: Item) => ['zip', 'pdf', 'txt', 'jzip', 'jar'].includes(item.fileType)
 const viewable = (item: Item) => !['zip', 'pdf', 'txt'].includes(item.fileType)
-const downloadUrl = (item: Item) => `/api/submissions/download/${item.username}/${item.assignment}/${item.problem}/${item.submitId}`
+const downloadUrl = (item: Item) => withAppBase(`/api/submissions/download/${item.username}/${item.assignment}/${item.problem}/${item.submitId}`)
 
 // In the final view, alternate the background per user (legacy "hl" rows).
 const userBand = computed(() => {

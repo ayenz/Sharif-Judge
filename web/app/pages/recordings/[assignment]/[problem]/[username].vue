@@ -67,7 +67,7 @@ const src = computed(() => recId.value === null
         />
         <UButton
           v-if="src"
-          :href="src"
+          :href="withAppBase(src)"
           external
           download
           icon="i-lucide-download"

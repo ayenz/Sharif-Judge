@@ -40,6 +40,10 @@ comment explaining the difference.
   TypeScript reports "excessive stack depth" on a `$fetch`, use `api<T>(url, options)` from
   `app/utils/api.ts`.
   Forms: `UForm` + `useApiForm(url, state, { onSuccess })` which maps server field errors.
+- Base URL: the app may run under a sub-path (`NUXT_APP_BASE_URL`). Router links, `navigateTo`,
+  `$fetch` and `useFetch` add it; any other URL the browser loads itself (`external` download
+  links, `href`, `iframe`/`img` `src`, `EventSource`, `window.location`, head links) must use
+  `withAppBase('/api/...')` from `app/utils/url.ts`.
 - UI: Nuxt UI 4 components (`UTable`, `UCard`, `UButton`, `UModal`, `UBadge`, `UTabs`,
   `UFileUpload`, `UEditor`, ...). Lucide icons (`i-lucide-*`). Keep pages light: no extra
   UI libraries; heavy widgets (Ace editor, rich text editor) only on the pages that need them

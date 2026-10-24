@@ -14,10 +14,6 @@ export default defineNuxtConfig({
     pageTransition: { name: 'page', mode: 'out-in' },
     head: {
       htmlAttrs: { lang: 'en' },
-      link: [
-        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
-        { rel: 'icon', href: '/favicon.ico', sizes: '16x16' },
-      ],
       meta: [
         { name: 'theme-color', content: '#f2f6fc', media: '(prefers-color-scheme: light)' },
         { name: 'theme-color', content: '#0f172a', media: '(prefers-color-scheme: dark)' },
@@ -85,7 +81,9 @@ export default defineNuxtConfig({
       name: 'shj-session',
       maxAge: 60 * 60 * 2,
       // Secure cookies require HTTPS. Set NUXT_SESSION_COOKIE_SECURE=true behind TLS.
-      cookie: { secure: false, sameSite: 'lax' },
+      // Under a sub-path set NUXT_SESSION_COOKIE_PATH to the base URL too (docker/compose.yml
+      // does), so two installations on one domain do not share the cookie.
+      cookie: { secure: false, sameSite: 'lax', path: '/' },
     },
   },
 })

@@ -147,7 +147,7 @@ const counts = computed(() => {
           </template>
         </div>
         <div class="flex gap-2 ms-auto">
-          <UButton to="/api/users/excel" external download icon="i-lucide-file-spreadsheet" color="neutral" variant="outline" label="Excel" />
+          <UButton :to="withAppBase('/api/users/excel')" external download icon="i-lucide-file-spreadsheet" color="neutral" variant="outline" label="Excel" />
           <UButton to="/users/add" icon="i-lucide-user-plus" label="Add users" />
         </div>
       </div>

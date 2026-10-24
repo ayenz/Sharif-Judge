@@ -40,6 +40,8 @@ services:
       NUXT_JUDGE_MODE: remote
       NUXT_BACKUP_DIR: /backups
       # Optional, from docker/.env (see docs/guide/installation.md):
+      NUXT_APP_BASE_URL: ${BASE_URL:-/}                             # e.g. /judge/ to serve under a sub-path
+      NUXT_SESSION_COOKIE_PATH: ${BASE_URL:-/}                      # the cookie stays under that path
       NUXT_TRUST_PROXY: ${TRUST_PROXY:-false}                       # true behind a reverse proxy
       NUXT_SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}  # true when served over HTTPS
     # WEB_PORT can include an address, e.g. 127.0.0.1:8410 to reach the app only through a proxy.

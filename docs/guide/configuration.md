@@ -9,6 +9,17 @@ changes while the judge is running.
 Set them in the `web` service of `docker/compose.yml` (or `docker/.env` for the ones Compose
 reads). The Docker setup already sets the paths, the judge mode and the backup folder.
 
+Besides the secrets, `docker/.env` takes these shortcuts, which `compose.yml` passes on:
+
+| In `docker/.env` | Default | Sets |
+|---|---|---|
+| `WEB_PORT` | `8402` | Published port of the app; with an address (`127.0.0.1:8402`) only reachable from the server |
+| `BASE_URL` | `/` | `NUXT_APP_BASE_URL` and `NUXT_SESSION_COOKIE_PATH` |
+| `TRUST_PROXY` | `false` | `NUXT_TRUST_PROXY` |
+| `SESSION_COOKIE_SECURE` | `false` | `NUXT_SESSION_COOKIE_SECURE` |
+| `IMAGE` | `sharif-judge-web:latest` | Name of the built image (`web` and `judge`) |
+| `WITH_SWIFT` | `0` | Build argument: `1` adds Swift |
+
 | Variable | Default | Purpose |
 |---|---|---|
 | `NUXT_DB_HOST`, `NUXT_DB_PORT` | `localhost`, `3306` | MySQL/MariaDB server |
@@ -16,7 +27,9 @@ reads). The Docker setup already sets the paths, the judge mode and the backup f
 | `NUXT_DB_PREFIX` | `shj_` | Table prefix |
 | `NUXT_SESSION_PASSWORD` | | Session cookie secret, at least 32 characters |
 | `NUXT_SESSION_COOKIE_SECURE` | `false` | `true` behind HTTPS |
-| `NUXT_TRUST_PROXY` | `false` | Only behind a reverse proxy: `true` (one proxy) or the number of proxies in a row. Trusts that many entries from the right of `X-Forwarded-For` |
+| `NUXT_SESSION_COOKIE_PATH` | `/` | Path of the session cookie; the base URL under a sub-path (Compose sets it from `BASE_URL`) |
+| `NUXT_TRUST_PROXY` | `false` | Only behind a reverse proxy: `true` (one proxy) or the number of proxies in a row. Trusts that many entries from the right of `X-Forwarded-For`, and `X-Forwarded-Proto` for mail links |
+| `NUXT_APP_BASE_URL` | `/` | Path the app is served under, e.g. `/judge/`; see [Under a sub-path](./installation#under-a-sub-path) |
 | `NUXT_JUDGE_MODE` | `local` (`remote` in Docker) | Where submissions run |
 | `NUXT_PATHS_TESTER`, `NUXT_PATHS_ASSIGNMENTS` | | Judge folders (set by the image) |
 | `NUXT_CHEAT_JAVA`, `NUXT_CHEAT_JPLAG_JAR`, `NUXT_CHEAT_WORK_DIR` | | JPlag (set by the image); empty disables it |

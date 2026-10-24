@@ -106,7 +106,7 @@ async function loadPdf() {
   for (const query of [`?problem=${props.problemId}`, '']) {
     const check = await $fetch<{ status: boolean }>(`${base}/pdf-check${query}`).catch(() => ({ status: false }))
     if (check.status) {
-      pdfUrl.value = `${base}/pdf${query}`
+      pdfUrl.value = withAppBase(`${base}/pdf${query}`)
       return
     }
   }

@@ -9,7 +9,7 @@ export default defineNitroPlugin((nitro) => {
   nitro.hooks.hook('beforeResponse', (event, response) => {
     // Internal requests (Nuxt renders error pages through /__nuxt_error, SSR calls the API
     // in-process) read the body as text: compressing them corrupts the final response.
-    if (event.path.startsWith('/__nuxt') || !event.node.req.socket?.remoteAddress)
+    if (event.path.includes('/__nuxt') || !event.node.req.socket?.remoteAddress)
       return
     const accept = getRequestHeader(event, 'accept-encoding') ?? ''
     const encoding = /\bbr\b/.test(accept) ? 'br' : /\bgzip\b/.test(accept) ? 'gzip' : null

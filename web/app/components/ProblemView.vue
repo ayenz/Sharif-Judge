@@ -31,7 +31,7 @@ const { data, error, status } = await useFetch<ProblemPage>(() => `/api/problems
 useHead({ title: () => (data.value ? `${data.value.problem.name} · Problems` : 'Problems') })
 
 const isSelected = computed(() => me.value?.selectedAssignment.id === props.assignmentId)
-const pdfUrl = computed(() => `/api/assignments/${props.assignmentId}/pdf?problem=${props.problemId}`)
+const pdfUrl = computed(() => withAppBase(`/api/assignments/${props.assignmentId}/pdf?problem=${props.problemId}`))
 const canViewPdf = computed(() => Boolean(data.value?.problem.hasPdf && !data.value.problem.pdfBlockedReason))
 
 const tab = ref('description')

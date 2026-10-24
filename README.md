@@ -106,6 +106,7 @@ Environment variables (all optional except the database and the session password
 | `NUXT_BACKUP_DIR` | | Backup folder as seen by the app (set by Compose); empty hides Settings > Backups |
 | `NUXT_JUDGE_MODE`, `NUXT_JUDGE_JOBS_DIR` | `local`, `/data/jobs` | `remote` hands submissions to the isolated `judge` container (the Compose setup); `local` runs them in the web process (development) |
 | `NUXT_TRUST_PROXY` | `false` | Trust `X-Forwarded-For` (counted from the right) for client addresses; `true` (one proxy) or the number of proxies, only behind a reverse proxy |
+| `NUXT_APP_BASE_URL` | `/` | Path the app is served under, e.g. `/judge/` (`BASE_URL` in `docker/.env`) |
 | `NUXT_CHEAT_JAVA`, `NUXT_CHEAT_JPLAG_JAR`, `NUXT_CHEAT_WORK_DIR` | | Java 25 and JPlag for cheat detection (set by the image); empty disables it |
 | `NUXT_MAIL_HOST`, `NUXT_MAIL_PORT`, `NUXT_MAIL_SECURE`, `NUXT_MAIL_USER`, `NUXT_MAIL_PASS` | port `465`, secure `true` | SMTP for password reset and new-account mails |
 | `NUXT_AUTH_METHOD` | | `ldap` or `radius` to also accept those passwords |

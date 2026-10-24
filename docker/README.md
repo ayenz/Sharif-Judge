@@ -42,7 +42,7 @@ and reports). EasySandbox is intentionally not built; see the security notes in 
 | Service | Runs | Network | Notes |
 |---|---|---|---|
 | `db` | MariaDB 10.11 | internal | |
-| `web` | Nuxt app as `node` (uid 1000) | internal + port 8402 | Queues submissions as job files in `/data/jobs` (`NUXT_JUDGE_MODE=remote`) |
+| `web` | Nuxt app as `node` (uid 1000) | internal + port 8402 (`WEB_PORT`) | Queues submissions as job files in `/data/jobs` (`NUXT_JUDGE_MODE=remote`) |
 | `judge` | `judge/worker.mjs` (same image) | **none** | Runs `tester.sh` for each job; submissions are compiled and run as `shjrun` (uid 2000) |
 | `backup` | `backup/backup.sh` (MariaDB image) | internal | Daily database dump + assignment files into `BACKUP_DIR` |
 
@@ -69,6 +69,13 @@ docker compose logs -f web
 
 Rebuild after pulling changes with the same `up -d --build db web judge backup`. Database tables for new
 features are created when the app starts.
+
+Optional settings in `.env` (see [Installation](../docs/guide/installation.md#behind-a-reverse-proxy)):
+`WEB_PORT` (e.g. `127.0.0.1:8402`), `BASE_URL` (e.g. `/judge/` to serve under a sub-path),
+`TRUST_PROXY`, `SESSION_COOKIE_SECURE`, `IMAGE` (image name, e.g. to keep a test build apart) and
+`WITH_SWIFT`. A second installation on the same server needs its own `COMPOSE_PROJECT_NAME`,
+`IMAGE` and `WEB_PORT` (see
+[Installation](../docs/guide/installation.md#two-installations-on-one-server)).
 
 ### Using an existing installation
 
@@ -138,9 +145,12 @@ were verified during development.
 
 ### Behind a reverse proxy
 
-Terminate HTTPS at the proxy, forward to port 8402, and add
-`NUXT_SESSION_COOKIE_SECURE: "true"` and `NUXT_TRUST_PROXY: "true"` to the `web` environment. Cheat detection with Moss can keep a
-request open for several minutes; allow a long proxy timeout for `/api/moss/`.
+Terminate HTTPS at the proxy, forward to port 8402, and set `SESSION_COOKIE_SECURE=true` and
+`TRUST_PROXY=true` in `.env`. Disable proxy buffering for the live updates (`/api/events`). Cheat
+detection with Moss can keep a request open for several minutes; allow a long proxy timeout for
+`/api/moss/`. To serve the judge under a path such as `/judge/`, set `BASE_URL=/judge/` and pass
+the path to the app unchanged; the nginx example is in
+[Installation](../docs/guide/installation.md#under-a-sub-path).
 
 ## Legacy app for regression tests
 

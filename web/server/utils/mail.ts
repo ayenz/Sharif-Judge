@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer'
+import { withTrailingSlash } from 'ufo'
 
 /** Sends an HTML mail using the SMTP config and the sender from settings. */
 export async function sendMail(to: string, subject: string, html: string): Promise<boolean> {
@@ -24,7 +25,14 @@ export async function sendMail(to: string, subject: string, html: string): Promi
   }
 }
 
-/** Absolute base URL of the site, used in mail templates. */
+/**
+ * Absolute base URL of the site, used in mail templates: the origin the browser used plus the
+ * app's base URL. Behind a proxy (NUXT_TRUST_PROXY=true) the scheme comes from
+ * X-Forwarded-Proto, so links are https. The host always comes from the Host header, which the
+ * proxy passes on: X-Forwarded-Host is not used, because a proxy that does not set it would let a
+ * client choose the host of a password-reset link.
+ */
 export function siteUrl(event: import('h3').H3Event): string {
-  return getRequestURL(event).origin + '/'
+  const config = useRuntimeConfig()
+  return getRequestURL(event, { xForwardedProto: Boolean(config.trustProxy) }).origin + withTrailingSlash(config.app.baseURL)
 }

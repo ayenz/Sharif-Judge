@@ -93,6 +93,14 @@ for any new long job, and make it resume or fail cleanly after a restart (see
 - **Data**: `useFetch('/api/...')` for page data; mutations with `$fetch` and `useToast()`.
 - **Forms**: `UForm` with `useApiForm(url, state, { onSuccess })`, which maps the server's 422
   field errors onto the form fields.
+- **URLs**: the app can run under a sub-path (`NUXT_APP_BASE_URL=/judge/`). Router links (`to` on
+  `NuxtLink`, `ULink`, `UButton` without `external`), `navigateTo`, `$fetch` and `useFetch` add the
+  base themselves. Every other URL the browser requests on its own must go through
+  `withAppBase('/api/...')` from `app/utils/url.ts`: links with `external` (downloads), `href`,
+  `iframe` and `img` `src`, `EventSource`, `window.location`, head links. On the server, do not
+  compare `event.path` with `startsWith('/...')`: depending on the hook it may include the base.
+  `tests/e2e/browser.py` run with `SHJ_URL` pointing at a sub-path fails on any request or link
+  outside it.
 - **Components**: Nuxt UI 4 (`UTable`, `UCard`, `UButton`, `UModal`, `UBadge`, `UTabs`,
   `UFileUpload`, `UEditor`, …) and Lucide icons (`i-lucide-*`). No other UI libraries. Heavy widgets
   (Ace, the rich-text editor) load only on the pages that need them, via `defineAsyncComponent` or

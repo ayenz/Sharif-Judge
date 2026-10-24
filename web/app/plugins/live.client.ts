@@ -12,7 +12,7 @@ export default defineNuxtPlugin(() => {
 
   function open() {
     close()
-    source = new EventSource('/api/events')
+    source = new EventSource(withAppBase('/api/events'))
     source.addEventListener('ready', () => (connected.value = true))
     source.onerror = () => (connected.value = false)
     for (const type of TYPES) {

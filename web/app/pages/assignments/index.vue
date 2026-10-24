@@ -80,10 +80,10 @@ function staffItems(row: AssignmentRow): DropdownMenuItem[][] {
   }
   const downloads: DropdownMenuItem[] = []
   if (level.value >= 2)
-    downloads.push({ label: 'Export (tests + settings)', icon: 'i-lucide-file-archive', to: `/api/assignments/${row.id}/download-tests`, external: true, target: '_blank' })
+    downloads.push({ label: 'Export (tests + settings)', icon: 'i-lucide-file-archive', to: withAppBase(`/api/assignments/${row.id}/download-tests`), external: true, target: '_blank' })
   downloads.push(
-    { label: 'Final submissions (by user)', icon: 'i-lucide-download', to: `/api/assignments/${row.id}/download-submissions?type=by_user`, external: true, target: '_blank' },
-    { label: 'Final submissions (by problem)', icon: 'i-lucide-download', to: `/api/assignments/${row.id}/download-submissions?type=by_problem`, external: true, target: '_blank' },
+    { label: 'Final submissions (by user)', icon: 'i-lucide-download', to: withAppBase(`/api/assignments/${row.id}/download-submissions?type=by_user`), external: true, target: '_blank' },
+    { label: 'Final submissions (by problem)', icon: 'i-lucide-download', to: withAppBase(`/api/assignments/${row.id}/download-submissions?type=by_problem`), external: true, target: '_blank' },
   )
   groups.push(downloads)
   if (level.value >= 2)
@@ -219,7 +219,7 @@ const messageIcon = { success: 'i-lucide-circle-check', notice: 'i-lucide-info',
                   color="neutral"
                   variant="ghost"
                   :disabled="row.original.pdf !== 'ok'"
-                  :to="row.original.pdf === 'ok' ? `/api/assignments/${row.original.id}/pdf` : undefined"
+                  :to="row.original.pdf === 'ok' ? withAppBase(`/api/assignments/${row.original.id}/pdf`) : undefined"
                   external
                   target="_blank"
                 />

@@ -86,7 +86,7 @@ const reportTip = (run: Run) => `Download the JPlag report${run.reportSize ? ` (
           size="xs"
           color="neutral"
           variant="ghost"
-          :to="`/api/cheat/runs/${run.id}/report`"
+          :to="withAppBase(`/api/cheat/runs/${run.id}/report`)"
           external
           download
           aria-label="Download JPlag report"
