@@ -30,7 +30,8 @@ export default defineNuxtConfig({
   icon: { clientBundle: { scan: true }, serverBundle: 'local' },
 
   runtimeConfig: {
-    // Trust X-Forwarded-For for the client address (only behind a reverse proxy).
+    // Trust X-Forwarded-For for the client address (only behind a reverse proxy): true for one
+    // proxy, or the number of proxies in a row (see clientIp() in server/utils/rate-limit.ts).
     trustProxy: false,
     db: {
       host: 'localhost',

@@ -16,7 +16,7 @@ reads). The Docker setup already sets the paths, the judge mode and the backup f
 | `NUXT_DB_PREFIX` | `shj_` | Table prefix |
 | `NUXT_SESSION_PASSWORD` | | Session cookie secret, at least 32 characters |
 | `NUXT_SESSION_COOKIE_SECURE` | `false` | `true` behind HTTPS |
-| `NUXT_TRUST_PROXY` | `false` | Trust `X-Forwarded-For`; only behind a reverse proxy |
+| `NUXT_TRUST_PROXY` | `false` | Only behind a reverse proxy: `true` (one proxy) or the number of proxies in a row. Trusts that many entries from the right of `X-Forwarded-For` |
 | `NUXT_JUDGE_MODE` | `local` (`remote` in Docker) | Where submissions run |
 | `NUXT_PATHS_TESTER`, `NUXT_PATHS_ASSIGNMENTS` | | Judge folders (set by the image) |
 | `NUXT_CHEAT_JAVA`, `NUXT_CHEAT_JPLAG_JAR`, `NUXT_CHEAT_WORK_DIR` | | JPlag (set by the image); empty disables it |
