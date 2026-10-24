@@ -21,7 +21,7 @@ services:
       retries: 20
 
   web:
-    image: sharif-judge-web:latest
+    image: ${IMAGE:-sharif-judge-web:latest}
     build:
       context: ..
       dockerfile: docker/web.Dockerfile
@@ -39,7 +39,11 @@ services:
       NUXT_SESSION_PASSWORD: ${SESSION_PASSWORD:?set SESSION_PASSWORD (32+ characters) in docker/.env}
       NUXT_JUDGE_MODE: remote
       NUXT_BACKUP_DIR: /backups
-    ports: ["8402:3000"]
+      # Optional, from docker/.env (see docs/guide/installation.md):
+      NUXT_TRUST_PROXY: ${TRUST_PROXY:-false}                       # true behind a reverse proxy
+      NUXT_SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}  # true when served over HTTPS
+    # WEB_PORT can include an address, e.g. 127.0.0.1:8410 to reach the app only through a proxy.
+    ports: ["${WEB_PORT:-8402}:3000"]
     volumes:
       - web-data:/data
       # Shield files edited in Settings > Shields; shared with the judge.
@@ -51,7 +55,7 @@ services:
   # Runs submitted code. No network, no secrets, and the code itself runs as an
   # unprivileged user that can only touch its own jail directory.
   judge:
-    image: sharif-judge-web:latest
+    image: ${IMAGE:-sharif-judge-web:latest}  # the same image as web
     pull_policy: never
     depends_on: [web]
     restart: unless-stopped

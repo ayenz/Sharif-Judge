@@ -76,12 +76,13 @@ first (Settings > Backups > Back up now) is a good habit.
 
 ## Behind a reverse proxy
 
-Terminate HTTPS at the proxy (nginx, Caddy, Traefik, ...) and forward to port 8402. Then add to the
-`web` service environment in `docker/compose.yml`:
+Terminate HTTPS at the proxy (nginx, Caddy, Traefik, a Cloudflare Tunnel, ...) and forward to the
+app. Then add to `docker/.env`:
 
-```yaml
-NUXT_SESSION_COOKIE_SECURE: "true"   # cookie only over HTTPS
-NUXT_TRUST_PROXY: "true"             # real client addresses for the sign-in limits
+```bash
+SESSION_COOKIE_SECURE=true   # cookie only over HTTPS
+TRUST_PROXY=true             # real client addresses for the sign-in limits
+WEB_PORT=127.0.0.1:8402      # optional: reachable only through the proxy on this host
 ```
 
 Keep these in mind for the proxy:
@@ -89,6 +90,17 @@ Keep these in mind for the proxy:
 - `/api/events` is a long-lived server-sent events connection; disable buffering for it.
 - Moss detection (`/api/moss/...`) can keep a request open for several minutes.
 - Allow uploads of test-case zip files (100 MB is plenty).
+
+## Two installations on one server
+
+Each copy needs its own folder (a clone of the repository) and, in its `docker/.env`, its own
+project name, image name and port, so containers, volumes and images do not collide:
+
+```bash
+COMPOSE_PROJECT_NAME=shj-demo
+IMAGE=sharif-judge-demo:latest
+WEB_PORT=127.0.0.1:8410
+```
 
 ## Without Docker
 
