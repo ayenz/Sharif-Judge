@@ -9,7 +9,10 @@
 
 ## The image
 
-`web.Dockerfile` has six stages:
+`web.Dockerfile` has six stages. It builds for x86-64 (`amd64`) and ARM64 (`arm64`): the stages
+that download a toolchain pick the file and its SHA-256 for `TARGETARCH`, which BuildKit (the
+default builder of `docker compose build` and `docker build`) sets to the build machine's processor.
+JPlag and Kotlin are plain Java archives and the same on both.
 
 1. **build**: installs the npm packages and builds the Nuxt app.
 2. **jplag**: downloads the Java 25 JDK (Eclipse Temurin) and JPlag 6.3 with pinned SHA-256
@@ -22,8 +25,8 @@
 4. **kotlin**: downloads the Kotlin 2.4 compiler with a pinned SHA-256 checksum into
    `/opt/kotlinc`.
 5. **swift**: only with the build argument `WITH_SWIFT=1` (from `docker/.env`, default `0`):
-   downloads Swift 6.4 for Debian 12, checks its SHA-256, and keeps only what `swiftc` needs to
-   compile and link (about 1.2 GB) in `/opt/swift`. Otherwise `/opt/swift` is empty.
+   downloads Swift 6.4 for Debian 12 (x86-64 or aarch64), checks its SHA-256, and keeps only what
+   `swiftc` needs to compile and link (about 1.2 GB) in `/opt/swift`. Otherwise `/opt/swift` is empty.
 6. **runtime**: `node:24-bookworm-slim` with `gcc`, `g++`, Java 17, Python 3, Perl and GNU `time`
    for the judge (Node.js itself runs JavaScript submissions), the built app in `/app/web`, the
    judge in `/app/tester`, and the files of stages 2 to 5 in `/opt/jre25`, `/opt/jplag`,

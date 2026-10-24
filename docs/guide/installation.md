@@ -6,7 +6,9 @@ Java 25 with JPlag for cheat detection. Swift is optional (see [below](#swift)).
 
 ## Requirements
 
-- A Linux server with Docker and Docker Compose v2
+- A Linux server with Docker and Docker Compose v2, on x86-64 (amd64) or ARM64 (aarch64, e.g.
+  Ampere or Graviton servers). The image is built on the server, so it matches the processor;
+  every language, including the optional Swift, is available on both
 - 2 CPU cores and 4 GB RAM are comfortable for a class; the judge container is limited to 2 CPUs
   and 2 GB by default
 - About 3 GB of disk for the images and build cache (the app image is about 1.5 GB; 2.8 GB with
