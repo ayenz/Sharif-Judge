@@ -42,6 +42,45 @@ Failed sign-ins are limited to protect passwords against guessing: 8 per address
 30 per address and 50 per account within 15 minutes. After that the sign-in page asks to wait. Behind
 a reverse proxy, set `NUXT_TRUST_PROXY=true`, otherwise all users share the proxy's address.
 
+## Cloudflare Turnstile
+
+[Turnstile](https://developers.cloudflare.com/turnstile/) is Cloudflare's alternative to a CAPTCHA.
+When it is on, the sign-in, registration and "forgot password" forms show a small security check,
+and the server verifies it with Cloudflare before it looks at the password. This stops automated
+password guessing and mass registrations on an installation that is reachable from the internet.
+
+It is **off by default**. Whoever runs the server provides the keys once; an admin then switches it
+on and off in Settings:
+
+1. In the Cloudflare dashboard, open **Turnstile**, add a widget for the host name people use (for
+   example `judge.example.ac.id`), and copy its site key and secret key.
+2. Add them to `docker/.env` and run `docker compose up -d web`:
+
+   ```bash
+   TURNSTILE_SITE_KEY=0x4AAAAAAA...
+   TURNSTILE_SECRET_KEY=0x4AAAAAAA...
+   ```
+
+3. In **Settings > Accounts & Mail**, switch on **Cloudflare Turnstile**, complete the check that
+   appears below it, and save. The check proves the keys work for the address you are using, so a
+   wrong key or host name cannot lock everybody (yourself included) out of the sign-in page.
+
+Switch it off in Settings at any time. If nobody can sign in any more (for example after moving to
+another host name), removing the two keys from `docker/.env` and running `docker compose up -d web`
+turns it off whatever Settings says.
+
+Things to know:
+
+- Both the server and the browsers must reach `challenges.cloudflare.com`. **Do not turn it on for
+  an installation without internet access** (a campus-only network): if the server cannot reach
+  Cloudflare, sign-in is refused, so the check cannot be skipped by blocking that connection.
+- The widget only works on the host names registered for the key; on any other address it shows
+  an error and nobody can sign in.
+- Signed-in pages are not affected, and neither is LDAP or RADIUS sign-in itself (the check runs
+  before the password is checked by any method).
+- `docker compose logs web | grep turnstile` shows why a check failed (for example
+  `invalid-input-secret` when the secret key is wrong).
+
 ## LDAP or RADIUS
 
 Accounts always exist in SharIF Judge (added as above). With an external method, a user can sign in

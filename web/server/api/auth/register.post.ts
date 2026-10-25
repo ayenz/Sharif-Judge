@@ -5,6 +5,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, statusMessage: 'Registration is closed.' })
 
   const code = await getSetting('registration_code')
+  await turnstileRequire(event)
   const form = await readForm(event, z.object({
     registrationCode: z.string().optional().default(''),
     username: rules.username,

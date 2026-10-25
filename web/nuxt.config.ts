@@ -56,6 +56,12 @@ export default defineNuxtConfig({
       user: '',
       pass: '',
     },
+    // Cloudflare Turnstile on sign-in, registration and password reset requests. Off unless
+    // both keys are set (NUXT_TURNSTILE_SITE_KEY, NUXT_TURNSTILE_SECRET_KEY).
+    turnstile: {
+      siteKey: '',
+      secretKey: '',
+    },
     // Defaults written to settings on a fresh install.
     paths: {
       tester: '',

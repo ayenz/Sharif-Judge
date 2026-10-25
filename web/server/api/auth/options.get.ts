@@ -15,11 +15,12 @@ function taglineLanguages(unavailable: string[]): string[] {
 export default defineEventHandler(async () => {
   const installed = await tableExists('settings')
   if (!installed)
-    return { installed, registration: false, registrationCodeRequired: false, languages: taglineLanguages(swiftInstalled() ? [] : ['Swift']) }
+    return { installed, registration: false, registrationCodeRequired: false, turnstileSiteKey: null, languages: taglineLanguages(swiftInstalled() ? [] : ['Swift']) }
   return {
     installed,
     registration: await getSetting('enable_registration') === '1',
     registrationCodeRequired: await getSetting('registration_code') !== '0',
+    turnstileSiteKey: await turnstileSiteKey(),
     languages: taglineLanguages(await unavailableLanguages()),
   }
 })

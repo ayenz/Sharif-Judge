@@ -44,6 +44,7 @@ step "JavaScript, Go, Kotlin, Swift"   py tests/e2e/languages.py
 step "Java zip and JAR"                py tests/e2e/java-archives.py
 step "Export and import"               uv run --with requests --with playwright python tests/e2e/export-import.py
 step "Cheat detection and history"     py tests/e2e/cheat-flow.py
+step "Cloudflare Turnstile"            uv run --with requests --with playwright python tests/e2e/turnstile.py
 step "Browser (Chromium)"              uv run --with requests --with playwright python tests/e2e/browser.py
 
 printf '\n=== Summary\n'

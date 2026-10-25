@@ -11,6 +11,7 @@ export type SettingKey =
   | 'mail_from_name' | 'reset_password_mail' | 'add_user_mail' | 'moss_userid'
   | 'results_per_page_all' | 'results_per_page_final' | 'week_start' | 'lock_student_display_name'
   | 'enable_python2'
+  | 'enable_turnstile'
 
 export async function getAllSettings(): Promise<Record<SettingKey, string>> {
   const rows = await useDb().select().from(settings)

@@ -20,6 +20,8 @@ export default defineEventHandler(async (event) => {
     enablePy3Shield: z.boolean(),
     enableJavaPolicy: z.boolean(),
     enablePython2: z.boolean().optional().default(false),
+    enableTurnstile: z.boolean().optional().default(false),
+    turnstileToken: z.string().optional(),
     enableLog: z.boolean(),
     enableRegistration: z.boolean(),
     registrationCode: z.string().trim(),
@@ -33,6 +35,14 @@ export default defineEventHandler(async (event) => {
     lockStudentDisplayName: z.boolean(),
     shields: z.object({ defc: shield, defcpp: shield, shieldPy2: shield, shieldPy3: shield }).optional().default({}),
   }))
+
+  // Switching Turnstile on needs the keys and one passed check with them, so a wrong key or
+  // host name cannot lock everybody (including this admin) out of the sign-in page.
+  if (f.enableTurnstile && (await getSetting('enable_turnstile')) !== '1') {
+    if (!turnstileConfiguredSiteKey())
+      throw validationError({ enableTurnstile: 'Set TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY in docker/.env first.' })
+    await turnstileVerify(event, f.turnstileToken, 'enableTurnstile')
+  }
 
   // Shield files are written under the tester path saved before this request, like legacy.
   const errors = await settingsWriteShields(await getSetting('tester_path'), f.shields)
@@ -55,6 +65,7 @@ export default defineEventHandler(async (event) => {
     enable_py3_shield: flag(f.enablePy3Shield),
     enable_java_policy: flag(f.enableJavaPolicy),
     enable_python2: flag(f.enablePython2),
+    enable_turnstile: flag(f.enableTurnstile),
     enable_log: flag(f.enableLog),
     enable_registration: flag(f.enableRegistration),
     registration_code: f.registrationCode,

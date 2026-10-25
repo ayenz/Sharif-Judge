@@ -43,6 +43,7 @@ export function extraTablesSql(p: string): string[] {
 /** Settings added after the legacy schema, with their default for existing installs. */
 const EXTRA_SETTINGS: Record<string, string> = {
   enable_python2: '0',
+  enable_turnstile: '0',
 }
 
 export async function migrateExtraTables(): Promise<void> {

@@ -28,6 +28,8 @@ installation either. The judge container replaces it.
 
 - Passwords are stored with bcrypt.
 - Sign-in attempts are limited (see [Users and sign-in](./users-and-sign-in#sign-in-limits)).
+- Optional Cloudflare Turnstile on sign-in, registration and password reset (see
+  [Users and sign-in](./users-and-sign-in#cloudflare-turnstile)).
 - Sessions are encrypted cookies (`NUXT_SESSION_PASSWORD`); changing the secret signs everybody out.
 - RADIUS answers are verified with the shared secret.
 

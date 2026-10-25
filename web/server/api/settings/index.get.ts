@@ -32,10 +32,13 @@ export default defineEventHandler(async (event) => {
       weekStart: Number(s.week_start) || 0,
       lockStudentDisplayName: s.lock_student_display_name === '1',
       enablePython2: s.enable_python2 === '1',
+      enableTurnstile: s.enable_turnstile === '1',
     },
     shields,
     sandboxBuilt: tester ? await settingsPathExists(join(tester, 'easysandbox', 'EasySandbox.so')) : false,
     python2Installed: settingsCommandExists('python2'),
+    // Site key for the check Settings asks for before switching Turnstile on; null without keys.
+    turnstileSiteKey: turnstileConfiguredSiteKey(),
     testerPathOk: shields.defc !== null,
     timezones: settingsTimezones(),
     serverTime: await nowStr(),

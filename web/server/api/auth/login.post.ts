@@ -1,6 +1,7 @@
 const WINDOW = 15 * 60 * 1000
 
 export default defineEventHandler(async (event) => {
+  await turnstileRequire(event)
   const { username, password } = await readForm(event, z.object({
     username: rules.username,
     password: rules.password,

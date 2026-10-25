@@ -42,6 +42,9 @@ services:
       # Optional, from docker/.env (see docs/guide/installation.md):
       NUXT_TRUST_PROXY: ${TRUST_PROXY:-false}                       # true behind a reverse proxy
       NUXT_SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}  # true when served over HTTPS
+      # Cloudflare Turnstile on sign-in, registration and password reset; off unless both are set.
+      NUXT_TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:-}
+      NUXT_TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
     # WEB_PORT can include an address, e.g. 127.0.0.1:8410 to reach the app only through a proxy.
     ports: ["${WEB_PORT:-8402}:3000"]
     volumes:

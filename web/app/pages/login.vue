@@ -8,12 +8,18 @@ const { data: options } = await useFetch('/api/auth/options')
 if (options.value && !options.value.installed)
   await navigateTo('/install')
 
-const state = reactive({ username: '', password: '' })
+const state = reactive({ username: '', password: '', turnstileToken: '' })
 const { submit, loading, error } = useApiForm('/api/auth/login', state, {
   onSuccess: async () => {
     await refresh()
     await navigateTo(typeof route.query.next === 'string' && route.query.next.startsWith('/') ? route.query.next : '/')
   },
+})
+// The security check token is single-use: get a new one after every attempt.
+const turnstile = useTemplateRef<{ reset: () => void }>('turnstile')
+watch(loading, (now, before) => {
+  if (before && !now)
+    turnstile.value?.reset()
 })
 </script>
 
@@ -37,7 +43,12 @@ const { submit, loading, error } = useApiForm('/api/auth/login', state, {
       <UFormField label="Password" name="password" required>
         <UInput v-model="state.password" required type="password" autocomplete="current-password" class="w-full" />
       </UFormField>
-      <UButton type="submit" block :loading="loading" label="Sign in" />
+      <UFormField v-if="options?.turnstileSiteKey" name="turnstile">
+        <ClientOnly>
+          <TurnstileWidget ref="turnstile" v-model="state.turnstileToken" :site-key="options.turnstileSiteKey" />
+        </ClientOnly>
+      </UFormField>
+      <UButton type="submit" block :loading="loading" :disabled="!!options?.turnstileSiteKey && !state.turnstileToken" label="Sign in" />
       <!-- After the button, so Tab goes username → password → Sign in. -->
       <p class="text-center">
         <ULink to="/lost" class="text-xs">

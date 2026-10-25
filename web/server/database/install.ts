@@ -89,6 +89,7 @@ export function defaultSettings(paths: { tester: string, assignments: string }):
     week_start: '0',
     lock_student_display_name: '0',
     enable_python2: '0',
+    enable_turnstile: '0',
   }
 }
 

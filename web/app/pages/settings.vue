@@ -21,7 +21,7 @@ fill()
 const FIELD_TAB: Record<string, string> = {
   timezone: 'general', testerPath: 'general', assignmentsRoot: 'general',
   fileSizeLimit: 'judging', outputSizeLimit: 'judging', defaultLateRule: 'judging',
-  registrationCode: 'accounts', mailFrom: 'accounts', mailFromName: 'accounts',
+  registrationCode: 'accounts', enableTurnstile: 'accounts', mailFrom: 'accounts', mailFromName: 'accounts',
   resultsPerPageAll: 'display', resultsPerPageFinal: 'display', weekStart: 'display',
 }
 
@@ -53,6 +53,10 @@ const shieldTab = ref<ShieldKey>('defc')
 
 const form = useTemplateRef<Form<typeof state>>('form')
 const saving = ref(false)
+// Switching Turnstile on asks for one passed check with the configured keys (see the server).
+const turnstileToken = ref('')
+const turnstile = useTemplateRef<{ reset: () => void }>('turnstile')
+const turnstileCheckNeeded = computed(() => state.enableTurnstile && !data.value?.settings.enableTurnstile && !!data.value?.turnstileSiteKey)
 const fileErrors = ref<string[]>([])
 const warnings = ref<string[]>([])
 
@@ -73,7 +77,7 @@ async function save() {
     // Send only shield files that were edited, so untouched files are never rewritten.
     const shields = Object.fromEntries(Object.entries(state.shields)
       .filter(([k, v]) => v !== null && v !== data.value!.shields[k as ShieldKey]))
-    const res = await $fetch('/api/settings', { method: 'POST', body: { ...state, shields } })
+    const res = await $fetch('/api/settings', { method: 'POST', body: { ...state, shields, turnstileToken: turnstileToken.value } })
     fileErrors.value = res.errors
     warnings.value = res.warnings
     if (res.timezone !== state.timezone)
@@ -96,6 +100,8 @@ async function save() {
   }
   finally {
     saving.value = false
+    // The token is single-use.
+    turnstile.value?.reset()
   }
 }
 
@@ -269,6 +275,30 @@ function reset() {
               <UCard>
                 <div class="space-y-5">
                   <USwitch v-model="state.enableRegistration" label="Public registration" description="Allow anyone to register a student account." />
+                  <UFormField name="enableTurnstile">
+                    <USwitch
+                      v-model="state.enableTurnstile"
+                      :disabled="!data.turnstileSiteKey && !state.enableTurnstile"
+                      label="Cloudflare Turnstile"
+                      description="Add Cloudflare's security check to sign-in, registration and password reset, against password guessing and bots. The server and browsers need internet access to Cloudflare."
+                    />
+                  </UFormField>
+                  <UAlert
+                    v-if="!data.turnstileSiteKey"
+                    color="neutral"
+                    variant="subtle"
+                    icon="i-lucide-key-round"
+                    title="Turnstile keys are not configured"
+                    description="Create a Turnstile widget in the Cloudflare dashboard for this site's host name, put its keys in docker/.env (TURNSTILE_SITE_KEY, TURNSTILE_SECRET_KEY) and restart the web service."
+                  />
+                  <div v-if="turnstileCheckNeeded" class="space-y-2">
+                    <p class="text-sm text-muted">
+                      Complete the check once before saving. It proves the keys work for this address, so switching on cannot lock anybody out of the sign-in page.
+                    </p>
+                    <ClientOnly>
+                      <TurnstileWidget ref="turnstile" v-model="turnstileToken" :site-key="data.turnstileSiteKey!" class="max-w-80" />
+                    </ClientOnly>
+                  </div>
                   <UFormField
                     label="Registration code"
                     name="registrationCode"

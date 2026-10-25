@@ -24,6 +24,7 @@ reads). The Docker setup already sets the paths, the judge mode and the backup f
 | `NUXT_QUEUE_ENABLED` | `true` | `false` on extra web replicas |
 | `NUXT_MAIL_HOST`, `NUXT_MAIL_PORT`, `NUXT_MAIL_SECURE`, `NUXT_MAIL_USER`, `NUXT_MAIL_PASS` | port 465, secure | SMTP for password resets and new-account mails |
 | `NUXT_AUTH_METHOD` | | `ldap` or `radius`, see [Users and sign-in](./users-and-sign-in) |
+| `NUXT_TURNSTILE_SITE_KEY`, `NUXT_TURNSTILE_SECRET_KEY` | (off) | Cloudflare Turnstile, see [Users and sign-in](./users-and-sign-in#cloudflare-turnstile) |
 
 Variables read by Compose from `docker/.env`:
 
@@ -33,6 +34,11 @@ Variables read by Compose from `docker/.env`:
 | `WEB_DB` | `shj_web` | Database name of the app |
 | `BACKUP_DIR` | `docker/backups` | Where backups are stored on the host |
 | `BACKUP_TIME`, `BACKUP_KEEP_DAYS`, `TZ` | `02:00`, `14`, `Asia/Jakarta` | Default backup schedule (Settings overrides it) |
+| `WEB_PORT` | `8402` | Port of the app, optionally with an address (`127.0.0.1:8402`) |
+| `IMAGE` | `sharif-judge-web:latest` | Image name (a second installation on the same server needs its own) |
+| `TRUST_PROXY`, `SESSION_COOKIE_SECURE` | `false` | Behind a reverse proxy / HTTPS, see [Installation](./installation#behind-a-reverse-proxy) |
+| `WITH_SWIFT` | `0` | `1` builds the image with Swift, see [Installation](./installation#swift) |
+| `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | (off) | Cloudflare Turnstile, see [Users and sign-in](./users-and-sign-in#cloudflare-turnstile) |
 
 After changing variables, run `docker compose up -d web`.
 
