@@ -51,17 +51,39 @@ function onKeydown(e: KeyboardEvent) {
   nextTick(() => el.setSelectionRange(s + 1, s + 1))
 }
 
-async function copyPasswords() {
-  if (!result.value)
-    return
-  const text = result.value.ok.map(u => u.join(',')).join('\n')
+/**
+ * Copies text exactly (no surrounding spaces or tabs, unlike selecting a table cell). The
+ * Clipboard API only exists on HTTPS pages, and campus installations often run on plain HTTP,
+ * so fall back to a hidden textarea there.
+ */
+async function copyText(text: string, title: string) {
   try {
-    await navigator.clipboard.writeText(text)
-    toast.add({ title: 'Copied to clipboard.', color: 'success', icon: 'i-lucide-clipboard-check' })
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text)
+    }
+    else {
+      const area = document.createElement('textarea')
+      area.value = text
+      area.setAttribute('readonly', '')
+      area.style.position = 'fixed'
+      area.style.opacity = '0'
+      document.body.appendChild(area)
+      area.select()
+      const ok = document.execCommand('copy')
+      area.remove()
+      if (!ok)
+        throw new Error('copy failed')
+    }
+    toast.add({ title, color: 'success', icon: 'i-lucide-clipboard-check' })
   }
   catch {
     toast.add({ title: 'Could not access the clipboard.', color: 'error' })
   }
+}
+
+function copyPasswords() {
+  if (result.value)
+    copyText(result.value.ok.map(u => u.join(',')).join('\n'), 'Copied to clipboard.')
 }
 
 function again() {
@@ -134,7 +156,19 @@ function again() {
                     {{ u[2] }}
                   </td>
                   <td class="py-2 pe-4">
-                    <code class="font-mono bg-elevated rounded px-1.5 py-0.5">{{ u[3] }}</code>
+                    <div class="flex items-center gap-1">
+                      <code class="font-mono bg-elevated rounded px-1.5 py-0.5">{{ u[3] }}</code>
+                      <UTooltip text="Copy password">
+                        <UButton
+                          size="xs"
+                          color="neutral"
+                          variant="ghost"
+                          icon="i-lucide-copy"
+                          :aria-label="`Copy the password of ${u[0]}`"
+                          @click="copyText(u[3], `Password of ${u[0]} copied.`)"
+                        />
+                      </UTooltip>
+                    </div>
                   </td>
                   <td class="py-2">
                     {{ u[4] }}
