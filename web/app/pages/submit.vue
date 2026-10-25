@@ -81,7 +81,7 @@ const tabs = computed(() => [
 
 <template>
   <AppPage title="Submit" icon="i-lucide-upload">
-    <div class="max-w-7xl mx-auto space-y-5">
+    <div class="space-y-5">
       <UAlert
         v-if="data?.blocked"
         color="warning"

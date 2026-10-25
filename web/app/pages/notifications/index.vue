@@ -9,7 +9,7 @@ const target = computed(() => route.hash.startsWith('#n-') ? Number(route.hash.s
 
 <template>
   <AppPage title="Notifications" icon="i-lucide-bell">
-    <div class="max-w-4xl mx-auto space-y-4">
+    <div class="space-y-4">
       <div v-if="level >= 2" class="flex justify-end">
         <UButton to="/notifications/new" icon="i-lucide-plus" label="New notification" />
       </div>

@@ -4,7 +4,7 @@ definePageMeta({ minLevel: 2 })
 
 <template>
   <AppPage title="New notification" icon="i-lucide-bell-plus">
-    <UCard class="max-w-4xl">
+    <UCard >
       <LazyNotificationEditor />
     </UCard>
   </AppPage>

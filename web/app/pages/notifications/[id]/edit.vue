@@ -10,7 +10,7 @@ if (error.value || !notification.value)
 
 <template>
   <AppPage title="Edit notification" icon="i-lucide-pencil">
-    <UCard v-if="notification" class="max-w-4xl">
+    <UCard v-if="notification" >
       <p class="text-xs text-muted mb-4">
         Posted {{ formatDateTime(notification.time) }}
       </p>
