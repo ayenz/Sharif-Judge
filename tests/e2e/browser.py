@@ -20,12 +20,14 @@ with sync_playwright() as p:
         page.click("button[type=submit]"); page.wait_for_url(B + "/")
         for path in pages:
             errs.clear()
-            page.goto(B + path, wait_until="load")
+            resp = page.goto(B + path, wait_until="load")
             page.wait_for_timeout(1200)  # live updates keep a connection open, so "networkidle" never settles reliably
             name = path.strip("/").replace("/", "_").replace("?", "_") or "dashboard"
             page.screenshot(path=f"/tmp/sharif-shots/{user}-{name}.png", full_page=False)
             wide = page.evaluate("document.documentElement.scrollWidth > window.innerWidth + 1")
             if wide: errs.append("horizontal page scroll")
+            # An error page (e.g. a component throwing during SSR) logs nothing to the console.
+            if resp is not None and resp.status >= 500: errs.append(f"HTTP {resp.status}")
             if "submit" in path:
                 ace = page.locator(".ace_editor").count()
                 if not ace: errs.append("ace editor not rendered")
