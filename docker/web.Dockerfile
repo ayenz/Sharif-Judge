@@ -77,9 +77,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY --from=build /src/web/.output ./web
-COPY tester ./tester
-COPY judge ./judge
+# Order matters for rebuild time: the large toolchains rarely change, so they come first and
+# stay cached; the judge, the tester and the built app change often and come last, so a code
+# change only re-copies them instead of hundreds of MB of toolchains.
 COPY --from=jplag /opt/jre25 /opt/jre25
 COPY --from=jplag /opt/jplag /opt/jplag
 COPY --from=golang /usr/local/go /usr/local/go
@@ -94,9 +94,13 @@ COPY --from=swift /opt/swift /opt/swift
 # nothing but its jail directory and cannot read /data.
 RUN useradd --system --uid 2000 --no-create-home --shell /usr/sbin/nologin shjrun \
     && mkdir -p /data/assignments /data/cheat /data/jobs \
-    && chown -R node:node /app/tester /data \
-    && chmod 711 /data /data/assignments /app/tester \
+    && chown -R node:node /data \
+    && chmod 711 /data /data/assignments \
     && chmod 700 /data/jobs /data/cheat
+COPY judge ./judge
+COPY --chown=node:node tester ./tester
+RUN chmod 711 /app/tester
+COPY --from=build /src/web/.output ./web
 
 ENV NODE_ENV=production \
     PORT=3000 \
