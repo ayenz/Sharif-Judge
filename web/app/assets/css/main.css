@@ -105,3 +105,27 @@
 .tabs-scroll::-webkit-scrollbar { display: none; }
 .tabs-scroll > [data-slot="indicator"] { bottom: 0; }
 .tabs-scroll > [data-slot="trigger"] { flex-shrink: 0; }
+
+/*
+ * One look for every data table. Plain tables use class="data-table"; UTable gets the same
+ * classes from app.config.ts. The rules sit in the components layer and inside :where(), so a
+ * utility on a cell (text-right, w-10, …) still wins. The actions column is always the last one,
+ * right-aligned, headed "Actions".
+ */
+@layer components {
+  :where(.data-table) { width: 100%; font-size: var(--text-sm); line-height: var(--text-sm--line-height); }
+  :where(.data-table) > thead { background: color-mix(in oklab, var(--ui-bg-elevated) 60%, transparent); }
+  :where(.data-table) > thead > tr > th {
+    padding: .625rem .75rem;
+    text-align: start;
+    font-size: var(--text-xs);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .025em;
+    color: var(--ui-text-muted);
+    white-space: nowrap;
+  }
+  :where(.data-table) > tbody > tr > td { padding: .5rem .75rem; vertical-align: middle; }
+  :where(.data-table) > tbody > tr + tr { border-top: 1px solid var(--ui-border); }
+  :where(.data-table) .col-actions { text-align: end; white-space: nowrap; }
+}

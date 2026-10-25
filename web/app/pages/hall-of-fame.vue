@@ -96,24 +96,24 @@ const podiumOrder = computed(() => {
       </div>
 
       <div class="overflow-x-auto rounded-lg border border-default">
-        <table class="w-full text-sm">
-          <thead class="bg-elevated text-left">
+        <table class="data-table">
+          <thead>
             <tr>
-              <th class="px-3 py-2 w-16 text-center">
+              <th class="w-16 text-center">
                 Rank
               </th>
-              <th class="px-3 py-2">
+              <th>
                 Display Name
               </th>
-              <th class="px-3 py-2">
+              <th>
                 Username
               </th>
-              <th class="px-3 py-2 text-right">
+              <th class="text-right">
                 Total Score
               </th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-default">
+          <tbody>
             <tr
               v-for="entry in filtered"
               :key="entry.username"
@@ -123,24 +123,24 @@ const podiumOrder = computed(() => {
               @click="selected = entry"
               @keydown.enter="selected = entry"
             >
-              <td class="px-3 py-2 text-center">
+              <td class="text-center">
                 <span
                   class="inline-flex size-7 items-center justify-center rounded-full text-xs font-semibold"
                   :class="entry.rank <= 3 ? [medal[entry.rank]?.ring, medal[entry.rank]?.text, 'ring-1'] : 'text-muted'"
                 >{{ entry.rank }}</span>
               </td>
-              <td class="px-3 py-2 font-medium text-highlighted" dir="auto">
+              <td class="font-medium text-highlighted" dir="auto">
                 {{ entry.displayName }}
               </td>
-              <td class="px-3 py-2 text-muted">
+              <td class="text-muted">
                 {{ entry.username }}
               </td>
-              <td class="px-3 py-2 text-right font-semibold tabular-nums">
+              <td class="text-right font-semibold tabular-nums">
                 {{ entry.totalScore }}
               </td>
             </tr>
             <tr v-if="!filtered.length">
-              <td colspan="4" class="px-3 py-6 text-center text-muted">
+              <td colspan="4" class="text-center text-muted">
                 No matching users.
               </td>
             </tr>

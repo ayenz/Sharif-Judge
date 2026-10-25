@@ -108,21 +108,23 @@ function simColor(v: number) {
             <UInput v-model="search" icon="i-lucide-search" placeholder="Search student" size="sm" class="w-48" />
           </div>
           <div class="overflow-x-auto rounded-lg border border-default">
-            <table class="w-full text-sm">
-              <thead class="bg-elevated/60 text-xs uppercase tracking-wide text-muted">
-                <tr class="[&>th]:px-3 [&>th]:py-2 [&>th]:font-medium [&>th:not(.text-right)]:text-left [&>th]:whitespace-nowrap">
+            <table class="data-table">
+              <thead>
+                <tr>
                   <th>Student</th>
                   <th class="text-right">
                     Assignments
                   </th>
                   <th>Highest similarity</th>
                   <th>Similar to</th>
-                  <th><span class="sr-only">Details</span></th>
+                  <th class="col-actions">
+                    Actions
+                  </th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-default">
+              <tbody>
                 <template v-for="s in students" :key="s.username">
-                  <tr class="[&>td]:px-3 [&>td]:py-2 hover:bg-elevated/40 cursor-pointer" @click="expanded = expanded === s.username ? null : s.username">
+                  <tr class="hover:bg-elevated/40 cursor-pointer" @click="expanded = expanded === s.username ? null : s.username">
                     <td>
                       <span class="font-medium">{{ s.username }}</span>
                       <span v-if="s.displayName" class="block text-xs text-muted">{{ s.displayName }}</span>
@@ -154,7 +156,7 @@ function simColor(v: number) {
                     </td>
                   </tr>
                   <tr v-if="expanded === s.username" class="bg-elevated/25">
-                    <td colspan="5" class="px-3 py-3">
+                    <td colspan="5">
                       <div class="flex flex-wrap gap-1.5">
                         <UButton
                           v-for="a in s.assignments"

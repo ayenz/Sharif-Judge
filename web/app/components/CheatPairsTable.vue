@@ -42,32 +42,32 @@ function open(pair: CheatPair) {
     </div>
 
     <div class="overflow-x-auto rounded-lg border border-default">
-      <table class="w-full text-sm">
-        <thead class="bg-elevated/60 text-xs uppercase tracking-wide text-muted">
-          <tr class="[&>th]:px-3 [&>th]:py-2 [&>th]:font-medium [&>th]:text-left [&>th]:whitespace-nowrap">
+      <table class="data-table">
+        <thead>
+          <tr>
             <th>Similarity</th>
             <th>Students</th>
             <th>Problem</th>
             <th>Language</th>
             <th>Longest match</th>
-            <th class="w-8">
-              <span class="sr-only">Open</span>
+            <th class="col-actions">
+              Actions
             </th>
           </tr>
         </thead>
         <tbody v-if="loading && !pairs.length">
           <tr v-for="i in 5" :key="i">
-            <td colspan="6" class="px-3 py-2">
+            <td colspan="6">
               <USkeleton class="h-7 w-full" />
             </td>
           </tr>
         </tbody>
-        <tbody v-else class="divide-y divide-default">
+        <tbody v-else>
           <tr
             v-for="p in rows"
             :key="p.id"
             tabindex="0"
-            class="group cursor-pointer [&>td]:px-3 [&>td]:py-2 [&>td]:whitespace-nowrap hover:bg-elevated/50 focus:outline-none focus-visible:bg-elevated transition-colors"
+            class="group cursor-pointer hover:bg-elevated/50 focus:outline-none focus-visible:bg-elevated transition-colors"
             @click="open(p)"
             @keydown.enter="open(p)"
           >
@@ -102,7 +102,7 @@ function open(pair: CheatPair) {
             <td class="tabular-nums text-muted">
               {{ p.longestMatch }} tokens
             </td>
-            <td>
+            <td class="col-actions">
               <UIcon name="i-lucide-chevron-right" class="size-4 text-dimmed transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
             </td>
           </tr>

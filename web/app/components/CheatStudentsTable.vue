@@ -75,9 +75,9 @@ function minutes(ms: number | null) {
     </div>
 
     <div class="overflow-x-auto rounded-lg border border-default">
-      <table class="w-full text-sm">
-        <thead class="bg-elevated/60 text-xs uppercase tracking-wide text-muted">
-          <tr class="[&>th]:px-3 [&>th]:py-2 [&>th]:font-medium [&>th]:text-left [&>th]:whitespace-nowrap">
+      <table class="data-table">
+        <thead>
+          <tr>
             <th>Review</th>
             <th>Score</th>
             <th>Student</th>
@@ -89,16 +89,16 @@ function minutes(ms: number | null) {
         </thead>
         <tbody v-if="loading && !signals.length">
           <tr v-for="i in 5" :key="i">
-            <td colspan="7" class="px-3 py-2">
+            <td colspan="7">
               <USkeleton class="h-7 w-full" />
             </td>
           </tr>
         </tbody>
-        <TransitionGroup v-else tag="tbody" name="cheat-row" class="divide-y divide-default">
+        <TransitionGroup v-else tag="tbody" name="cheat-row">
           <tr
             v-for="s in rows"
             :key="`${s.username}-${s.problem}`"
-            class="[&>td]:px-3 [&>td]:py-2 [&>td]:whitespace-nowrap hover:bg-elevated/40 transition-colors"
+            class="hover:bg-elevated/40 transition-colors"
           >
             <td>
               <UTooltip :text="CHEAT_LEVEL[s.level].hint">

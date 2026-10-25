@@ -40,9 +40,9 @@ async function run(action: 'pause' | 'resume' | 'empty') {
       </div>
 
       <div class="overflow-x-auto rounded-lg border border-default">
-        <table class="w-full text-sm">
-          <thead class="bg-elevated/60 text-xs uppercase tracking-wide text-muted">
-            <tr class="[&>th]:px-3 [&>th]:py-2 [&>th]:text-left [&>th]:font-medium">
+        <table class="data-table">
+          <thead>
+            <tr>
               <th>#</th>
               <th>Submit ID</th>
               <th>Username</th>
@@ -51,8 +51,8 @@ async function run(action: 'pause' | 'resume' | 'empty') {
               <th>Type</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-default">
-            <tr v-for="(item, i) in data?.items" :key="item.id" class="[&>td]:px-3 [&>td]:py-2" :class="i === 0 && data?.working ? 'bg-primary/5' : ''">
+          <tbody>
+            <tr v-for="(item, i) in data?.items" :key="item.id" :class="i === 0 && data?.working ? 'bg-primary/5' : ''">
               <td class="text-muted">
                 {{ i + 1 }}
               </td>

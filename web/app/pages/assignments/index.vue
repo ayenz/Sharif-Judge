@@ -64,10 +64,9 @@ const columns: TableColumn<AssignmentRow>[] = [
   { accessorKey: 'problems', header: 'Problems' },
   { accessorKey: 'totalSubmits', header: 'Submissions' },
   { accessorKey: 'coefficient', header: 'Coefficient' },
-  { accessorKey: 'startTime', header: 'Start' },
-  { accessorKey: 'finishTime', header: 'Finish' },
+  { id: 'schedule', header: 'Schedule' },
   { id: 'status', header: 'Status' },
-  { id: 'actions', header: srOnly('Actions') },
+  { id: 'actions', header: 'Actions', meta: { class: { th: 'text-right', td: 'text-right' } } },
 ]
 
 function staffItems(row: AssignmentRow): DropdownMenuItem[][] {
@@ -195,17 +194,19 @@ const messageIcon = { success: 'i-lucide-circle-check', notice: 'i-lucide-info',
             <span v-else class="font-mono whitespace-nowrap">{{ row.original.coefficient }} %</span>
           </template>
 
-          <template #startTime-cell="{ row }">
-            <span class="whitespace-nowrap">{{ formatDateTime(row.original.startTime) }}</span>
-          </template>
-          <template #finishTime-cell="{ row }">
-            <span class="whitespace-nowrap">{{ formatDateTime(row.original.finishTime) }}</span>
+          <template #schedule-cell="{ row }">
+            <div class="text-xs leading-5 whitespace-nowrap">
+              <div><span class="text-muted">Start</span> {{ formatDateTime(row.original.startTime) }}</div>
+              <div><span class="text-muted">Finish</span> {{ formatDateTime(row.original.finishTime) }}</div>
+            </div>
           </template>
 
           <template #status-cell="{ row }">
-            <div class="flex gap-1">
+            <div class="flex items-center gap-1">
               <UBadge :label="row.original.open ? 'Open' : 'Closed'" :color="row.original.open ? 'success' : 'error'" variant="subtle" />
-              <UBadge v-if="row.original.scoreboard" label="Scoreboard" color="info" variant="subtle" icon="i-lucide-trophy" />
+              <UTooltip v-if="row.original.scoreboard" text="Scoreboard enabled">
+                <UBadge color="info" variant="subtle" icon="i-lucide-trophy" aria-label="Scoreboard enabled" />
+              </UTooltip>
             </div>
           </template>
 

@@ -175,9 +175,9 @@ const rowNumber = (i: number) => ((data.value?.page ?? 1) - 1) * (data.value?.pe
     />
 
     <div class="overflow-x-auto rounded-lg border border-default">
-      <table class="w-full text-sm">
-        <thead class="bg-elevated/60 text-xs uppercase tracking-wide text-muted">
-          <tr class="[&>th]:px-3 [&>th]:py-2 [&>th]:font-medium [&>th:not(.text-right)]:text-left [&>th]:whitespace-nowrap">
+      <table class="data-table">
+        <thead>
+          <tr>
             <th v-if="view === 'all'" class="w-10">
               Final
             </th>
@@ -208,11 +208,11 @@ const rowNumber = (i: number) => ((data.value?.page ?? 1) - 1) * (data.value?.pe
             </th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-default">
+        <tbody>
           <tr
             v-for="(item, i) in data?.items"
             :key="`${item.username}-${item.problem}-${item.submitId}`"
-            class="[&>td]:px-3 [&>td]:py-2 [&>td]:whitespace-nowrap hover:bg-elevated/40"
+            class="hover:bg-elevated/40"
             :class="view === 'final' && userBand[i] ? 'bg-elevated/25' : ''"
           >
             <td v-if="view === 'all'">
@@ -266,15 +266,19 @@ const rowNumber = (i: number) => ((data.value?.page ?? 1) - 1) * (data.value?.pe
               <UBadge v-if="item.status === 'Uploaded'" color="info" variant="subtle">
                 Uploaded
               </UBadge>
-              <UButton
-                v-else
-                size="xs"
-                :color="statusColor(item)"
-                :variant="item.status === 'PENDING' ? 'soft' : 'subtle'"
-                :loading="item.status === 'PENDING'"
-                :label="item.status === 'SCORE' ? String(item.finalScore) : item.status"
-                @click="show(item, 'result')"
-              />
+              <UTooltip v-else :text="item.status === 'PENDING' ? 'Waiting for the judge' : 'View the result of each test'">
+                <UButton
+                  size="xs"
+                  :color="statusColor(item)"
+                  :variant="item.status === 'PENDING' ? 'soft' : 'subtle'"
+                  :loading="item.status === 'PENDING'"
+                  :trailing-icon="item.status === 'PENDING' ? undefined : 'i-lucide-chevron-right'"
+                  :label="item.status === 'SCORE' ? String(item.finalScore) : item.status"
+                  :aria-label="`Result of submission ${item.submitId}`"
+                  class="cursor-pointer"
+                  @click="show(item, 'result')"
+                />
+              </UTooltip>
             </td>
             <td class="text-right">
               <div class="flex justify-end gap-1">

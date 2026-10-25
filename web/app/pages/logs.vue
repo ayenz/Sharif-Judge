@@ -79,25 +79,25 @@ function rowClass(l: { loginId: number, last24hLoginId: number | null }) {
 
       <UCard :ui="{ body: 'p-0 sm:p-0' }">
         <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead class="text-left text-muted border-b border-default">
+          <table class="data-table">
+            <thead>
               <tr>
-                <th class="px-4 py-3 font-medium">
+                <th>
                   #
                 </th>
-                <th class="px-4 py-3 font-medium">
+                <th>
                   Login ID
                 </th>
-                <th class="px-4 py-3 font-medium">
+                <th>
                   Username
                 </th>
-                <th class="px-4 py-3 font-medium">
+                <th>
                   IP address
                 </th>
-                <th class="px-4 py-3 font-medium">
+                <th>
                   Login time
                 </th>
-                <th class="px-4 py-3 font-medium">
+                <th>
                   Login from different IP (&lt; 24h)
                 </th>
               </tr>
@@ -107,28 +107,28 @@ function rowClass(l: { loginId: number, last24hLoginId: number | null }) {
                 v-for="(l, i) in rows"
                 :id="`login-${l.loginId}`"
                 :key="l.loginId"
-                class="border-b border-default last:border-0 transition-colors scroll-mt-24"
+                class="transition-colors scroll-mt-24"
                 :class="rowClass(l)"
               >
-                <td class="px-4 py-2.5 text-muted tabular-nums">
+                <td class="text-muted tabular-nums">
                   {{ i + 1 }}
                 </td>
-                <td class="px-4 py-2.5 tabular-nums">
+                <td class="tabular-nums">
                   {{ l.loginId }}
                 </td>
-                <td class="px-4 py-2.5 font-medium">
+                <td class="font-medium">
                   <span class="inline-flex items-center gap-1.5">
                     <UIcon v-if="flaggedUsers.has(l.username)" name="i-lucide-triangle-alert" class="text-warning" />
                     {{ l.username }}
                   </span>
                 </td>
-                <td class="px-4 py-2.5 font-mono text-xs">
+                <td class="font-mono text-xs">
                   {{ l.ipAddress }}
                 </td>
-                <td class="px-4 py-2.5 whitespace-nowrap text-muted">
+                <td class="whitespace-nowrap text-muted">
                   {{ formatDateTime(l.timestamp) }}
                 </td>
-                <td class="px-4 py-2.5">
+                <td>
                   <UButton
                     v-if="l.last24hLoginId !== null"
                     size="xs"

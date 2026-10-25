@@ -87,7 +87,12 @@ for any new long job, and make it resume or fail cleanly after a restart (see
 ## Client (`web/app/`)
 
 - **Page shell**: every page uses `<AppPage title icon>`. Put page actions in a header row inside
-  the page.
+  the page. All pages share one content width (`max-w-7xl`); only detail views that show code side
+  by side or replay it (`/cheat/pair/…`, `/recordings/…/…/…`) use `wide`.
+- **Tables**: plain tables use `<table class="data-table">` and `UTable` gets the same look from
+  `app.config.ts`. Do not restyle headers or cell padding per page. The actions column is the last
+  one, headed "Actions", right-aligned (`class="col-actions"`, or `meta: { class: { th: 'text-right',
+  td: 'text-right' } }` in a `UTable` column). Right-align number columns with `text-right`.
 - **Permissions**: `definePageMeta({ minLevel: 2 })` on the page, `useMe().level` to hide controls.
   Hiding is cosmetic; the API check is what protects data.
 - **Data**: `useFetch('/api/...')` for page data; mutations with `$fetch` and `useToast()`.

@@ -49,7 +49,7 @@ function cellClass(score: number, max: number) {
 </script>
 
 <template>
-  <AppPage title="Scoreboard" icon="i-lucide-trophy" wide>
+  <AppPage title="Scoreboard" icon="i-lucide-trophy">
     <div v-if="!data && status === 'pending'" class="space-y-2">
       <USkeleton v-for="i in 6" :key="i" class="h-10 w-full" />
     </div>

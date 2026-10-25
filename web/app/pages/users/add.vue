@@ -118,44 +118,44 @@ function again() {
             Passwords are shown only once. Copy them now if you need to hand them out.
           </p>
           <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead class="text-left text-muted">
-                <tr class="border-b border-default">
-                  <th class="py-2 pe-4 font-medium">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th class="font-medium">
                     #
                   </th>
-                  <th class="py-2 pe-4 font-medium">
+                  <th class="font-medium">
                     Username
                   </th>
-                  <th class="py-2 pe-4 font-medium">
+                  <th class="font-medium">
                     Email
                   </th>
-                  <th class="py-2 pe-4 font-medium">
+                  <th class="font-medium">
                     Display name
                   </th>
-                  <th class="py-2 pe-4 font-medium">
+                  <th class="font-medium">
                     Password
                   </th>
-                  <th class="py-2 font-medium">
+                  <th class="font-medium">
                     Role
                   </th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(u, i) in result.ok" :key="u[0]" class="border-b border-default last:border-0">
-                  <td class="py-2 pe-4 text-muted">
+                <tr v-for="(u, i) in result.ok" :key="u[0]">
+                  <td class="text-muted">
                     {{ i + 1 }}
                   </td>
-                  <td class="py-2 pe-4 font-medium">
+                  <td class="font-medium">
                     {{ u[0] }}
                   </td>
-                  <td class="py-2 pe-4">
+                  <td>
                     {{ u[1] }}
                   </td>
-                  <td class="py-2 pe-4" dir="auto">
+                  <td dir="auto">
                     {{ u[2] }}
                   </td>
-                  <td class="py-2 pe-4">
+                  <td>
                     <div class="flex items-center gap-1">
                       <code class="font-mono bg-elevated rounded px-1.5 py-0.5">{{ u[3] }}</code>
                       <UTooltip text="Copy password">
@@ -170,7 +170,7 @@ function again() {
                       </UTooltip>
                     </div>
                   </td>
-                  <td class="py-2">
+                  <td>
                     {{ u[4] }}
                   </td>
                 </tr>
@@ -189,47 +189,47 @@ function again() {
             </div>
           </template>
           <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead class="text-left text-muted">
-                <tr class="border-b border-default">
-                  <th class="py-2 pe-4 font-medium">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th class="font-medium">
                     Username
                   </th>
-                  <th class="py-2 pe-4 font-medium">
+                  <th class="font-medium">
                     Email
                   </th>
-                  <th class="py-2 pe-4 font-medium">
+                  <th class="font-medium">
                     Display name
                   </th>
-                  <th class="py-2 pe-4 font-medium">
+                  <th class="font-medium">
                     Password
                   </th>
-                  <th class="py-2 pe-4 font-medium">
+                  <th class="font-medium">
                     Role
                   </th>
-                  <th class="py-2 font-medium">
+                  <th class="font-medium">
                     Error
                   </th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(u, i) in result.errors" :key="i" class="border-b border-default last:border-0">
-                  <td class="py-2 pe-4 font-medium">
+                <tr v-for="(u, i) in result.errors" :key="i">
+                  <td class="font-medium">
                     {{ u[0] }}
                   </td>
-                  <td class="py-2 pe-4">
+                  <td>
                     {{ u[1] }}
                   </td>
-                  <td class="py-2 pe-4" dir="auto">
+                  <td dir="auto">
                     {{ u[2] }}
                   </td>
-                  <td class="py-2 pe-4">
+                  <td>
                     <code v-if="u[3]" class="font-mono bg-elevated rounded px-1.5 py-0.5">{{ u[3] }}</code>
                   </td>
-                  <td class="py-2 pe-4">
+                  <td>
                     {{ u[4] }}
                   </td>
-                  <td class="py-2 text-error">
+                  <td class="text-error">
                     {{ u[5] }}
                   </td>
                 </tr>

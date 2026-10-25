@@ -1,5 +1,5 @@
 <template>
-  <AppPage title="All Submissions" icon="i-lucide-list" wide>
+  <AppPage title="All Submissions" icon="i-lucide-list">
     <SubmissionsView view="all" />
   </AppPage>
 </template>

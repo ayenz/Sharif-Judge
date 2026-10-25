@@ -42,8 +42,10 @@ function sortHeader(label: string) {
       color: 'neutral',
       variant: 'ghost',
       label,
-      icon: sorted ? (sorted === 'asc' ? 'i-lucide-arrow-up-narrow-wide' : 'i-lucide-arrow-down-wide-narrow') : 'i-lucide-arrow-up-down',
-      class: '-mx-2.5',
+      size: 'xs',
+      trailingIcon: sorted ? (sorted === 'asc' ? 'i-lucide-arrow-up-narrow-wide' : 'i-lucide-arrow-down-wide-narrow') : 'i-lucide-arrow-up-down',
+      // Same text style as every other column header (see .data-table in main.css).
+      class: '-mx-2 text-xs font-medium uppercase tracking-wide text-muted',
       onClick: () => column.toggleSorting(sorted === 'asc'),
     })
   }
@@ -76,6 +78,8 @@ const columns: TableColumn<UserRow>[] = [
   },
   {
     id: 'actions',
+    header: 'Actions',
+    meta: { class: { th: 'text-right', td: 'text-right' } },
     cell: ({ row }) => h('div', { class: 'text-right' }, h(UDropdownMenu, {
       items: rowActions(row.original),
       content: { align: 'end' },

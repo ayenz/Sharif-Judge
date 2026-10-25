@@ -22,7 +22,8 @@ useHead({ title: () => props.title })
     </template>
 
     <template #body>
-      <div :class="wide ? 'w-full' : 'w-full max-w-6xl mx-auto'">
+      <!-- One width for every page; only detail views that compare or replay code use "wide". -->
+      <div :class="wide ? 'w-full' : 'w-full max-w-7xl mx-auto'">
         <slot />
       </div>
     </template>

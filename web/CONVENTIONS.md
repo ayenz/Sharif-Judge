@@ -35,6 +35,7 @@ comment explaining the difference.
 
 ## Client (`app/`)
 - Every page uses `<AppPage title icon>`; put page actions in a header row inside the page.
+- One content width for all pages; `wide` only for code side by side or replay. Tables: `class="data-table"` (plain) or `UTable` (themed in `app.config.ts`); no per-page header or padding styles; last column "Actions", right-aligned.
 - Permission gating: `definePageMeta({ minLevel: 2 })` and `useMe().level` for hiding controls.
 - Data: `useFetch('/api/...')` for page data; mutations with `$fetch` + `useToast()`. If
   TypeScript reports "excessive stack depth" on a `$fetch`, use `api<T>(url, options)` from
