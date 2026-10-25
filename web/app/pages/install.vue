@@ -27,16 +27,16 @@ const { submit, loading, error } = useApiForm('/api/install', state, { onSuccess
       <UAlert v-if="error" color="error" variant="subtle" icon="i-lucide-circle-alert" :title="error" />
       <UForm ref="form" :state="state" class="space-y-4" @submit="submit">
         <UFormField label="Admin username" name="username" required>
-          <UInput v-model="state.username" class="w-full" />
+          <UInput v-model="state.username" required class="w-full" />
         </UFormField>
         <UFormField label="Admin email" name="email" required>
-          <UInput v-model="state.email" type="email" class="w-full" />
+          <UInput v-model="state.email" required type="email" class="w-full" />
         </UFormField>
         <UFormField label="Password" name="password" required>
-          <UInput v-model="state.password" type="password" autocomplete="new-password" class="w-full" />
+          <UInput v-model="state.password" required type="password" autocomplete="new-password" class="w-full" />
         </UFormField>
         <UFormField label="Confirm password" name="passwordAgain" required>
-          <UInput v-model="state.passwordAgain" type="password" autocomplete="new-password" class="w-full" />
+          <UInput v-model="state.passwordAgain" required type="password" autocomplete="new-password" class="w-full" />
         </UFormField>
         <UButton type="submit" block :loading="loading" label="Install" />
       </UForm>

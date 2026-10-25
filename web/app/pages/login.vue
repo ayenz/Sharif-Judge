@@ -32,10 +32,10 @@ const { submit, loading, error } = useApiForm('/api/auth/login', state, {
 
     <UForm ref="form" :state="state" class="space-y-4" @submit="submit">
       <UFormField label="Username" name="username" required>
-        <UInput v-model="state.username" autocomplete="username" autofocus class="w-full" />
+        <UInput v-model="state.username" required autocomplete="username" autofocus class="w-full" />
       </UFormField>
       <UFormField label="Password" name="password" required>
-        <UInput v-model="state.password" type="password" autocomplete="current-password" class="w-full" />
+        <UInput v-model="state.password" required type="password" autocomplete="current-password" class="w-full" />
       </UFormField>
       <UButton type="submit" block :loading="loading" label="Sign in" />
       <!-- After the button, so Tab goes username → password → Sign in. -->

@@ -30,22 +30,22 @@ const { submit, loading, error } = useApiForm('/api/auth/register', state, { onS
     <UAlert v-if="error" color="error" variant="subtle" icon="i-lucide-circle-alert" :title="error" />
     <UForm ref="form" :state="state" class="space-y-4" @submit="submit">
       <UFormField v-if="options?.registrationCodeRequired" label="Registration code" name="registrationCode" required>
-        <UInput v-model="state.registrationCode" class="w-full" />
+        <UInput v-model="state.registrationCode" required class="w-full" />
       </UFormField>
       <UFormField label="Username" name="username" required help="3–20 lowercase letters or digits">
-        <UInput v-model="state.username" autocomplete="username" class="w-full" />
+        <UInput v-model="state.username" required autocomplete="username" class="w-full" />
       </UFormField>
       <UFormField label="Email" name="email" required>
-        <UInput v-model="state.email" type="email" autocomplete="email" class="w-full" />
+        <UInput v-model="state.email" required type="email" autocomplete="email" class="w-full" />
       </UFormField>
       <UFormField label="Display name" name="displayName">
         <UInput v-model="state.displayName" autocomplete="name" class="w-full" />
       </UFormField>
       <UFormField label="Password" name="password" required>
-        <UInput v-model="state.password" type="password" autocomplete="new-password" class="w-full" />
+        <UInput v-model="state.password" required type="password" autocomplete="new-password" class="w-full" />
       </UFormField>
       <UFormField label="Confirm password" name="passwordAgain" required>
-        <UInput v-model="state.passwordAgain" type="password" autocomplete="new-password" class="w-full" />
+        <UInput v-model="state.passwordAgain" required type="password" autocomplete="new-password" class="w-full" />
       </UFormField>
       <UButton type="submit" block :loading="loading" label="Register" />
     </UForm>

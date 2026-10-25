@@ -22,10 +22,10 @@ const { submit, loading, error } = useApiForm('/api/auth/reset', state, { onSucc
       <UAlert v-if="error" color="error" variant="subtle" icon="i-lucide-circle-alert" :title="error" />
       <UForm ref="form" :state="state" class="space-y-4" @submit="submit">
         <UFormField label="New password" name="password" required>
-          <UInput v-model="state.password" type="password" autocomplete="new-password" class="w-full" />
+          <UInput v-model="state.password" required type="password" autocomplete="new-password" class="w-full" />
         </UFormField>
         <UFormField label="Confirm password" name="passwordAgain" required>
-          <UInput v-model="state.passwordAgain" type="password" autocomplete="new-password" class="w-full" />
+          <UInput v-model="state.passwordAgain" required type="password" autocomplete="new-password" class="w-full" />
         </UFormField>
         <UButton type="submit" block :loading="loading" label="Change password" />
       </UForm>

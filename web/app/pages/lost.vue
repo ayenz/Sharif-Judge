@@ -29,7 +29,7 @@ const { submit, loading, error } = useApiForm('/api/auth/lost', state, { onSucce
       <UAlert v-if="error" color="error" variant="subtle" icon="i-lucide-circle-alert" :title="error" />
       <UForm ref="form" :state="state" class="space-y-4" @submit="submit">
         <UFormField label="Email" name="email" required>
-          <UInput v-model="state.email" type="email" autocomplete="email" autofocus class="w-full" />
+          <UInput v-model="state.email" required type="email" autocomplete="email" autofocus class="w-full" />
         </UFormField>
         <UButton type="submit" block :loading="loading" label="Send reset link" />
       </UForm>
